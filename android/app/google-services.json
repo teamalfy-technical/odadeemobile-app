@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "281229561594",
+    "project_id": "odadee-7b689",
+    "storage_bucket": "odadee-7b689.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281229561594:android:2df7d0591f9f57c6218343",
+        "android_client_info": {
+          "package_name": "com.odadee.project.odadee"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzFjwxyPvrVTw6CfrFHrcg1ZmXx8szxLk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

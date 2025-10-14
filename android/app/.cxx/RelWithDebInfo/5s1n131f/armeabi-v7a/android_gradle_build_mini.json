@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/icode/Developer/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/icode/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/icode/FlutterProjects/odadee-fixing_new_radio/android/app/.cxx/RelWithDebInfo/5s1n131f/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/icode/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/icode/FlutterProjects/odadee-fixing_new_radio/android/app/.cxx/RelWithDebInfo/5s1n131f/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

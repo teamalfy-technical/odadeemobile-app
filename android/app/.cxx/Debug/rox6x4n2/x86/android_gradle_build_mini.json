@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/icode/Developer/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/icode/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/icode/FlutterProjects/odadee-fixing_new_radio/android/app/.cxx/Debug/rox6x4n2/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/icode/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/icode/FlutterProjects/odadee-fixing_new_radio/android/app/.cxx/Debug/rox6x4n2/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
