@@ -65,9 +65,16 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 
 ### Deployment
 - **Type**: Autoscale (stateless web app)
-- **Build Command**: `flutter build web --release`
+- **Build Command**: `bash build.sh` (automated build script)
 - **Run Command**: `flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0 --release`
 - **Port**: 5000 (mapped to external port 80)
+
+**Automated Build Process (`build.sh`):**
+The deployment uses a custom build script that ensures clean, reliable builds:
+1. Cleans Flutter pub cache to prevent corrupted dependencies
+2. Cleans previous build artifacts
+3. Installs fresh dependencies with `flutter pub get`
+4. Builds optimized web release with `flutter build web --release`
 
 ### Production Optimization
 **Web Configuration:**
@@ -94,7 +101,8 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 ### How to Deploy
 1. Click the **"Publish"** button in Replit to deploy to production
 2. Replit will automatically:
-   - Run `flutter build web --release` to create optimized production build
+   - Run `bash build.sh` to create a clean, optimized production build
+   - The build script cleans cache, reinstalls dependencies, and builds the release
    - Deploy the app to an autoscale server
    - Assign a public URL for your app
 
@@ -137,6 +145,13 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 **Note:** The `meta` package has been added as an explicit dependency to prevent annotation errors in production builds.
 
 ## Recent Changes
+- **2025-10-21**: Production Deployment Configuration Update
+  - Created automated `build.sh` script for reliable deployments
+  - Updated deployment configuration to use build script
+  - Build script automatically cleans Flutter pub cache before each deployment
+  - Ensures fresh dependencies installation to prevent cache corruption
+  - Resolves deployment failures from corrupted package files
+  
 - **2025-10-21**: Production Deployment Fix
   - Fixed corrupted Flutter dependency cache issue
   - Added explicit `meta` package dependency to prevent annotation errors
