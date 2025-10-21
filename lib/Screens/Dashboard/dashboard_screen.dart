@@ -19,6 +19,7 @@ import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Projects/projects_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Authentication/SignIn/sgin_in_screen.dart';
@@ -34,16 +35,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   Future<AllUsersModel> _fetchAllUsersData() async {
     try {
-      var token = await getApiPref();
-
-      final response = await http.get(
-        Uri.parse('$hostName/api/users'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-      );
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/users');
 
       if (response.statusCode == 200) {
         return AllUsersModel.fromJson(jsonDecode(response.body));
@@ -71,16 +64,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<AllEventsModel> _fetchAllEventsData() async {
     try {
-      var token = await getApiPref();
-
-      final response = await http.get(
-        Uri.parse('$hostName/api/events'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-      );
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/events');
 
       if (response.statusCode == 200) {
         return AllEventsModel.fromJson(jsonDecode(response.body));
@@ -108,16 +93,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<AllProjectsModel> _fetchAllProjectsData() async {
     try {
-      var token = await getApiPref();
-
-      final response = await http.get(
-        Uri.parse('$hostName/api/projects'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-      );
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/projects');
 
       if (response.statusCode == 200) {
         return AllProjectsModel.fromJson(jsonDecode(response.body));
@@ -145,16 +122,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<AllArticlesModel> _fetchAllArticlesData() async{
     try {
-      var token = await getApiPref();
-
-      final response = await http.get(
-        Uri.parse('$hostName/api/articles'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token'
-        },
-      );
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/articles');
 
       if (response.statusCode == 200) {
         return AllArticlesModel.fromJson(jsonDecode(response.body));

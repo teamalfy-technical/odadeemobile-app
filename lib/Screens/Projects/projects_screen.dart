@@ -9,6 +9,7 @@ import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Radio/playing_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 
 class ProjectsScreen extends StatefulWidget {
   @override
@@ -50,30 +51,28 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       isLoading = true;
     });
 
-    var token = await getApiPref();
+    try {
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/projects?page=$page');
 
-    final response = await http.get(
-      Uri.parse(hostName + '/api/projects?page=$page'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString()
-      },
-    );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final projectData = Projects.fromJson(data['projects']);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final projectData = Projects.fromJson(
-          data['projects']); // Map the top-level 'news' object
-
+        setState(() {
+          lastPage = projectData.lastPage!;
+          projectList.addAll(projectData.data!);
+          isLoading = false;
+        });
+        print(projectData);
+      } else {
+        throw Exception('Failed to load project data');
+      }
+    } catch (e) {
       setState(() {
-        lastPage = projectData.lastPage!;
-        projectList.addAll(projectData.data!);
         isLoading = false;
       });
-      print(projectData);
-    } else {
-      throw Exception('Failed to load project data');
+      rethrow;
     }
   }
 

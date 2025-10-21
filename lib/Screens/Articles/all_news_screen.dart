@@ -8,6 +8,7 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Radio/playing_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 
 import 'news_details.dart';
 
@@ -51,30 +52,28 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
       isLoading = true;
     });
 
-    var token = await getApiPref();
+    try {
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/articles?page=$page');
 
-    final response = await http.get(
-      Uri.parse(hostName + '/api/articles?page=$page'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString()
-      },
-    );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final newsData = News.fromJson(data['news']);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final newsData =
-          News.fromJson(data['news']); // Map the top-level 'news' object
-
+        setState(() {
+          lastPage = newsData.lastPage!;
+          newsList.addAll(newsData.data!);
+          isLoading = false;
+        });
+        print(newsData);
+      } else {
+        throw Exception('Failed to load news data');
+      }
+    } catch (e) {
       setState(() {
-        lastPage = newsData.lastPage!;
-        newsList.addAll(newsData.data!);
         isLoading = false;
       });
-      print(newsData);
-    } else {
-      throw Exception('Failed to load news data');
+      rethrow;
     }
   }
 
