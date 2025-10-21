@@ -70,11 +70,12 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 
 ## Recent Changes
 - **2025-10-21**: Initial Replit setup
-  - Installed Flutter and Dart dependencies
+  - Installed Flutter 3.32.0 and Dart 3.8.0 via Nix package manager
   - Fixed import case sensitivity issues (Components -> components)
   - Enabled web platform support
-  - Updated intl package from 0.19.0 to 0.20.2 to resolve dependency conflicts
-  - Configured workflow to serve on port 5000
+  - Updated SDK constraint from ">=2.18.6 <3.0.0" to ">=3.3.0 <4.0.0" for Dart 3.x compatibility
+  - Updated intl package from 0.19.0 to 0.20.2 to resolve dependency conflicts with flutter_localizations
+  - Configured workflow to serve on port 5000 with 0.0.0.0 hostname
   - Set up deployment configuration for production
 
 ## Development Notes
