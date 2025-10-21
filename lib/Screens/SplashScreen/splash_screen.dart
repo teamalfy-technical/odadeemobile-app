@@ -40,8 +40,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: odaBackground,
       body: Container(
-        color: odaPrimary,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [odaBackground, Color(0xff1e293b)],
+          ),
+        ),
         child: Center(
           child: Image.asset("assets/images/oda_logo.png"),
         ),
