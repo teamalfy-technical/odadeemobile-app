@@ -1,0 +1,689 @@
+# Flutter Integration Guide - Authentication API
+
+## Quick Start
+
+This guide covers everything you need to implement authentication in your Flutter app for the PRESEC Odadeɛ Global Alumni Network.
+
+## API Base URL
+
+```
+https://a784362b-4352-4c94-81a8-8c3994588922-00-1img99c8h7fps.worf.replit.dev
+```
+
+**Note**: Replace this with the production URL when deploying.
+
+## Test Credentials
+
+Use these credentials for testing:
+- **Email**: `superadmin@presec.edu.gh`
+- **Password**: `Admin@123`
+- **Role**: `super_admin`
+
+---
+
+## 1. Login (Get Tokens)
+
+### Endpoint
+```
+POST /api/auth/mobile/login
+```
+
+### Request Headers
+```
+Content-Type: application/json
+```
+
+### Request Body
+```json
+{
+  "email": "superadmin@presec.edu.gh",
+  "password": "Admin@123",
+  "deviceInfo": {
+    "deviceId": "unique-device-id-here",
+    "deviceName": "John's iPhone",
+    "deviceType": "iOS",
+    "deviceModel": "iPhone 14 Pro",
+    "osName": "iOS",
+    "osVersion": "17.2",
+    "appVersion": "1.0.0",
+    "pushNotificationToken": "optional-fcm-token-here"
+  }
+}
+```
+
+### Response (200 OK)
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "email": "superadmin@presec.edu.gh",
+    "firstName": "Super",
+    "lastName": "Admin",
+    "role": "super_admin",
+    "isActive": true,
+    "profilePicture": null,
+    "yearGroupId": null
+  }
+}
+```
+
+### Error Response (401 Unauthorized)
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+### Flutter Example
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:uuid/uuid.dart';
+
+class AuthService {
+  static const String baseUrl = 'https://your-api-url.replit.dev';
+  
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    // Generate or retrieve unique device ID
+    final deviceId = await _getDeviceId();
+    final deviceInfo = await _getDeviceInfo();
+    
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/auth/mobile/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+        'deviceInfo': {
+          'deviceId': deviceId,
+          'deviceName': deviceInfo['deviceName'],
+          'deviceType': deviceInfo['deviceType'],
+          'deviceModel': deviceInfo['deviceModel'],
+          'osName': deviceInfo['osName'],
+          'osVersion': deviceInfo['osVersion'],
+          'appVersion': '1.0.0',
+        },
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      
+      // Store tokens securely
+      await _storeTokens(data['accessToken'], data['refreshToken']);
+      
+      return data;
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Login failed');
+    }
+  }
+  
+  Future<String> _getDeviceId() async {
+    // Get or generate device ID (store in secure storage)
+    // Use flutter_secure_storage package
+    final storage = FlutterSecureStorage();
+    String? deviceId = await storage.read(key: 'device_id');
+    
+    if (deviceId == null) {
+      deviceId = Uuid().v4();
+      await storage.write(key: 'device_id', value: deviceId);
+    }
+    
+    return deviceId;
+  }
+  
+  Future<Map<String, String>> _getDeviceInfo() async {
+    final deviceInfo = DeviceInfoPlugin();
+    
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      return {
+        'deviceName': androidInfo.model,
+        'deviceType': 'Android',
+        'deviceModel': androidInfo.model,
+        'osName': 'Android',
+        'osVersion': androidInfo.version.release,
+      };
+    } else if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      return {
+        'deviceName': iosInfo.name,
+        'deviceType': 'iOS',
+        'deviceModel': iosInfo.model,
+        'osName': 'iOS',
+        'osVersion': iosInfo.systemVersion,
+      };
+    }
+    
+    return {
+      'deviceName': 'Unknown',
+      'deviceType': 'Unknown',
+      'deviceModel': 'Unknown',
+      'osName': 'Unknown',
+      'osVersion': 'Unknown',
+    };
+  }
+  
+  Future<void> _storeTokens(String accessToken, String refreshToken) async {
+    final storage = FlutterSecureStorage();
+    await storage.write(key: 'access_token', value: accessToken);
+    await storage.write(key: 'refresh_token', value: refreshToken);
+  }
+}
+```
+
+---
+
+## 2. Using Access Tokens
+
+### How to Make Authenticated Requests
+
+Add the `Authorization` header with your access token to all API requests:
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Flutter Example
+```dart
+Future<Map<String, dynamic>> getProfile() async {
+  final storage = FlutterSecureStorage();
+  final accessToken = await storage.read(key: 'access_token');
+  
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/auth/me'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else if (response.statusCode == 401) {
+    // Token expired, refresh it
+    await refreshAccessToken();
+    return getProfile(); // Retry
+  } else {
+    throw Exception('Failed to get profile');
+  }
+}
+```
+
+### Token Lifespan
+- **Access Token**: Expires in **15 minutes**
+- **Refresh Token**: Expires in **30 days**
+
+---
+
+## 3. Refresh Access Token
+
+When your access token expires (after 15 minutes), use the refresh token to get a new one.
+
+### Endpoint
+```
+POST /api/auth/mobile/refresh
+```
+
+### Request Headers
+```
+Content-Type: application/json
+```
+
+### Request Body
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Response (200 OK)
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Error Response (401 Unauthorized)
+```json
+{
+  "message": "Refresh token not found or has been revoked"
+}
+```
+
+### Flutter Example
+```dart
+Future<String> refreshAccessToken() async {
+  final storage = FlutterSecureStorage();
+  final refreshToken = await storage.read(key: 'refresh_token');
+  
+  if (refreshToken == null) {
+    throw Exception('No refresh token available');
+  }
+  
+  final response = await http.post(
+    Uri.parse('$baseUrl/api/auth/mobile/refresh'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'refreshToken': refreshToken,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final newAccessToken = data['accessToken'];
+    
+    // Store new access token
+    await storage.write(key: 'access_token', value: newAccessToken);
+    
+    return newAccessToken;
+  } else {
+    // Refresh token expired or revoked, user must login again
+    await _clearTokens();
+    throw Exception('Session expired, please login again');
+  }
+}
+
+Future<void> _clearTokens() async {
+  final storage = FlutterSecureStorage();
+  await storage.delete(key: 'access_token');
+  await storage.delete(key: 'refresh_token');
+}
+```
+
+---
+
+## 4. Logout
+
+Revoke the refresh token to logout from the current device.
+
+### Endpoint
+```
+POST /api/auth/mobile/logout
+```
+
+### Request Headers
+```
+Content-Type: application/json
+```
+
+### Request Body
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Response (200 OK)
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+### Flutter Example
+```dart
+Future<void> logout() async {
+  final storage = FlutterSecureStorage();
+  final refreshToken = await storage.read(key: 'refresh_token');
+  
+  if (refreshToken != null) {
+    try {
+      await http.post(
+        Uri.parse('$baseUrl/api/auth/mobile/logout'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'refreshToken': refreshToken,
+        }),
+      );
+    } catch (e) {
+      // Logout failed, but clear local tokens anyway
+      print('Logout error: $e');
+    }
+  }
+  
+  // Clear stored tokens
+  await storage.delete(key: 'access_token');
+  await storage.delete(key: 'refresh_token');
+  await storage.delete(key: 'user_data');
+}
+```
+
+---
+
+## 5. Logout from All Devices
+
+Revoke all refresh tokens to logout from all devices.
+
+### Endpoint
+```
+POST /api/auth/mobile/logout-all
+```
+
+### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+### Response (200 OK)
+```json
+{
+  "message": "Logged out from all devices successfully"
+}
+```
+
+### Flutter Example
+```dart
+Future<void> logoutAllDevices() async {
+  final storage = FlutterSecureStorage();
+  final accessToken = await storage.read(key: 'access_token');
+  
+  final response = await http.post(
+    Uri.parse('$baseUrl/api/auth/mobile/logout-all'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    // Clear local tokens
+    await storage.delete(key: 'access_token');
+    await storage.delete(key: 'refresh_token');
+  }
+}
+```
+
+---
+
+## 6. Get Current User
+
+Get information about the currently authenticated user.
+
+### Endpoint
+```
+GET /api/auth/me
+```
+
+### Request Headers
+```
+Authorization: Bearer <access_token>
+```
+
+### Response (200 OK)
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "email": "superadmin@presec.edu.gh",
+  "firstName": "Super",
+  "lastName": "Admin",
+  "role": "super_admin",
+  "isActive": true,
+  "profilePicture": null,
+  "yearGroupId": null,
+  "graduationYear": null,
+  "phone": null,
+  "bio": null,
+  "lastLoginAt": "2024-01-15T10:30:00.000Z"
+}
+```
+
+---
+
+## Complete Authentication Flow Example
+
+Here's a complete example showing how to structure your authentication in Flutter:
+
+```dart
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:uuid/uuid.dart';
+
+class AuthService {
+  static const String baseUrl = 'https://your-api-url.replit.dev';
+  final storage = const FlutterSecureStorage();
+  
+  // Login
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final deviceId = await _getOrCreateDeviceId();
+    final deviceInfo = await _getDeviceInfo();
+    
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/auth/mobile/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+        'deviceInfo': {
+          'deviceId': deviceId,
+          ...deviceInfo,
+        },
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      await _storeTokens(data['accessToken'], data['refreshToken']);
+      await _storeUser(data['user']);
+      return data;
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? 'Login failed');
+    }
+  }
+  
+  // Refresh token
+  Future<String> refreshToken() async {
+    final refreshToken = await storage.read(key: 'refresh_token');
+    
+    if (refreshToken == null) {
+      throw Exception('No refresh token');
+    }
+    
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/auth/mobile/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      await storage.write(key: 'access_token', value: data['accessToken']);
+      return data['accessToken'];
+    } else {
+      await _clearStorage();
+      throw Exception('Session expired');
+    }
+  }
+  
+  // Logout
+  Future<void> logout() async {
+    final refreshToken = await storage.read(key: 'refresh_token');
+    
+    if (refreshToken != null) {
+      try {
+        await http.post(
+          Uri.parse('$baseUrl/api/auth/mobile/logout'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'refreshToken': refreshToken}),
+        );
+      } catch (e) {
+        print('Logout error: $e');
+      }
+    }
+    
+    await _clearStorage();
+  }
+  
+  // Make authenticated request
+  Future<http.Response> authenticatedRequest(
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
+    String? accessToken = await storage.read(key: 'access_token');
+    
+    final response = await _makeRequest(method, endpoint, accessToken, body);
+    
+    if (response.statusCode == 401) {
+      // Token expired, refresh and retry
+      accessToken = await refreshToken();
+      return await _makeRequest(method, endpoint, accessToken, body);
+    }
+    
+    return response;
+  }
+  
+  Future<http.Response> _makeRequest(
+    String method,
+    String endpoint,
+    String? token,
+    Map<String, dynamic>? body,
+  ) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+    
+    switch (method.toUpperCase()) {
+      case 'GET':
+        return await http.get(uri, headers: headers);
+      case 'POST':
+        return await http.post(uri, headers: headers, body: jsonEncode(body));
+      case 'PUT':
+        return await http.put(uri, headers: headers, body: jsonEncode(body));
+      case 'DELETE':
+        return await http.delete(uri, headers: headers);
+      default:
+        throw Exception('Unsupported HTTP method');
+    }
+  }
+  
+  // Helper methods
+  Future<String> _getOrCreateDeviceId() async {
+    String? deviceId = await storage.read(key: 'device_id');
+    if (deviceId == null) {
+      deviceId = const Uuid().v4();
+      await storage.write(key: 'device_id', value: deviceId);
+    }
+    return deviceId;
+  }
+  
+  Future<Map<String, String>> _getDeviceInfo() async {
+    final deviceInfo = DeviceInfoPlugin();
+    
+    if (Platform.isAndroid) {
+      final info = await deviceInfo.androidInfo;
+      return {
+        'deviceName': info.model,
+        'deviceType': 'Android',
+        'deviceModel': info.model,
+        'osName': 'Android',
+        'osVersion': info.version.release,
+        'appVersion': '1.0.0',
+      };
+    } else if (Platform.isIOS) {
+      final info = await deviceInfo.iosInfo;
+      return {
+        'deviceName': info.name,
+        'deviceType': 'iOS',
+        'deviceModel': info.model,
+        'osName': 'iOS',
+        'osVersion': info.systemVersion,
+        'appVersion': '1.0.0',
+      };
+    }
+    
+    return {
+      'deviceName': 'Unknown',
+      'deviceType': 'Unknown',
+      'deviceModel': 'Unknown',
+      'osName': 'Unknown',
+      'osVersion': 'Unknown',
+      'appVersion': '1.0.0',
+    };
+  }
+  
+  Future<void> _storeTokens(String accessToken, String refreshToken) async {
+    await storage.write(key: 'access_token', value: accessToken);
+    await storage.write(key: 'refresh_token', value: refreshToken);
+  }
+  
+  Future<void> _storeUser(Map<String, dynamic> user) async {
+    await storage.write(key: 'user_data', value: jsonEncode(user));
+  }
+  
+  Future<void> _clearStorage() async {
+    await storage.delete(key: 'access_token');
+    await storage.delete(key: 'refresh_token');
+    await storage.delete(key: 'user_data');
+  }
+  
+  Future<bool> isLoggedIn() async {
+    final accessToken = await storage.read(key: 'access_token');
+    return accessToken != null;
+  }
+  
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    final userData = await storage.read(key: 'user_data');
+    if (userData != null) {
+      return jsonDecode(userData);
+    }
+    return null;
+  }
+}
+```
+
+---
+
+## Required Flutter Packages
+
+Add these to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  http: ^1.1.0
+  flutter_secure_storage: ^9.0.0
+  device_info_plus: ^10.0.0
+  uuid: ^4.0.0
+```
+
+---
+
+## Error Handling
+
+Common HTTP status codes you'll encounter:
+
+- **200**: Success
+- **400**: Bad request (missing fields, invalid data)
+- **401**: Unauthorized (invalid credentials or expired token)
+- **403**: Forbidden (insufficient permissions)
+- **404**: Not found
+- **429**: Too many requests (rate limit exceeded)
+- **500**: Server error
+
+---
+
+## Security Best Practices
+
+1. **Always use HTTPS** in production
+2. **Store tokens securely** using `flutter_secure_storage`
+3. **Never log tokens** in production
+4. **Implement automatic token refresh** before expiry
+5. **Clear tokens on logout**
+6. **Handle token expiration** gracefully
+7. **Use device-specific IDs** for better security
+
+---
+
+## Next Steps
+
+Once authentication is working, you can access all other API endpoints using the same `authenticatedRequest` method. Every endpoint that requires authentication expects the `Authorization: Bearer <token>` header.
+
+For the complete API documentation with all endpoints, login to the web app as super admin and visit `/api-docs`.
