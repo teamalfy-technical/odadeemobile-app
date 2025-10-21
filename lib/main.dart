@@ -6,11 +6,15 @@ import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/Screens/SplashScreen/splash_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/migration_helper.dart';
+import 'package:odadee/services/auth_service.dart';
 
 import 'components/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await MigrationHelper.migrateAuthStorage();
 
   /*await Firebase.initializeApp();
   final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -56,19 +60,21 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String? api_key;
+  bool? _isLoggedIn;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _checkApiKey();
+    _checkAuthStatus();
   }
 
-  Future<void> _checkApiKey() async {
-    api_key = await getApiPref();
+  Future<void> _checkAuthStatus() async {
+    final authService = AuthService();
+    final isLoggedIn = await authService.isLoggedIn();
     if (mounted) {
       setState(() {
+        _isLoggedIn = isLoggedIn;
         _isLoading = false;
       });
     }
@@ -87,8 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
     
-    return (api_key == null || api_key!.isEmpty) 
-        ? const SplashScreen() 
-        : const DashboardScreen();
+    return (_isLoggedIn == true) 
+        ? const DashboardScreen()
+        : const SplashScreen();
   }
 }

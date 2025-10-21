@@ -6,85 +6,56 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/Authentication/ForgetPassword/forgot_password.dart';
-import 'package:odadee/Screens/Authentication/SignIn/model/sign_in_model.dart';
 import 'package:odadee/Screens/Authentication/SignUp/sign_up_2.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<SignInModel> signInUser(
-    String user, String password, String loggedFrom) async {
+class LoginResult {
+  final bool success;
+  final String? error;
+  final Map<String, dynamic>? user;
+  
+  LoginResult({required this.success, this.error, this.user});
+}
+
+Future<LoginResult> signInUser(String email, String password) async {
   try {
-    final response = await http.post(
-      Uri.parse("$hostName/api/login"),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json'
-      },
-      body: jsonEncode({
-        "user": user,
-        "password": password,
-        "device_token": "device_token",
-        "logged_from": loggedFrom,
-      }),
-    );
-
-    debugPrint(response.statusCode.toString());
-    if (response.statusCode == 200) {
-      print('Response: ${jsonDecode(response.body)}');
-      final result = json.decode(response.body);
-      if (result != null) {
-        //print(result['meta']['token'].toString());
-        await saveIDApiKey(result['token'].toString());
-        await saveUserData(result['userData']);
-
-        await fetchDataFromServer();
-      }
-      return SignInModel.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 203) {
-      print(jsonDecode(response.body));
-      return SignInModel.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 403) {
-      print(jsonDecode(response.body));
-      return SignInModel.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to Sign In');
+    final authService = AuthService();
+    final result = await authService.login(email, password);
+    
+    final user = result['user'];
+    await saveUserData(user);
+    
+    try {
+      await fetchDataFromServer();
+    } catch (e) {
+      debugPrint('Settings fetch error (non-critical): $e');
     }
-  } catch (err) {
-    debugPrint(err.toString());
-    throw Exception(err.toString());
+    
+    return LoginResult(success: true, user: user);
+  } catch (e) {
+    debugPrint('Login error: $e');
+    String errorMessage = e.toString().replaceAll('Exception: ', '');
+    return LoginResult(success: false, error: errorMessage);
   }
 }
 
 Future<void> fetchDataFromServer() async {
-  var token = await getApiPref();
+  try {
+    final authService = AuthService();
+    final response = await authService.authenticatedRequest('GET', '/api/settings');
 
-  final response = await http.get(
-    Uri.parse('$hostName/api/settings'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token'
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final jsonData = json.decode(response.body);
-    final pushNotificationValue = jsonData['setting']['push_notification'];
-
-    await saveSettings(pushNotificationValue);
-  } else {
-    // Handle any errors when fetching data
-    // You might want to set a default value for 'state' in case of an error.
-    // debugPrint('Status code: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      final pushNotificationValue = jsonData['setting']['push_notification'];
+      await saveSettings(pushNotificationValue);
+    }
+  } catch (e) {
+    debugPrint('Fetch settings error: $e');
   }
-}
-
-Future<bool> saveIDApiKey(String apiKey) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString("API_Key", apiKey);
-  return prefs.commit();
 }
 
 Future<bool> saveSettings(int notification) async {
@@ -95,13 +66,17 @@ Future<bool> saveSettings(int notification) async {
 
 Future<bool> saveUserData(Map<String, dynamic> userData) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString("YearGroup", userData['yearGroup'].toString());
-  prefs.setString("image", userData['image'].toString());
-  prefs.setString("email", userData['email'].toString());
-  prefs.setString("phone", userData['phone'].toString());
-  prefs.setString("firstName", userData['firstName'].toString());
-  prefs.setString("middleName", userData['middleName'].toString());
-  prefs.setString("lastName", userData['lastName'].toString());
+  
+  prefs.setString("YearGroup", userData['yearGroupId']?.toString() ?? '');
+  prefs.setString("image", userData['profilePicture']?.toString() ?? '');
+  prefs.setString("email", userData['email']?.toString() ?? '');
+  prefs.setString("phone", userData['phone']?.toString() ?? '');
+  prefs.setString("firstName", userData['firstName']?.toString() ?? '');
+  prefs.setString("middleName", '');
+  prefs.setString("lastName", userData['lastName']?.toString() ?? '');
+  prefs.setString("USER_ID", userData['id']?.toString() ?? '');
+  prefs.setString("role", userData['role']?.toString() ?? '');
+  
   return prefs.commit();
 }
 
@@ -114,42 +89,12 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   bool show_password = false;
-  Future<SignInModel>? _futureSignIn;
-  String? fcm_token;
-  String? platformType;
+  Future<LoginResult>? _futureSignIn;
 
   final _formKey = GlobalKey<FormState>();
 
   String? user;
   String? password;
-
-/*  get_fcm_token() async {
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    log("FCMToken $fcmToken");
-    fcm_token = fcmToken.toString();
-
-  }*/
-
-  String getPlatformType() {
-    if (kIsWeb) {
-      return 'Web';
-    } else if (Platform.isAndroid) {
-      return 'Android';
-    } else if (Platform.isIOS) {
-      return 'iOS';
-    } else {
-      return 'Unknown';
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    //get_fcm_token();
-
-    platformType = getPlatformType();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,9 +311,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                 _formKey.currentState!.save();
                                 KeyboardUtil.hideKeyboard(context);
 
-                                //_futureSignIn = signInUser(user!, password!, fcm_token!, platformType!);
-                                _futureSignIn =
-                                    signInUser(user!, password!, platformType!);
+                                setState(() {
+                                  _futureSignIn = signInUser(user!, password!);
+                                });
                               }
                             },
                             child: Align(
@@ -421,8 +366,8 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  FutureBuilder<SignInModel> buildFutureBuilder() {
-    return FutureBuilder<SignInModel>(
+  FutureBuilder<LoginResult> buildFutureBuilder() {
+    return FutureBuilder<LoginResult>(
       future: _futureSignIn,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -430,9 +375,6 @@ class _SignInScreenState extends State<SignInScreen> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          print('ConnectionState : ${snapshot.connectionState}');
-          print('Data : ${snapshot.data}');
-          print('HasData : ${snapshot.hasData}');
           if (snapshot.hasData) {
             var data = snapshot.data!;
 
@@ -440,37 +382,40 @@ class _SignInScreenState extends State<SignInScreen> {
               _handleNavigationAndDialogs(context, data);
             });
 
-            // While navigation is being triggered, return empty widget
             return SizedBox();
           } else if (snapshot.hasError) {
-            print("ERROR: ${snapshot.error}");
+            debugPrint("ERROR: ${snapshot.error}");
             return SizedBox();
           } else {
-            // Handle null data or no data case
             return _buildErrorWidget("No data found");
           }
         }
 
-        // Fallback UI (should rarely happen)
         return _buildLoadingWidget();
       },
     );
   }
 
-  void _handleNavigationAndDialogs(BuildContext context, SignInModel data) {
-    if (data.error == "Your profile is not active") {
-      _navigateToSignIn(context);
-      _showDialog(context, "Error", data.error.toString(), Icons.check_circle,
-          Colors.green);
-    } else if (data.token != null) {
-      if (data.userData!.hasBio == false || data.userData!.hasImage == false) {
+  void _handleNavigationAndDialogs(BuildContext context, LoginResult data) {
+    if (data.success && data.user != null) {
+      final user = data.user!;
+      final hasProfilePicture = user['profilePicture'] != null && user['profilePicture'].toString().isNotEmpty;
+      final hasBio = user['bio'] != null && user['bio'].toString().isNotEmpty;
+      
+      if (!user['isActive']) {
+        _navigateToSignIn(context);
+        _showDialog(context, "Error", "Your profile is not active", 
+            Icons.close, Colors.red);
+      } else if (!hasProfilePicture || !hasBio) {
         _showDialog(
             context,
             "Success",
-            "Please Update your profile and proceed.",
+            "Please update your profile and proceed.",
             Icons.check_circle,
             Colors.green);
-        _navigateToSignUp2(context, data.userData!);
+        Future.delayed(Duration(milliseconds: 500), () {
+          _navigateToDashboard(context);
+        });
       } else {
         _showDialog(context, "Success", "User logged in successfully.",
             Icons.check_circle, Colors.green);
@@ -478,22 +423,11 @@ class _SignInScreenState extends State<SignInScreen> {
           _navigateToDashboard(context);
         });
       }
-    } else if (data.error == "Please enter a valid Username or Email") {
-      _navigateToSignIn(context);
-      _showDialog(
-          context, "Error", data.error.toString(), Icons.close, Colors.red);
-    } else if (data.error == "Please enter the valid Password.") {
-      _navigateToSignIn(context);
-      _showDialog(
-          context, "Error", data.error.toString(), Icons.close, Colors.red);
-    } else if (data.error == "Your Login attempts is over") {
-      _navigateToSignIn(context);
-      _showDialog(
-          context, "Error", data.error.toString(), Icons.close, Colors.red);
     } else {
       _navigateToSignIn(context);
       _showDialog(
-          context, "Error", "Unknown error occurred.", Icons.close, Colors.red);
+          context, "Error", data.error ?? "Login failed. Please try again.", 
+          Icons.close, Colors.red);
     }
   }
 
@@ -547,10 +481,6 @@ class _SignInScreenState extends State<SignInScreen> {
         context, MaterialPageRoute(builder: (_) => SignInScreen()));
   }
 
-  void _navigateToSignUp2(BuildContext context, UserData userData) {
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => SignUp2(data: userData)));
-  }
 
   void _navigateToDashboard(BuildContext context) {
     Navigator.pushReplacement(

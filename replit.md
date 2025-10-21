@@ -45,9 +45,12 @@ lib/
 - `device_preview`: For responsive design preview
 - `firebase_core` & `firebase_messaging`: Push notifications (currently disabled)
 - `http`: API communication
+- `flutter_secure_storage`: Secure token storage (NEW)
+- `device_info_plus`: Device information for authentication (NEW)
+- `uuid`: Unique device ID generation (NEW)
 - `image_picker` & `image_cropper`: Image handling
 - `radio_player`: Audio streaming
-- `shared_preferences`: Local data storage
+- `shared_preferences`: Local data storage (user preferences only)
 - `intl`: Internationalization and date formatting
 
 ## Configuration
@@ -145,6 +148,17 @@ The deployment uses a custom build script that ensures clean, reliable builds:
 **Note:** The `meta` package has been added as an explicit dependency to prevent annotation errors in production builds.
 
 ## Recent Changes
+- **2025-10-21**: Authentication System Overhaul
+  - Implemented new secure authentication using `flutter_secure_storage`
+  - Created `AuthService` with login, registration, token refresh, and logout
+  - Created `ApiConfig` for easy development/production URL switching
+  - Updated SignIn and SignUp screens to use new authentication API
+  - Added automatic token refresh mechanism (15-minute access token expiry)
+  - Implemented device tracking for better security
+  - Created migration helper to transition from old to new storage system
+  - Updated main.dart to use new authentication checks
+  - Test credentials: superadmin@presec.edu.gh / Admin@123
+
 - **2025-10-21**: Production Deployment Configuration Update
   - Created automated `build.sh` script for reliable deployments
   - Updated deployment configuration to use build script
@@ -220,11 +234,53 @@ The deployment uses a custom build script that ensures clean, reliable builds:
 None documented yet.
 
 ## API Integration
-The app connects to a backend API at `http://api.odadee.net` for:
-- User authentication and management
-- News and articles
-- Events data
-- Projects and funding
-- Radio streams
 
-Authentication is handled via Bearer tokens stored in SharedPreferences.
+### New Authentication System (Updated October 21, 2025)
+
+**API Configuration:**
+The app now uses a flexible API configuration system that supports both development and production environments:
+
+```dart
+// lib/config/api_config.dart
+class ApiConfig {
+  static const bool isDevelopment = true; // Toggle for testing vs production
+  
+  static String get baseUrl {
+    return isDevelopment
+        ? 'https://a784362b-4352-4c94-81a8-8c3994588922-00-1img99c8h7fps.worf.replit.dev'  // Development
+        : 'https://odadee-connect.replit.app';  // Production (stable URL)
+  }
+}
+```
+
+**Production Deployment:**
+- Development URL: `https://a784362b-4352-4c94-81a8-8c3994588922-00-1img99c8h7fps.worf.replit.dev` (temporary, for testing)
+- Production URL: `https://odadee-connect.replit.app` (stable, permanent)
+- Toggle `isDevelopment` to `false` before publishing to production
+
+**Authentication Features:**
+- ✅ Secure token storage using `flutter_secure_storage`
+- ✅ Automatic token refresh (access tokens expire every 15 minutes)
+- ✅ Device tracking for better security
+- ✅ Login, registration, and logout functionality
+- ✅ Support for logout from all devices
+- ✅ Authenticated API requests with automatic retry on token expiry
+
+**API Endpoints:**
+- Login: `/api/auth/mobile/login`
+- Register: `/api/auth/mobile/register`
+- Refresh Token: `/api/auth/mobile/refresh`
+- Logout: `/api/auth/mobile/logout`
+- Logout All: `/api/auth/mobile/logout-all`
+- Get Current User: `/api/auth/me`
+
+**Security Improvements:**
+- Moved from `SharedPreferences` (insecure) to `flutter_secure_storage` (encrypted)
+- All tokens stored in device's secure storage
+- Device information included in authentication requests
+- Automatic migration from old to new storage system
+
+**Test Credentials:**
+- Email: `superadmin@presec.edu.gh`
+- Password: `Admin@123`
+- Role: `super_admin`

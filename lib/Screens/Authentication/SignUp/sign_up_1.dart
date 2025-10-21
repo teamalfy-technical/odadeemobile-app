@@ -7,51 +7,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
-import 'package:odadee/Screens/Authentication/SignUp/models/sign_up_model.dart';
 import 'package:odadee/Screens/Authentication/SignUp/sign_up_2.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 
-Future<SignUpModel> registerUser(data) async {
-  final response = await http.post(
-    Uri.parse("$hostName/api/register"),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json'
-    },
-    body: jsonEncode({
-      "country": data['country'],
-      "username": data['username'],
-      "yearGroup": data['yearGroup'],
-      "firstName": data['firstName'],
-      "middleName": data['middleName'],
-      "lastName": data['lastName'],
-      "email": data['email'],
-      "password": data['password'],
-      "device_token": " data['device_token']",
-      "logged_from": data['logged_from'],
-    }),
-  );
+class RegisterResult {
+  final bool success;
+  final String? error;
+  final Map<String, dynamic>? user;
+  
+  RegisterResult({required this.success, this.error, this.user});
+}
 
-  if (response.statusCode == 200) {
-    print(jsonDecode(response.body));
-    final result = json.decode(response.body);
-    if (result != null) {
-      //print(result['meta']['token'].toString());
-      //await saveIDApiKey(result['meta']['token'].toString());
-    }
-    return SignUpModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 203) {
-    print(jsonDecode(response.body));
-    return SignUpModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 403) {
-    print(jsonDecode(response.body));
-    return SignUpModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 422) {
-    print(jsonDecode(response.body));
-    return SignUpModel.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to Sign Up');
+Future<RegisterResult> registerUser(Map<String, dynamic> data) async {
+  try {
+    final authService = AuthService();
+    final result = await authService.register(
+      email: data['email'],
+      password: data['password'],
+      firstName: data['firstName'],
+      lastName: data['lastName'],
+      yearGroup: data['yearGroup'],
+      middleName: data['middleName'],
+      username: data['username'],
+      country: data['country'],
+    );
+    
+    return RegisterResult(success: true, user: result['user']);
+  } catch (e) {
+    debugPrint('Registration error: $e');
+    String errorMessage = e.toString().replaceAll('Exception: ', '');
+    return RegisterResult(success: false, error: errorMessage);
   }
 }
 
@@ -68,7 +55,7 @@ class _SignUp1State extends State<SignUp1> {
   TextEditingController controller = TextEditingController(text: "");
 
   final _formKey = GlobalKey<FormState>();
-  Future<SignUpModel>? _futureSignUp;
+  Future<RegisterResult>? _futureSignUp;
 
   bool show_password = false;
 
@@ -795,8 +782,8 @@ class _SignUp1State extends State<SignUp1> {
     );
   }
 
-  FutureBuilder<SignUpModel> buildFutureBuilder() {
-    return FutureBuilder<SignUpModel>(
+  FutureBuilder<RegisterResult> buildFutureBuilder() {
+    return FutureBuilder<RegisterResult>(
         future: _futureSignUp,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -819,14 +806,12 @@ class _SignUp1State extends State<SignUp1> {
           } else if (snapshot.hasData) {
             var data = snapshot.data!;
 
-            print("#########################");
-
-            if (data.successTopMessage == "Your Account has been Created") {
+            if (data.success && data.user != null) {
               WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => SignUp2(data: data.userData)));
+                        builder: (context) => SignInScreen()));
 
                 showDialog(
                     barrierDismissible: true,
@@ -843,15 +828,14 @@ class _SignUp1State extends State<SignUp1> {
                               width: 10,
                             ),
                             Expanded(
-                                child: Text("Your Account has been Created")),
+                                child: Text("Account Created Successfully")),
                           ],
                         ),
-                        content: Text(data.successMessage.toString()),
+                        content: Text("Please sign in to continue."),
                       );
                     });
               });
-            }
-            if (data.successTopMessage == null) {
+            } else {
               WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => SignUp1()));
@@ -873,8 +857,7 @@ class _SignUp1State extends State<SignUp1> {
                             Text("Error"),
                           ],
                         ),
-                        content:
-                            Text("The username/email has already been taken."),
+                        content: Text(data.error ?? "Registration failed. Please try again."),
                       );
                     });
               });

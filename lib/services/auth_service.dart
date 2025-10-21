@@ -52,6 +52,61 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> register({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String yearGroup,
+    String? middleName,
+    String? username,
+    String? country,
+  }) async {
+    try {
+      final deviceId = await _getOrCreateDeviceId();
+      final deviceInfo = await _getDeviceInfo();
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/mobile/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'firstName': firstName,
+          'lastName': lastName,
+          'yearGroup': yearGroup,
+          if (middleName != null) 'middleName': middleName,
+          if (username != null) 'username': username,
+          if (country != null) 'country': country,
+          'deviceInfo': {
+            'deviceId': deviceId,
+            'deviceName': deviceInfo['deviceName'],
+            'deviceType': deviceInfo['deviceType'],
+            'deviceModel': deviceInfo['deviceModel'],
+            'osName': deviceInfo['osName'],
+            'osVersion': deviceInfo['osVersion'],
+            'appVersion': ApiConfig.appVersion,
+          },
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['accessToken'] != null && data['refreshToken'] != null) {
+          await _storeTokens(data['accessToken'], data['refreshToken']);
+          await _storeUser(data['user']);
+        }
+        return data;
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Registration failed');
+      }
+    } catch (e) {
+      debugPrint('Registration error: $e');
+      rethrow;
+    }
+  }
+
   Future<String> refreshToken() async {
     try {
       final refreshToken = await storage.read(key: 'refresh_token');
