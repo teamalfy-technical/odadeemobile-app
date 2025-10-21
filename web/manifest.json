@@ -1,11 +1,11 @@
 {
-    "name": "odadee",
-    "short_name": "odadee",
+    "name": "Odadee Global - Alumni Network",
+    "short_name": "Odadee",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "description": "Odadee Global alumni network - Reconnect, support, and build the future together.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
