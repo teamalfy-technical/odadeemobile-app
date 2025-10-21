@@ -1,0 +1,320 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:uuid/uuid.dart';
+import 'package:odadee/config/api_config.dart';
+
+class AuthService {
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal();
+
+  final storage = const FlutterSecureStorage();
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    try {
+      final deviceId = await _getOrCreateDeviceId();
+      final deviceInfo = await _getDeviceInfo();
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'deviceInfo': {
+            'deviceId': deviceId,
+            'deviceName': deviceInfo['deviceName'],
+            'deviceType': deviceInfo['deviceType'],
+            'deviceModel': deviceInfo['deviceModel'],
+            'osName': deviceInfo['osName'],
+            'osVersion': deviceInfo['osVersion'],
+            'appVersion': ApiConfig.appVersion,
+          },
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _storeTokens(data['accessToken'], data['refreshToken']);
+        await _storeUser(data['user']);
+        return data;
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Login failed');
+      }
+    } catch (e) {
+      debugPrint('Login error: $e');
+      rethrow;
+    }
+  }
+
+  Future<String> refreshToken() async {
+    try {
+      final refreshToken = await storage.read(key: 'refresh_token');
+
+      if (refreshToken == null) {
+        throw Exception('No refresh token available');
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await storage.write(key: 'access_token', value: data['accessToken']);
+        return data['accessToken'];
+      } else {
+        await _clearStorage();
+        throw Exception('Session expired, please login again');
+      }
+    } catch (e) {
+      debugPrint('Token refresh error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      final refreshToken = await storage.read(key: 'refresh_token');
+
+      if (refreshToken != null) {
+        try {
+          await http.post(
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.logoutEndpoint}'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'refreshToken': refreshToken}),
+          );
+        } catch (e) {
+          debugPrint('Logout API error: $e');
+        }
+      }
+
+      await _clearStorage();
+    } catch (e) {
+      debugPrint('Logout error: $e');
+      await _clearStorage();
+    }
+  }
+
+  Future<void> logoutAllDevices() async {
+    try {
+      final accessToken = await storage.read(key: 'access_token');
+
+      if (accessToken != null) {
+        await http.post(
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.logoutAllEndpoint}'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+          },
+        );
+      }
+
+      await _clearStorage();
+    } catch (e) {
+      debugPrint('Logout all devices error: $e');
+      await _clearStorage();
+    }
+  }
+
+  Future<Map<String, dynamic>> getCurrentUser() async {
+    try {
+      final response = await authenticatedRequest('GET', ApiConfig.meEndpoint);
+
+      if (response.statusCode == 200) {
+        final userData = jsonDecode(response.body);
+        await _storeUser(userData);
+        return userData;
+      } else {
+        throw Exception('Failed to get user data');
+      }
+    } catch (e) {
+      debugPrint('Get current user error: $e');
+      rethrow;
+    }
+  }
+
+  Future<http.Response> authenticatedRequest(
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? additionalHeaders,
+  }) async {
+    String? accessToken = await storage.read(key: 'access_token');
+
+    final response = await _makeRequest(
+      method,
+      endpoint,
+      accessToken,
+      body,
+      additionalHeaders,
+    );
+
+    if (response.statusCode == 401) {
+      try {
+        accessToken = await refreshToken();
+        return await _makeRequest(
+          method,
+          endpoint,
+          accessToken,
+          body,
+          additionalHeaders,
+        );
+      } catch (e) {
+        throw Exception('Authentication failed, please login again');
+      }
+    }
+
+    return response;
+  }
+
+  Future<http.Response> _makeRequest(
+    String method,
+    String endpoint,
+    String? token,
+    Map<String, dynamic>? body,
+    Map<String, String>? additionalHeaders,
+  ) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+      if (additionalHeaders != null) ...additionalHeaders,
+    };
+
+    switch (method.toUpperCase()) {
+      case 'GET':
+        return await http.get(uri, headers: headers);
+      case 'POST':
+        return await http.post(
+          uri,
+          headers: headers,
+          body: body != null ? jsonEncode(body) : null,
+        );
+      case 'PUT':
+        return await http.put(
+          uri,
+          headers: headers,
+          body: body != null ? jsonEncode(body) : null,
+        );
+      case 'DELETE':
+        return await http.delete(uri, headers: headers);
+      case 'PATCH':
+        return await http.patch(
+          uri,
+          headers: headers,
+          body: body != null ? jsonEncode(body) : null,
+        );
+      default:
+        throw Exception('Unsupported HTTP method: $method');
+    }
+  }
+
+  Future<String> _getOrCreateDeviceId() async {
+    String? deviceId = await storage.read(key: 'device_id');
+    if (deviceId == null) {
+      deviceId = const Uuid().v4();
+      await storage.write(key: 'device_id', value: deviceId);
+    }
+    return deviceId;
+  }
+
+  Future<Map<String, String>> _getDeviceInfo() async {
+    if (kIsWeb) {
+      return {
+        'deviceName': 'Web Browser',
+        'deviceType': 'Web',
+        'deviceModel': 'Browser',
+        'osName': 'Web',
+        'osVersion': 'N/A',
+      };
+    }
+
+    final deviceInfo = DeviceInfoPlugin();
+
+    try {
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        return {
+          'deviceName': androidInfo.model,
+          'deviceType': 'Android',
+          'deviceModel': androidInfo.model,
+          'osName': 'Android',
+          'osVersion': androidInfo.version.release,
+        };
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        return {
+          'deviceName': iosInfo.name,
+          'deviceType': 'iOS',
+          'deviceModel': iosInfo.model,
+          'osName': 'iOS',
+          'osVersion': iosInfo.systemVersion,
+        };
+      }
+    } catch (e) {
+      debugPrint('Error getting device info: $e');
+    }
+
+    return {
+      'deviceName': 'Unknown',
+      'deviceType': 'Unknown',
+      'deviceModel': 'Unknown',
+      'osName': 'Unknown',
+      'osVersion': 'Unknown',
+    };
+  }
+
+  Future<void> _storeTokens(String accessToken, String refreshToken) async {
+    await storage.write(key: 'access_token', value: accessToken);
+    await storage.write(key: 'refresh_token', value: refreshToken);
+  }
+
+  Future<void> _storeUser(Map<String, dynamic> user) async {
+    await storage.write(key: 'user_data', value: jsonEncode(user));
+    
+    await storage.write(key: 'user_id', value: user['id']?.toString() ?? '');
+    await storage.write(key: 'user_email', value: user['email']?.toString() ?? '');
+    await storage.write(key: 'user_first_name', value: user['firstName']?.toString() ?? '');
+    await storage.write(key: 'user_last_name', value: user['lastName']?.toString() ?? '');
+    await storage.write(key: 'user_role', value: user['role']?.toString() ?? '');
+  }
+
+  Future<void> _clearStorage() async {
+    await storage.delete(key: 'access_token');
+    await storage.delete(key: 'refresh_token');
+    await storage.delete(key: 'user_data');
+    await storage.delete(key: 'user_id');
+    await storage.delete(key: 'user_email');
+    await storage.delete(key: 'user_first_name');
+    await storage.delete(key: 'user_last_name');
+    await storage.delete(key: 'user_role');
+  }
+
+  Future<bool> isLoggedIn() async {
+    final accessToken = await storage.read(key: 'access_token');
+    return accessToken != null;
+  }
+
+  Future<Map<String, dynamic>?> getCachedUser() async {
+    final userData = await storage.read(key: 'user_data');
+    if (userData != null) {
+      return jsonDecode(userData);
+    }
+    return null;
+  }
+
+  Future<String?> getAccessToken() async {
+    return await storage.read(key: 'access_token');
+  }
+
+  Future<String?> getRefreshToken() async {
+    return await storage.read(key: 'refresh_token');
+  }
+}
