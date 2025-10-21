@@ -20,11 +20,11 @@ ThemeData theme() {
       onSurface: bodyText1,
       onBackground: bodyText1,
     ),
-    cardTheme: CardTheme(
+    cardTheme: const CardThemeData(
       color: odaCardBackground,
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -61,12 +61,21 @@ ThemeData theme() {
 
 TextTheme textTheme() {
   return const TextTheme(
-    bodySmall: TextStyle(color: bodyText2),
-    bodyMedium: TextStyle(color: bodyText1),
-    bodyLarge: TextStyle(color: bodyText1),
-    headlineSmall: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
-    headlineMedium: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
+    displayLarge: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
+    displayMedium: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
+    displaySmall: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
     headlineLarge: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
+    headlineMedium: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
+    headlineSmall: TextStyle(color: bodyText1, fontWeight: FontWeight.bold),
+    titleLarge: TextStyle(color: bodyText1, fontWeight: FontWeight.w600),
+    titleMedium: TextStyle(color: bodyText1, fontWeight: FontWeight.w600),
+    titleSmall: TextStyle(color: bodyText1, fontWeight: FontWeight.w600),
+    bodyLarge: TextStyle(color: bodyText1),
+    bodyMedium: TextStyle(color: bodyText1),
+    bodySmall: TextStyle(color: bodyText2),
+    labelLarge: TextStyle(color: bodyText1, fontWeight: FontWeight.w500),
+    labelMedium: TextStyle(color: bodyText1, fontWeight: FontWeight.w500),
+    labelSmall: TextStyle(color: bodyText2, fontWeight: FontWeight.w500),
   );
 }
 

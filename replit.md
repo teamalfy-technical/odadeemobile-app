@@ -69,6 +69,29 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 - **Run Command**: `flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0 --release`
 
 ## Recent Changes
+- **2025-10-21**: Dark Theme Update to Match Website
+  - Updated color scheme in `constants.dart` to match website design:
+    - Dark navy background (#0f172a)
+    - Blue primary accent (#2563eb) 
+    - Yellow secondary accent (#f4d03f)
+    - Card background (#1e293b)
+    - White text for dark theme
+  - Updated `theme.dart` with comprehensive dark theme:
+    - Dark color scheme with proper contrast
+    - Styled cards with rounded corners and elevation
+    - Styled buttons with blue accent color
+    - Styled input fields with dark background and blue focus
+  - Updated splash screen with gradient background
+  - Updated loading indicators to match dark theme
+  - All UI components now consistent with website branding
+
+- **2025-10-21**: Critical Bug Fixes
+  - Fixed splash screen timer memory leak
+  - Fixed dashboard null safety crash
+  - Added navigation safety checks
+  - Improved error handling for network failures
+  - Added web platform detection for camera features
+  
 - **2025-10-21**: Initial Replit setup
   - Installed Flutter 3.32.0 and Dart 3.8.0 via Nix package manager
   - Fixed import case sensitivity issues (Components -> components)
@@ -87,9 +110,20 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 
 ### Important Files
 - `lib/main.dart`: Main entry point with DevicePreview enabled for development
-- `lib/constants.dart`: Contains API endpoints and helper functions
+- `lib/constants.dart`: Contains API endpoints, color constants, and helper functions
+- `lib/components/theme.dart`: Dark theme configuration matching website design
 - `pubspec.yaml`: Flutter dependencies and configuration
 - `web/index.html`: Web entry point (auto-generated)
+
+### Design System
+**Color Palette** (matching website):
+- Background: #0f172a (dark navy)
+- Card Background: #1e293b (slate)
+- Primary (Blue): #2563eb
+- Secondary (Yellow): #f4d03f
+- Text: #ffffff (white)
+- Secondary Text: #cbd5e1 (light gray)
+- Border: #334155
 
 ## User Preferences
 None documented yet.
