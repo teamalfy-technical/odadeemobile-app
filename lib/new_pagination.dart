@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/constants.dart';
 
-import 'Components/theme.dart';
+import 'components/theme.dart';
 import 'Screens/Articles/models/all_articles_model.dart';
 import 'Screens/Articles/news_details.dart';
 

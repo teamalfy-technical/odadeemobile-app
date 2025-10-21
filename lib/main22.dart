@@ -22,7 +22,7 @@ import 'package:odadee/Screens/SplashScreen/splash_screen.dart';
 
 import 'package:odadee/constants.dart';
 
-import 'Components/theme.dart';
+import 'components/theme.dart';
 
 
 Future<void> main() async {
