@@ -67,6 +67,52 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 - **Type**: Autoscale (stateless web app)
 - **Build Command**: `flutter build web --release`
 - **Run Command**: `flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0 --release`
+- **Port**: 5000 (mapped to external port 80)
+
+### Production Optimization
+**Web Configuration:**
+- SEO-optimized meta tags for search engines
+- Open Graph tags for social media sharing
+- PWA manifest with dark theme colors (#0f172a)
+- Proper viewport and theme-color meta tags
+- Apple mobile web app capabilities enabled
+
+**Build Optimization:**
+- Production builds use `--release` flag for optimal performance
+- DevicePreview automatically disabled in release mode
+- Code minification and tree-shaking enabled
+- Debug statements (debugPrint) automatically suppressed in release builds
+
+**Performance Features:**
+- Autoscale deployment for efficient resource usage
+- Optimized asset loading
+- Dark theme reduces battery usage on OLED screens
+- Responsive design with proper viewport configuration
+
+## Production Deployment
+
+### How to Deploy
+1. Click the **"Publish"** button in Replit to deploy to production
+2. Replit will automatically:
+   - Run `flutter build web --release` to create optimized production build
+   - Deploy the app to an autoscale server
+   - Assign a public URL for your app
+
+### Production Checklist
+- ✅ Dark theme matching website branding
+- ✅ SEO meta tags configured
+- ✅ PWA manifest with proper theme colors
+- ✅ DevicePreview disabled in production
+- ✅ Release mode optimizations enabled
+- ✅ Responsive design for all devices
+- ✅ Error handling for network failures
+- ✅ Web platform detection for mobile-only features
+
+### Monitoring Production
+- Check the deployment logs in Replit for any build errors
+- Test the published URL on multiple devices
+- Verify all API endpoints are accessible from production
+- Monitor user feedback for any issues
 
 ## Recent Changes
 - **2025-10-21**: Dark Theme Update to Match Website
