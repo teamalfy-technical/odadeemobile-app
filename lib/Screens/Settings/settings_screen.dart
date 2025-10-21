@@ -8,10 +8,12 @@ import 'package:odadee/Screens/Projects/models/project_detail_model.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Radio/radio_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:http/http.dart' as http;
 
+import '../Authentication/SignIn/sgin_in_screen.dart';
 import '../Dashboard/dashboard_screen.dart';
 import '../Radio/playing_screen.dart';
 
@@ -54,45 +56,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 
   Future<void> updateNotificationStatus(bool newValue) async {
-
-
-
-
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final token = await getApiPref();
-
-    final String apiUrl = hostName + '/api/settings';
 
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode({'push_notification': newValue ? '1' : '0'}),
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest(
+        'POST', 
+        '/api/settings',
+        body: {'push_notification': newValue ? '1' : '0'},
       );
 
       if (response.statusCode == 200) {
-
         print("############################");
         print(response.statusCode);
         print(response.body);
 
-        // Update the status in shared preferences.
         prefs.setString("notification", newValue ? '1' : '0');
-
       } else {
-        // Handle the API request error here.
-
         print("############################");
         print(response.statusCode);
         print(response.body);
       }
     } catch (error) {
-      // Handle network or other errors.
+      print('Error updating notification settings: $error');
+    }
+  }
 
+  Future<void> handleLogout() async {
+    try {
+      final authService = AuthService();
+      await authService.logout();
+      
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      print('Logout error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed. Please try again.')),
+      );
     }
   }
 

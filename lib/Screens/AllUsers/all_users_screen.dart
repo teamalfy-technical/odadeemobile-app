@@ -10,6 +10,7 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Radio/playing_screen.dart';
@@ -84,35 +85,33 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
       isLoading = true;
     });
 
-    var token = await getApiPref();
+    try {
+      final authService = AuthService();
+      final endpoint = '/api/users?page=$page${filters != null ? '&$filters' : ''}';
+      
+      print('Fetching: $endpoint');
 
-    final uri = Uri.parse(
-        '$hostName/api/users?page=$page${filters != null ? '&$filters' : ''}');
+      final response = await authService.authenticatedRequest('GET', endpoint);
 
-    print(uri);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final eventData = Users.fromJson(data['users']);
 
-    final response = await http.get(
-      uri,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token'
-      },
-    );
+        print(data);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final eventData = Users.fromJson(data['users']);
-
-      print(data);
-
+        setState(() {
+          lastPage = eventData.lastPage!;
+          yearGroupList.addAll(eventData.data!);
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load filtered data');
+      }
+    } catch (e) {
       setState(() {
-        lastPage = eventData.lastPage!;
-        yearGroupList.addAll(eventData.data!);
         isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load filtered data');
+      rethrow;
     }
   }
 
