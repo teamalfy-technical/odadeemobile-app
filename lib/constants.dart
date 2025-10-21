@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:odadee/config/api_config.dart';
+import 'package:odadee/services/auth_service.dart';
 
 // Dark theme colors to match website
 const odaPrimary = Color(0xff2563eb); // Blue accent
@@ -14,14 +16,13 @@ const odaLight = Color(0xff475569); // Light accents
 const bodyText1 = Color(0xffffffff); // White text for dark theme
 const bodyText2 = Color(0xffcbd5e1); // Light gray for secondary text
 
-
-const hostName = "http://api.odadee.net";
+String get hostName => ApiConfig.baseUrl;
 const socketHostName = "ws://api.odadee.net";
 
-
+@Deprecated('Use AuthService().getAccessToken() instead - tokens are now in secure storage')
 Future<String?> getApiPref() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString("API_Key");
+  final authService = AuthService();
+  return await authService.getAccessToken();
 }
 
 
