@@ -114,7 +114,37 @@ flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0
 - Verify all API endpoints are accessible from production
 - Monitor user feedback for any issues
 
+### Troubleshooting Deployment Issues
+
+**If you encounter "Flutter dependency cache corrupted" error:**
+1. Clear the Flutter pub cache:
+   ```bash
+   echo y | flutter pub cache clean
+   ```
+
+2. Reinstall dependencies:
+   ```bash
+   flutter pub get
+   ```
+
+3. Test the production build:
+   ```bash
+   flutter clean && flutter build web --release
+   ```
+
+4. If errors persist, ensure the `meta` package is explicitly listed in `pubspec.yaml` dependencies
+
+**Note:** The `meta` package has been added as an explicit dependency to prevent annotation errors in production builds.
+
 ## Recent Changes
+- **2025-10-21**: Production Deployment Fix
+  - Fixed corrupted Flutter dependency cache issue
+  - Added explicit `meta` package dependency to prevent annotation errors
+  - Cleared and reinstalled all Flutter packages
+  - Verified production build compiles successfully
+  - App ready for deployment
+
+
 - **2025-10-21**: Dark Theme Update to Match Website
   - Updated color scheme in `constants.dart` to match website design:
     - Dark navy background (#0f172a)
