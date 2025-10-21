@@ -56,26 +56,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String? api_key = "";
-  Future? _user_api;
+  String? api_key;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _user_api = apiKey();
+    _checkApiKey();
+  }
+
+  Future<void> _checkApiKey() async {
+    api_key = await getApiPref();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _user_api,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          //return YearGroup();
-          return api_key == null ? SplashScreen() : DashboardScreen();
-        });
-  }
-
-  Future apiKey() async {
-    api_key = await getApiPref();
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    return (api_key == null || api_key!.isEmpty) 
+        ? const SplashScreen() 
+        : const DashboardScreen();
   }
 }

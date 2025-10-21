@@ -12,16 +12,33 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
 
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(
+      const Duration(seconds: 3),
+      () {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (BuildContext context) => const OnboardingScreen(),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    Timer(
-        Duration(seconds: 3),
-            ()=> Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (BuildContext context) => OnboardingScreen()))
-    );
-
     return Scaffold(
       body: Container(
         color: odaPrimary,
@@ -29,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Image.asset("assets/images/oda_logo.png"),
         ),
       ),
-
     );
   }
 }

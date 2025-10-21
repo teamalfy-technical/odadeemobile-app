@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -32,94 +33,150 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   Future<AllUsersModel> _fetchAllUsersData() async {
-    var token = await getApiPref();
+    try {
+      var token = await getApiPref();
 
-    final response = await http.get(
-      Uri.parse(hostName + "/api/users"),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString()
-      },
-    );
+      final response = await http.get(
+        Uri.parse('$hostName/api/users'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
 
-    if (response.statusCode == 200) {
-      return AllUsersModel.fromJson(jsonDecode(response.body));
-    } else {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context) => SignInScreen()));
-
-      throw Exception('Failed to fetch user data');
+      if (response.statusCode == 200) {
+        return AllUsersModel.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+        }
+        throw Exception('Session expired. Please sign in again.');
+      } else {
+        throw Exception('Failed to load users. Please try again.');
+      }
+    } on SocketException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on http.ClientException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on HttpException {
+      throw Exception('Network error: Unable to connect to server.');
+    } on FormatException {
+      throw Exception('Invalid data received from server.');
+    } on Exception {
+      rethrow;
     }
   }
 
   Future<AllEventsModel> _fetchAllEventsData() async {
-    var token = await getApiPref();
+    try {
+      var token = await getApiPref();
 
-    final response = await http.get(
-      Uri.parse(hostName + "/api/events"),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString()
-      },
-    );
+      final response = await http.get(
+        Uri.parse('$hostName/api/events'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
 
-    if (response.statusCode == 200) {
-      return AllEventsModel.fromJson(jsonDecode(response.body));
-    } else {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context) => SignInScreen()));
-
-      throw Exception('Failed to fetch events data');
+      if (response.statusCode == 200) {
+        return AllEventsModel.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+        }
+        throw Exception('Session expired. Please sign in again.');
+      } else {
+        throw Exception('Failed to load events. Please try again.');
+      }
+    } on SocketException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on http.ClientException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on HttpException {
+      throw Exception('Network error: Unable to connect to server.');
+    } on FormatException {
+      throw Exception('Invalid data received from server.');
+    } on Exception {
+      rethrow;
     }
   }
 
   Future<AllProjectsModel> _fetchAllProjectsData() async {
-    var token = await getApiPref();
+    try {
+      var token = await getApiPref();
 
-    final response = await http.get(
-      Uri.parse(hostName + "/api/projects"),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString()
-      },
-    );
+      final response = await http.get(
+        Uri.parse('$hostName/api/projects'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
 
-    if (response.statusCode == 200) {
-      print(response.body);
-
-      return AllProjectsModel.fromJson(jsonDecode(response.body));
-    } else {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context) => SignInScreen()));
-
-      throw Exception('Failed to fetch projects data');
+      if (response.statusCode == 200) {
+        return AllProjectsModel.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+        }
+        throw Exception('Session expired. Please sign in again.');
+      } else {
+        throw Exception('Failed to load projects. Please try again.');
+      }
+    } on SocketException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on http.ClientException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on HttpException {
+      throw Exception('Network error: Unable to connect to server.');
+    } on FormatException {
+      throw Exception('Invalid data received from server.');
+    } on Exception {
+      rethrow;
     }
   }
 
-  Future<AllArticlesModel> _fetchAllArticlesData() async {
-    var token = await getApiPref();
+  Future<AllArticlesModel> _fetchAllArticlesData() async{
+    try {
+      var token = await getApiPref();
 
-    final response = await http.get(
-      Uri.parse(hostName + "/api/articles"),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString()
-      },
-    );
+      final response = await http.get(
+        Uri.parse('$hostName/api/articles'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
 
-    if (response.statusCode == 200) {
-      print(response.body);
-
-      return AllArticlesModel.fromJson(jsonDecode(response.body));
-    } else {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (BuildContext context) => SignInScreen()));
-
-      throw Exception('Failed to fetch articles data');
+      if (response.statusCode == 200) {
+        return AllArticlesModel.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+        }
+        throw Exception('Session expired. Please sign in again.');
+      } else {
+        throw Exception('Failed to load articles. Please try again.');
+      }
+    } on SocketException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on http.ClientException {
+      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+    } on HttpException {
+      throw Exception('Network error: Unable to connect to server.');
+    } on FormatException {
+      throw Exception('Invalid data received from server.');
+    } on Exception {
+      rethrow;
     }
   }
 
@@ -131,8 +188,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
   }
 
-  get_user_year_group() async {
-    user_year_group = await getUserYearGroup();
+  Future<void> get_user_year_group() async {
+    final yearGroup = await getUserYearGroup();
+    if (mounted) {
+      setState(() {
+        user_year_group = yearGroup;
+      });
+    }
   }
 
   @override
@@ -174,7 +236,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final projectsData = snapshot.data![2];
 
               final articlesData = snapshot.data![3];
-              print(articlesData.toJson());
 
               // Check if any of the data is null (indicating an error)
               if (userData == null ||
@@ -235,10 +296,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        user_year_group!.substring(
-                                                user_year_group!.length - 2) +
-                                            " year group",
-                                        style: TextStyle(
+                                        user_year_group != null && user_year_group!.length >= 2
+                                            ? "${user_year_group!.substring(user_year_group!.length - 2)} year group"
+                                            : "Year group",
+                                        style: const TextStyle(
                                             fontSize: 20, color: odaSecondary),
                                       ),
                                       InkWell(

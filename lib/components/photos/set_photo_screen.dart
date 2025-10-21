@@ -1,5 +1,7 @@
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,7 +11,6 @@ import 'package:odadee/components/photos/common_buttons.dart';
 
 import 'select_photo_options_screen.dart';
 
-// ignore: must_be_immutable
 class SetPhotoScreen extends StatefulWidget {
   const SetPhotoScreen({super.key});
 
@@ -20,27 +21,67 @@ class SetPhotoScreen extends StatefulWidget {
 }
 
 class _SetPhotoScreenState extends State<SetPhotoScreen> {
-  File? _image;
+  dynamic _image;
+  XFile? _pickedFile;
 
   Future _pickImage(ImageSource source) async {
     try {
+      // On web, camera is not supported, show a message
+      if (kIsWeb && source == ImageSource.camera) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Camera is not available on web. Please use gallery instead.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+          Navigator.of(context).pop();
+        }
+        return;
+      }
+
       final image = await ImagePicker().pickImage(source: source);
       if (image == null) return;
-      File? img = File(image.path);
-      img = await _cropImage(imageFile: img);
-      setState(() {
-        _image = img;
-        Navigator.of(context).pop();
-      });
+      
+      if (kIsWeb) {
+        // On web, just use the XFile directly
+        if (mounted) {
+          setState(() {
+            _pickedFile = image;
+            Navigator.of(context).pop();
+          });
+        }
+      } else {
+        // On mobile, use File and crop
+        File? img = File(image.path);
+        img = await _cropImage(imageFile: img);
+        if (mounted) {
+          setState(() {
+            _image = img;
+            Navigator.of(context).pop();
+          });
+        }
+      }
     } on PlatformException catch (e) {
-      print(e);
-      Navigator.of(context).pop();
+      debugPrint('Image picker error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: ${e.message ?? "Unknown error"}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        Navigator.of(context).pop();
+      }
     }
   }
 
   Future<File?> _cropImage({required File imageFile}) async {
+    // Image cropper might not work on web, skip cropping
+    if (kIsWeb) return imageFile;
+    
     CroppedFile? croppedImage =
-    await ImageCropper().cropImage(sourcePath: imageFile.path);
+        await ImageCropper().cropImage(sourcePath: imageFile.path);
     if (croppedImage == null) return null;
     return File(croppedImage.path);
   }
@@ -124,15 +165,28 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
                             color: Colors.grey.shade200,
                           ),
                           child: Center(
-                            child: _image == null
+                            child: _image == null && _pickedFile == null
                                 ? const Text(
                               'No image selected',
                               style: TextStyle(fontSize: 20),
                             )
-                                : CircleAvatar(
-                              backgroundImage: FileImage(_image!),
-                              radius: 200.0,
-                            ),
+                                : kIsWeb && _pickedFile != null
+                                    ? FutureBuilder<Uint8List>(
+                                        future: _pickedFile!.readAsBytes(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData) {
+                                            return CircleAvatar(
+                                              backgroundImage: MemoryImage(snapshot.data!),
+                                              radius: 200.0,
+                                            );
+                                          }
+                                          return const CircularProgressIndicator();
+                                        },
+                                      )
+                                    : CircleAvatar(
+                                        backgroundImage: FileImage(_image!),
+                                        radius: 200.0,
+                                      ),
                           )),
                     ),
                   ),

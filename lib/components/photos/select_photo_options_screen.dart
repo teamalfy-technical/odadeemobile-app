@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:odadee/components/photos/re_usable_select_photo_button.dart';
@@ -12,7 +13,6 @@ class SelectPhotoOptionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // color: Colors.grey.shade300,
       padding: const EdgeInsets.all(20),
       child: Stack(
         alignment: AlignmentDirectional.topCenter,
@@ -39,23 +39,33 @@ class SelectPhotoOptionsScreen extends StatelessWidget {
               icon: Icons.image,
               textLabel: 'Browse Gallery',
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            const Center(
-              child: Text(
-                'OR',
-                style: TextStyle(fontSize: 18),
+            if (!kIsWeb) ...[
+              const SizedBox(
+                height: 10,
               ),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            SelectPhoto(
-              onTap: () => onTap(ImageSource.camera),
-              icon: Icons.camera_alt_outlined,
-              textLabel: 'Use a Camera',
-            ),
+              const Center(
+                child: Text(
+                  'OR',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              SelectPhoto(
+                onTap: () => onTap(ImageSource.camera),
+                icon: Icons.camera_alt_outlined,
+                textLabel: 'Use a Camera',
+              ),
+            ] else ...[
+              const SizedBox(height: 10),
+              const Center(
+                child: Text(
+                  'Camera not available on web',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+            ],
           ])
         ],
       ),
