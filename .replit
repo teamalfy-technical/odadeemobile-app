@@ -37,4 +37,4 @@ externalPort = 80
 [deployment]
 deploymentTarget = "autoscale"
 run = ["flutter", "run", "-d", "web-server", "--web-port=5000", "--web-hostname=0.0.0.0", "--release"]
-build = ["flutter", "build", "web", "--release"]
+build = ["bash", "build.sh"]
