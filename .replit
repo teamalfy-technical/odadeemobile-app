@@ -1,0 +1,7 @@
+modules = ["c-clang14", "cpp-clang14", "ruby-3.2"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["flutter"]
