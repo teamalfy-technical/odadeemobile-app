@@ -1,0 +1,1061 @@
+---
+
+# Part 2: Feature APIs
+
+Now that authentication is working, here are all the features available in your Flutter app. All these endpoints require the `Authorization: Bearer <accessToken>` header unless marked as Public.
+
+---
+
+## 7. Events API
+
+### Get All Events
+```
+GET /api/events
+```
+
+**Response (200 OK)**:
+```json
+{
+  "events": [
+    {
+      "id": "event-uuid",
+      "title": "2024 Homecoming",
+      "description": "Annual alumni gathering...",
+      "location": "PRESEC Campus",
+      "startDate": "2024-12-15T10:00:00.000Z",
+      "endDate": "2024-12-15T18:00:00.000Z",
+      "imageUrl": "https://...",
+      "isVirtual": false,
+      "meetingLink": null,
+      "price": 50.00,
+      "currency": "GHS",
+      "maxAttendees": 500,
+      "registrationDeadline": "2024-12-10T23:59:59.000Z"
+    }
+  ]
+}
+```
+
+### Get Single Event
+```
+GET /api/events/:id
+```
+
+### Register for Event
+```
+POST /api/events/:id/register
+```
+
+**Request Body**:
+```json
+{
+  "numberOfTickets": 2,
+  "paymentMethod": "mobile_money",
+  "paymentReference": "MM123456789"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "registration": {
+    "id": "registration-uuid",
+    "eventId": "event-uuid",
+    "userId": "user-uuid",
+    "numberOfTickets": 2,
+    "totalAmount": 100.00,
+    "paymentStatus": "pending",
+    "paymentMethod": "mobile_money",
+    "paymentReference": "MM123456789"
+  }
+}
+```
+
+### Get My Event Registrations
+```
+GET /api/events/my-registrations
+```
+
+### Flutter Example - Events
+```dart
+// Fetch all events
+Future<List<Map<String, dynamic>>> getEvents() async {
+  final response = await authService.authenticatedRequest('GET', '/api/events');
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['events']);
+  }
+  throw Exception('Failed to load events');
+}
+
+// Register for event
+Future<void> registerForEvent(String eventId, int tickets) async {
+  final response = await authService.authenticatedRequest(
+    'POST',
+    '/api/events/$eventId/register',
+    body: {
+      'numberOfTickets': tickets,
+      'paymentMethod': 'mobile_money',
+      'paymentReference': 'MM${DateTime.now().millisecondsSinceEpoch}',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    print('Successfully registered for event');
+  }
+}
+```
+
+---
+
+## 8. Projects API
+
+### Get All Projects
+```
+GET /api/projects
+```
+
+**Response (200 OK)**:
+```json
+{
+  "projects": [
+    {
+      "id": "project-uuid",
+      "title": "New Science Lab",
+      "description": "Building a state-of-the-art science laboratory...",
+      "goalAmount": 100000.00,
+      "raisedAmount": 45000.00,
+      "currency": "GHS",
+      "status": "active",
+      "startDate": "2024-01-01T00:00:00.000Z",
+      "targetDate": "2024-12-31T23:59:59.000Z",
+      "imageUrl": "https://...",
+      "category": "infrastructure"
+    }
+  ]
+}
+```
+
+### Get Single Project (with updates)
+```
+GET /api/projects/:id
+```
+
+**Response includes project updates**:
+```json
+{
+  "project": { ...project details... },
+  "updates": [
+    {
+      "id": "update-uuid",
+      "title": "Foundation Complete",
+      "content": "We've completed the foundation work...",
+      "imageUrl": "https://...",
+      "createdAt": "2024-10-15T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Record a Donation/Payment
+```
+POST /api/projects/:projectId/payments
+```
+
+**Request Body**:
+```json
+{
+  "amount": 500.00,
+  "paymentMethod": "mobile_money",
+  "paymentReference": "MM123456789",
+  "donorName": "John Doe",
+  "isAnonymous": false
+}
+```
+
+**Note**: This endpoint is typically restricted to super_admin. For mobile apps, you might want to create a separate donation flow that users can initiate, then admins verify.
+
+### Flutter Example - Projects
+```dart
+// Fetch all projects
+Future<List<Map<String, dynamic>>> getProjects() async {
+  final response = await authService.authenticatedRequest('GET', '/api/projects');
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['projects']);
+  }
+  throw Exception('Failed to load projects');
+}
+
+// Get project details with updates
+Future<Map<String, dynamic>> getProjectDetails(String projectId) async {
+  final response = await authService.authenticatedRequest('GET', '/api/projects/$projectId');
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  }
+  throw Exception('Failed to load project details');
+}
+```
+
+---
+
+## 9. Community Discussions API
+
+### Get All Discussion Posts
+```
+GET /api/discussions
+```
+
+**Optional Query Parameters**:
+- `?category=networking` - Filter by category
+- `?limit=20` - Limit results
+
+**Response (200 OK)**:
+```json
+{
+  "discussions": [
+    {
+      "id": "discussion-uuid",
+      "title": "Networking Event Ideas",
+      "content": "What are your thoughts on...",
+      "category": "networking",
+      "authorId": "user-uuid",
+      "authorName": "John Doe",
+      "createdAt": "2024-10-20T15:30:00.000Z",
+      "commentCount": 5
+    }
+  ]
+}
+```
+
+### Create Discussion Post
+```
+POST /api/discussions
+```
+
+**Request Body**:
+```json
+{
+  "title": "Looking for Mentors in Tech",
+  "content": "Hi everyone, I'm looking for mentors...",
+  "category": "mentorship"
+}
+```
+
+**Categories**: `general`, `networking`, `mentorship`, `career`, `opportunities`
+
+### Get Discussion with Comments
+```
+GET /api/discussions/:id
+```
+
+**Response includes comments**:
+```json
+{
+  "discussion": { ...discussion details... },
+  "comments": [
+    {
+      "id": "comment-uuid",
+      "content": "Great idea!",
+      "userId": "user-uuid",
+      "userName": "Jane Smith",
+      "createdAt": "2024-10-20T16:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Add Comment to Discussion
+```
+POST /api/discussions/:id/comments
+```
+
+**Request Body**:
+```json
+{
+  "content": "This is my comment on the discussion..."
+}
+```
+
+### Delete Discussion Post
+```
+DELETE /api/discussions/:id
+```
+(Only the author can delete their own post)
+
+### Delete Comment
+```
+DELETE /api/discussions/:discussionId/comments/:commentId
+```
+
+### Flutter Example - Discussions
+```dart
+// Fetch all discussions
+Future<List<Map<String, dynamic>>> getDiscussions() async {
+  final response = await authService.authenticatedRequest('GET', '/api/discussions');
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['discussions']);
+  }
+  throw Exception('Failed to load discussions');
+}
+
+// Create new discussion
+Future<void> createDiscussion(String title, String content, String category) async {
+  final response = await authService.authenticatedRequest(
+    'POST',
+    '/api/discussions',
+    body: {
+      'title': title,
+      'content': content,
+      'category': category,
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    print('Discussion created successfully');
+  }
+}
+
+// Add comment
+Future<void> addComment(String discussionId, String content) async {
+  final response = await authService.authenticatedRequest(
+    'POST',
+    '/api/discussions/$discussionId/comments',
+    body: {'content': content},
+  );
+  
+  if (response.statusCode == 200) {
+    print('Comment added successfully');
+  }
+}
+```
+
+---
+
+## 10. Year Groups API
+
+### Get All Year Groups
+```
+GET /api/year-groups
+```
+
+**Response (200 OK)**:
+```json
+{
+  "yearGroups": [
+    {
+      "id": "year-group-uuid",
+      "name": "Class of 2015",
+      "year": 2015,
+      "description": "The amazing class of 2015",
+      "memberCount": 150
+    }
+  ]
+}
+```
+
+### Get Year Group Members
+```
+GET /api/year-groups/:yearGroupId/members
+```
+
+### Get Year Group Announcements
+```
+GET /api/year-groups/:yearGroupId/announcements
+```
+
+**Response (200 OK)**:
+```json
+{
+  "announcements": [
+    {
+      "id": "announcement-uuid",
+      "title": "Reunion Planning",
+      "content": "We're planning our 10-year reunion...",
+      "yearGroupId": "year-group-uuid",
+      "createdBy": "user-uuid",
+      "createdAt": "2024-10-15T10:00:00.000Z",
+      "comments": [
+        {
+          "id": "comment-uuid",
+          "content": "Count me in!",
+          "userId": "user-uuid",
+          "userName": "John Doe"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Create Announcement (Year Group Admin Only)
+```
+POST /api/year-groups/:yearGroupId/announcements
+```
+
+**Request Body**:
+```json
+{
+  "title": "Important Update",
+  "content": "Dear classmates, here's an important update..."
+}
+```
+
+### Add Comment to Announcement
+```
+POST /api/announcements/:announcementId/comments
+```
+
+**Request Body**:
+```json
+{
+  "content": "Thanks for the update!"
+}
+```
+
+### Get Year Group Dues
+```
+GET /api/year-groups/:yearGroupId/dues
+```
+
+**Response (200 OK)**:
+```json
+{
+  "dues": [
+    {
+      "id": "dues-uuid",
+      "title": "Annual Dues 2024",
+      "description": "Yearly contribution for class activities",
+      "amount": 100.00,
+      "currency": "GHS",
+      "dueDate": "2024-12-31T23:59:59.000Z",
+      "status": "active"
+    }
+  ]
+}
+```
+
+### Flutter Example - Year Groups
+```dart
+// Fetch year groups
+Future<List<Map<String, dynamic>>> getYearGroups() async {
+  final response = await authService.authenticatedRequest('GET', '/api/year-groups');
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['yearGroups']);
+  }
+  throw Exception('Failed to load year groups');
+}
+
+// Get announcements for a year group
+Future<List<Map<String, dynamic>>> getAnnouncements(String yearGroupId) async {
+  final response = await authService.authenticatedRequest(
+    'GET',
+    '/api/year-groups/$yearGroupId/announcements',
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['announcements']);
+  }
+  throw Exception('Failed to load announcements');
+}
+```
+
+---
+
+## 11. User Profile API
+
+### Get Current User Profile
+```
+GET /api/auth/me
+```
+
+**Response (200 OK)**:
+```json
+{
+  "id": "user-uuid",
+  "email": "john@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "role": "member",
+  "profileImage": "https://...",
+  "coverImage": "https://...",
+  "bio": "PRESEC alumnus, software engineer...",
+  "graduationYear": 2015,
+  "phoneNumber": "+233...",
+  "location": "Accra, Ghana",
+  "currentRole": "Software Engineer",
+  "company": "Tech Company",
+  "profession": "Engineering",
+  "skills": ["JavaScript", "Flutter", "React"],
+  "openToMentor": true,
+  "isActive": true,
+  "lastLoginAt": "2024-10-21T10:00:00.000Z"
+}
+```
+
+### Get Another User's Profile (with privacy filtering)
+```
+GET /api/users/:id/profile
+```
+
+**Note**: Response is filtered based on that user's privacy settings. Some fields may be hidden.
+
+### Update Own Profile
+```
+PATCH /api/users/:id/profile
+```
+
+**Request Body** (all fields optional):
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "bio": "Updated bio text",
+  "phoneNumber": "+233...",
+  "location": "Accra, Ghana",
+  "currentRole": "Senior Engineer",
+  "company": "New Company",
+  "profession": "Technology",
+  "skills": ["Flutter", "Dart", "Firebase"],
+  "openToMentor": true
+}
+```
+
+### Add Work Experience
+```
+POST /api/users/:id/work-experience
+```
+
+**Request Body**:
+```json
+{
+  "company": "Tech Corp",
+  "position": "Software Engineer",
+  "startDate": "2020-01-01",
+  "endDate": "2023-12-31",
+  "description": "Developed mobile applications...",
+  "isCurrent": false
+}
+```
+
+### Add Education
+```
+POST /api/users/:id/education
+```
+
+**Request Body**:
+```json
+{
+  "institution": "University of Ghana",
+  "degree": "BSc Computer Science",
+  "fieldOfStudy": "Computer Science",
+  "startDate": "2015-09-01",
+  "endDate": "2019-06-30",
+  "description": "Studied computer science fundamentals..."
+}
+```
+
+### Update Privacy Settings
+```
+PATCH /api/users/:id/privacy-settings
+```
+
+**Request Body**:
+```json
+{
+  "profileVisibility": "alumni_only",
+  "emailVisibility": "private",
+  "phoneVisibility": "year_group_only",
+  "locationVisibility": "alumni_only",
+  "workVisibility": "alumni_only",
+  "educationVisibility": "public"
+}
+```
+
+**Visibility Options**: `public`, `alumni_only`, `year_group_only`, `private`
+
+### Search Members
+```
+GET /api/search/members?query=john&graduationYear=2015&profession=engineering
+```
+
+**Query Parameters** (all optional):
+- `query` - Name search
+- `graduationYear` - Filter by year
+- `profession` - Filter by profession
+- `location` - Filter by location
+- `openToMentor` - Filter mentors (true/false)
+
+### Flutter Example - Profile
+```dart
+// Get current user profile
+Future<Map<String, dynamic>> getMyProfile() async {
+  final response = await authService.authenticatedRequest('GET', '/api/auth/me');
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  }
+  throw Exception('Failed to load profile');
+}
+
+// Update profile
+Future<void> updateProfile(Map<String, dynamic> updates) async {
+  final user = await authService.getCurrentUser();
+  if (user == null) return;
+  
+  final response = await authService.authenticatedRequest(
+    'PATCH',
+    '/api/users/${user['id']}/profile',
+    body: updates,
+  );
+  
+  if (response.statusCode == 200) {
+    print('Profile updated successfully');
+  }
+}
+
+// Search members
+Future<List<Map<String, dynamic>>> searchMembers(String query) async {
+  final response = await authService.authenticatedRequest(
+    'GET',
+    '/api/search/members?query=$query',
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['users'] ?? []);
+  }
+  throw Exception('Failed to search members');
+}
+```
+
+---
+
+## 12. Notifications API
+
+### Get My Notifications
+```
+GET /api/notifications?limit=50
+```
+
+**Response (200 OK)**:
+```json
+[
+  {
+    "id": "notification-uuid",
+    "userId": "user-uuid",
+    "type": "event_registration",
+    "title": "Event Registration Confirmed",
+    "message": "You're registered for 2024 Homecoming",
+    "data": {
+      "eventId": "event-uuid",
+      "eventTitle": "2024 Homecoming"
+    },
+    "isRead": false,
+    "createdAt": "2024-10-21T10:00:00.000Z"
+  }
+]
+```
+
+**Notification Types**:
+- `welcome` - Welcome message
+- `event_registration` - Event registration
+- `project_update` - Project update
+- `year_group_announcement` - Year group announcement
+- `dues_reminder` - Dues payment reminder
+- `payment_received` - Payment confirmation
+- `new_member` - New year group member
+
+### Get Unread Count
+```
+GET /api/notifications/unread-count
+```
+
+**Response (200 OK)**:
+```json
+{
+  "count": 5
+}
+```
+
+### Mark Notification as Read
+```
+PATCH /api/notifications/:id/read
+```
+
+### Mark All as Read
+```
+PATCH /api/notifications/read-all
+```
+
+### Delete Notification
+```
+DELETE /api/notifications/:id
+```
+
+### Real-Time Notifications (WebSocket)
+
+For real-time notifications, you can connect to the WebSocket endpoint:
+
+```
+wss://odadee-connect.replit.app/ws
+```
+
+**Important**: Send the access token as a query parameter or use session cookies for WebSocket authentication.
+
+### Flutter Example - Notifications
+```dart
+// Fetch notifications
+Future<List<Map<String, dynamic>>> getNotifications() async {
+  final response = await authService.authenticatedRequest(
+    'GET',
+    '/api/notifications?limit=50',
+  );
+  
+  if (response.statusCode == 200) {
+    return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+  }
+  throw Exception('Failed to load notifications');
+}
+
+// Get unread count
+Future<int> getUnreadCount() async {
+  final response = await authService.authenticatedRequest(
+    'GET',
+    '/api/notifications/unread-count',
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return data['count'] as int;
+  }
+  return 0;
+}
+
+// Mark as read
+Future<void> markAsRead(String notificationId) async {
+  await authService.authenticatedRequest(
+    'PATCH',
+    '/api/notifications/$notificationId/read',
+  );
+}
+
+// Mark all as read
+Future<void> markAllAsRead() async {
+  await authService.authenticatedRequest(
+    'PATCH',
+    '/api/notifications/read-all',
+  );
+}
+
+// WebSocket connection (optional for real-time)
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class NotificationService {
+  WebSocketChannel? _channel;
+  
+  void connectWebSocket(String accessToken) {
+    _channel = WebSocketChannel.connect(
+      Uri.parse('wss://odadee-connect.replit.app/ws?token=$accessToken'),
+    );
+    
+    _channel!.stream.listen((message) {
+      print('New notification: $message');
+      // Handle real-time notification
+    });
+  }
+  
+  void disconnect() {
+    _channel?.sink.close();
+  }
+}
+```
+
+**WebSocket Package**:
+```yaml
+dependencies:
+  web_socket_channel: ^2.4.0
+```
+
+---
+
+## 13. Executives API
+
+### Get All Executives
+```
+GET /api/executives
+```
+
+**Response (200 OK)**:
+```json
+{
+  "executives": [
+    {
+      "id": "executive-uuid",
+      "name": "Dr. John Mensah",
+      "position": "President",
+      "bio": "Dr. Mensah is a renowned educator...",
+      "imageUrl": "https://...",
+      "email": "president@presec.edu.gh",
+      "phoneNumber": "+233...",
+      "linkedinUrl": "https://linkedin.com/in/...",
+      "order": 1,
+      "isActive": true
+    }
+  ]
+}
+```
+
+**Note**: This endpoint is typically public or requires authentication depending on your setup. Check with the backend team.
+
+### Flutter Example - Executives
+```dart
+// Fetch executives
+Future<List<Map<String, dynamic>>> getExecutives() async {
+  final response = await authService.authenticatedRequest('GET', '/api/executives');
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['executives']);
+  }
+  throw Exception('Failed to load executives');
+}
+```
+
+---
+
+## 14. Dashboard Stats
+
+### Get Dashboard Statistics
+```
+GET /api/stats
+```
+
+**Response varies by user role**:
+
+**For Regular Members**:
+```json
+{
+  "totalMembers": 5000,
+  "totalYearGroups": 50,
+  "totalExecutives": 8,
+  "upcomingEvents": 3,
+  "availableProducts": 12
+}
+```
+
+**For Year Group Admins** (includes year group specific stats):
+```json
+{
+  "totalMembers": 5000,
+  "totalYearGroups": 50,
+  "yearGroupMembers": 150,
+  "userYearGroup": "Class of 2015",
+  "upcomingEvents": 3,
+  "availableProducts": 12
+}
+```
+
+**For Super Admins** (comprehensive stats):
+```json
+{
+  "totalMembers": 5000,
+  "totalYearGroups": 50,
+  "totalExecutives": 8,
+  "activeExecutives": 8,
+  "superAdmins": 3,
+  "yearGroupAdmins": 50,
+  "members": 4947,
+  "upcomingEvents": 3,
+  "availableProducts": 12
+}
+```
+
+### Flutter Example - Stats
+```dart
+// Fetch dashboard stats
+Future<Map<String, dynamic>> getDashboardStats() async {
+  final response = await authService.authenticatedRequest('GET', '/api/stats');
+  
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  }
+  throw Exception('Failed to load stats');
+}
+```
+
+---
+
+## 15. Image Upload
+
+### Upload Profile Image
+```
+POST /api/upload/profile-image
+```
+
+**Content-Type**: `multipart/form-data`
+
+**Form Data**:
+- `image` - The image file (JPG, PNG, WebP, max 5MB)
+
+**Response (200 OK)**:
+```json
+{
+  "imageUrl": "https://.../profile-images/user-uuid.jpg"
+}
+```
+
+### Upload Cover Image
+```
+POST /api/upload/cover-image
+```
+
+**Content-Type**: `multipart/form-data`
+
+**Form Data**:
+- `image` - The image file (JPG, PNG, WebP, max 5MB)
+
+### Update User Images
+```
+PUT /api/users/:id/images
+```
+
+**Request Body**:
+```json
+{
+  "profileImage": "https://.../profile-images/user-uuid.jpg",
+  "coverImage": "https://.../cover-images/user-uuid.jpg"
+}
+```
+
+### Flutter Example - Image Upload
+```dart
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'dart:io';
+
+// Upload profile image
+Future<String> uploadProfileImage(File imageFile) async {
+  final storage = FlutterSecureStorage();
+  final accessToken = await storage.read(key: 'access_token');
+  
+  final request = http.MultipartRequest(
+    'POST',
+    Uri.parse('${ApiConfig.baseUrl}/api/upload/profile-image'),
+  );
+  
+  request.headers['Authorization'] = 'Bearer $accessToken';
+  
+  request.files.add(
+    await http.MultipartFile.fromPath(
+      'image',
+      imageFile.path,
+      contentType: MediaType('image', 'jpeg'),
+    ),
+  );
+  
+  final response = await request.send();
+  final responseBody = await response.stream.bytesToString();
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(responseBody);
+    return data['imageUrl'];
+  }
+  
+  throw Exception('Failed to upload image');
+}
+
+// Complete profile image update flow
+Future<void> updateProfileImage(File imageFile) async {
+  // 1. Upload the image
+  final imageUrl = await uploadProfileImage(imageFile);
+  
+  // 2. Update user profile with new image URL
+  final user = await authService.getCurrentUser();
+  if (user == null) return;
+  
+  final response = await authService.authenticatedRequest(
+    'PUT',
+    '/api/users/${user['id']}/images',
+    body: {'profileImage': imageUrl},
+  );
+  
+  if (response.statusCode == 200) {
+    print('Profile image updated successfully');
+  }
+}
+```
+
+**Required Package**:
+```yaml
+dependencies:
+  http_parser: ^4.0.2
+  image_picker: ^1.0.4  # For picking images from gallery/camera
+```
+
+---
+
+## Summary of Key Endpoints
+
+| Feature | Key Endpoints |
+|---------|--------------|
+| **Auth** | POST /api/auth/mobile/login, POST /api/auth/mobile/refresh |
+| **Events** | GET /api/events, POST /api/events/:id/register |
+| **Projects** | GET /api/projects, GET /api/projects/:id |
+| **Discussions** | GET /api/discussions, POST /api/discussions, POST /api/discussions/:id/comments |
+| **Year Groups** | GET /api/year-groups, GET /api/year-groups/:id/announcements |
+| **Profile** | GET /api/auth/me, PATCH /api/users/:id/profile |
+| **Notifications** | GET /api/notifications, PATCH /api/notifications/:id/read |
+| **Executives** | GET /api/executives |
+| **Stats** | GET /api/stats |
+| **Images** | POST /api/upload/profile-image, POST /api/upload/cover-image |
+
+---
+
+## Common Patterns
+
+### Pagination
+Most list endpoints support pagination (though not all implement it yet):
+```
+GET /api/discussions?page=1&limit=20
+```
+
+### Filtering
+Many endpoints support query parameters for filtering:
+```
+GET /api/search/members?graduationYear=2015&profession=engineering
+```
+
+### Error Handling
+All endpoints return consistent error format:
+```json
+{
+  "message": "Error description here"
+}
+```
+
+Common status codes:
+- `200` - Success
+- `400` - Bad request (invalid data)
+- `401` - Unauthorized (invalid/expired token)
+- `403` - Forbidden (insufficient permissions)
+- `404` - Not found
+- `500` - Server error
+
+---
+
+## For Complete API Documentation
+
+For the full interactive API documentation with all endpoints, examples, and testing capabilities:
+
+1. Login to the web app as super admin (superadmin@presec.edu.gh / Admin@123)
+2. Visit: `https://odadee-connect.replit.app/api-docs`
+3. This shows all 80+ endpoints with request/response examples
