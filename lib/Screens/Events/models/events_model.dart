@@ -4,8 +4,16 @@ class AllEventsModel {
   AllEventsModel({this.events});
 
   AllEventsModel.fromJson(Map<String, dynamic> json) {
-    events =
-    json['events'] != null ? new Events.fromJson(json['events']) : null;
+    if (json['events'] != null) {
+      // Handle both direct array and paginated response
+      if (json['events'] is List) {
+        // Direct array format: {"events": [...]}
+        events = Events(data: (json['events'] as List).map((v) => Data.fromJson(v)).toList());
+      } else {
+        // Paginated format: {"events": {"current_page": 1, "data": [...]}}
+        events = Events.fromJson(json['events']);
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

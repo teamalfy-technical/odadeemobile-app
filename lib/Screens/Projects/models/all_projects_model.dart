@@ -4,9 +4,16 @@ class AllProjectsModel {
   AllProjectsModel({this.projects});
 
   AllProjectsModel.fromJson(Map<String, dynamic> json) {
-    projects = json['projects'] != null
-        ? new Projects.fromJson(json['projects'])
-        : null;
+    if (json['projects'] != null) {
+      // Handle both direct array and paginated response
+      if (json['projects'] is List) {
+        // Direct array format: {"projects": [...]}
+        projects = Projects(data: (json['projects'] as List).map((v) => Data.fromJson(v)).toList());
+      } else {
+        // Paginated format: {"projects": {"current_page": 1, "data": [...]}}
+        projects = Projects.fromJson(json['projects']);
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

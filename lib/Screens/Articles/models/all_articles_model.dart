@@ -4,7 +4,16 @@ class AllArticlesModel {
   AllArticlesModel({this.news});
 
   AllArticlesModel.fromJson(Map<String, dynamic> json) {
-    news = json['news'] != null ? new News.fromJson(json['news']) : null;
+    if (json['news'] != null) {
+      // Handle both direct array and paginated response
+      if (json['news'] is List) {
+        // Direct array format: {"news": [...]}
+        news = News(data: (json['news'] as List).map((v) => Data.fromJson(v)).toList());
+      } else {
+        // Paginated format: {"news": {"current_page": 1, "data": [...]}}
+        news = News.fromJson(json['news']);
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

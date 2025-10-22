@@ -4,7 +4,16 @@ class AllUsersModel {
   AllUsersModel({this.users});
 
   AllUsersModel.fromJson(Map<String, dynamic> json) {
-    users = json['users'] != null ? new Users.fromJson(json['users']) : null;
+    if (json['users'] != null) {
+      // Handle both direct array and paginated response
+      if (json['users'] is List) {
+        // Direct array format: {"users": [...]}
+        users = Users(data: (json['users'] as List).map((v) => Data.fromJson(v)).toList());
+      } else {
+        // Paginated format: {"users": {"current_page": 1, "data": [...]}}
+        users = Users.fromJson(json['users']);
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {
