@@ -19,23 +19,26 @@ import '../Radio/playing_screen.dart';
 
 Future<ProjectDetailModel> getProjectDetail(project_id) async {
   try {
+    print('===== FETCHING PROJECT DETAIL $project_id =====');
     final authService = AuthService();
     final response = await authService.authenticatedRequest('GET', "/api/projects/${project_id.toString()}");
 
-    if (response.statusCode == 200) {
-      print("DAAAAAAAAAA");
-      print(jsonDecode(response.body));
+    print('Project Detail API Status: ${response.statusCode}');
+    print('Project Detail API Response: ${response.body}');
 
-      return ProjectDetailModel.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      print('Project detail loaded successfully');
+      return ProjectDetailModel.fromJson(jsonData);
     } else if (response.statusCode == 422) {
-      print(jsonDecode(response.body));
+      print('Validation error loading project details');
       return ProjectDetailModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load data');
+      throw Exception('Failed to load project details. Status: ${response.statusCode}');
     }
   } catch (e) {
     print('Error loading project details: $e');
-    rethrow;
+    throw Exception('Failed to load project details. Please try again.');
   }
 }
 

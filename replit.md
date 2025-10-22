@@ -10,8 +10,8 @@ Odadee is a Flutter mobile application that has been configured to run as a web 
 - User profiles and settings
 
 ## Project Status
-**Current State**: Fully functional Flutter web application running on Replit
-**Last Updated**: October 21, 2025
+**Current State**: Complete secure authentication migration - all API calls use AuthService
+**Last Updated**: October 22, 2025
 
 ## Architecture
 
@@ -148,6 +148,23 @@ The deployment uses a custom build script that ensures clean, reliable builds:
 **Note:** The `meta` package has been added as an explicit dependency to prevent annotation errors in production builds.
 
 ## Recent Changes
+- **2025-10-22**: Complete API Migration to AuthService
+  - Migrated ALL remaining API calls to use secure AuthService.authenticatedRequest
+  - Updated detail screens: project_details, news_details, radio_screen, playing_screen
+  - All API calls now use encrypted flutter_secure_storage instead of SharedPreferences
+  - Added comprehensive debug logging to Dashboard for API response troubleshooting
+  - Enhanced error handling UI with user-friendly error messages and retry buttons
+  - Configured production API: https://odadee-connect.replit.app
+  - All screens now support automatic token refresh (15-minute access token expiry)
+  - Completed files updated:
+    * lib/Screens/Projects/project_details.dart - getProjectDetail() function
+    * lib/Screens/Articles/news_details.dart - getAllComments() function
+    * lib/Screens/Radio/radio_screen.dart - getRadioStations() function
+    * lib/Screens/Radio/playing_screen.dart - getRadioStations() function
+    * lib/Screens/Dashboard/dashboard_screen.dart - Enhanced error UI and logging
+    * lib/main.dart - Added authentication check debug logging
+    * lib/config/api_config.dart - Switched to production URL
+
 - **2025-10-21**: Authentication System Overhaul
   - Implemented new secure authentication using `flutter_secure_storage`
   - Created `AuthService` with login, registration, token refresh, and logout

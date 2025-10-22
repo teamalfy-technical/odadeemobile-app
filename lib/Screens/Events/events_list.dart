@@ -58,8 +58,12 @@ class _EventsScreenState extends State<EventsScreen> {
     });
 
     try {
+      print('===== FETCHING EVENTS PAGE $page =====');
       final authService = AuthService();
       final response = await authService.authenticatedRequest('GET', '/api/events?page=$page');
+
+      print('Events API Status: ${response.statusCode}');
+      print('Events API Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -70,15 +74,26 @@ class _EventsScreenState extends State<EventsScreen> {
           eventsList.addAll(eventData.data!);
           isLoading = false;
         });
-        print(eventData);
+        print('Events loaded successfully: ${eventData.data!.length} items');
       } else {
-        throw Exception('Failed to load event data');
+        throw Exception('Failed to load events. Status: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error fetching events: $e');
       setState(() {
         isLoading = false;
       });
-      rethrow;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load events. Please try again.'),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _fetchEventsData(page),
+            ),
+          ),
+        );
+      }
     }
   }
 

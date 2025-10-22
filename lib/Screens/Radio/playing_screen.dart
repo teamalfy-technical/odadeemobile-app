@@ -19,24 +19,26 @@ import 'package:http/http.dart' as http;
 
 Future<RadiosModel> getRadioStations() async {
   try {
+    print('===== FETCHING RADIO STATIONS =====');
     final authService = AuthService();
     final response = await authService.authenticatedRequest('POST', "/api/stations");
 
-    if (response.statusCode == 200) {
-      print(jsonDecode(response.body));
+    print('Radio Stations API Status: ${response.statusCode}');
+    print('Radio Stations API Response: ${response.body}');
 
-      return RadiosModel.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      print('Radio stations loaded successfully');
+      return RadiosModel.fromJson(jsonData);
     } else if (response.statusCode == 422) {
-      print(jsonDecode(response.body));
+      print('Validation error loading radio stations');
       return RadiosModel.fromJson(jsonDecode(response.body));
     } else {
-      print(jsonDecode(response.body));
-
-      throw Exception('Failed to load data');
+      throw Exception('Failed to load radio stations. Status: ${response.statusCode}');
     }
   } catch (e) {
     print('Error loading radio stations: $e');
-    rethrow;
+    throw Exception('Failed to load radio stations. Please try again.');
   }
 }
 

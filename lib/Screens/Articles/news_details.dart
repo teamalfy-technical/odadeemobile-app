@@ -20,22 +20,26 @@ import 'package:http/http.dart' as http;
 
 Future<CommentModel> getAllComments(comment_id) async {
   try {
+    print('===== FETCHING COMMENTS FOR ARTICLE $comment_id =====');
     final authService = AuthService();
     final response = await authService.authenticatedRequest('GET', "/api/comments/${comment_id.toString()}");
 
-    if (response.statusCode == 200) {
-      print(jsonDecode(response.body));
+    print('Comments API Status: ${response.statusCode}');
+    print('Comments API Response: ${response.body}');
 
-      return CommentModel.fromJson(jsonDecode(response.body));
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      print('Comments loaded successfully');
+      return CommentModel.fromJson(jsonData);
     } else if (response.statusCode == 422) {
-      print(jsonDecode(response.body));
+      print('Validation error loading comments');
       return CommentModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load data');
+      throw Exception('Failed to load comments. Status: ${response.statusCode}');
     }
   } catch (e) {
     print('Error loading comments: $e');
-    rethrow;
+    throw Exception('Failed to load comments. Please try again.');
   }
 }
 

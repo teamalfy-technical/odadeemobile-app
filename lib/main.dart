@@ -70,13 +70,26 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _checkAuthStatus() async {
-    final authService = AuthService();
-    final isLoggedIn = await authService.isLoggedIn();
-    if (mounted) {
-      setState(() {
-        _isLoggedIn = isLoggedIn;
-        _isLoading = false;
-      });
+    print('===== CHECKING AUTH STATUS =====');
+    try {
+      final authService = AuthService();
+      final isLoggedIn = await authService.isLoggedIn();
+      print('Auth check result: $isLoggedIn');
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = isLoggedIn;
+          _isLoading = false;
+        });
+      }
+      print('Navigation target: ${isLoggedIn ? "Dashboard" : "Splash"}');
+    } catch (e) {
+      print('Error checking auth status: $e');
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+          _isLoading = false;
+        });
+      }
     }
   }
 

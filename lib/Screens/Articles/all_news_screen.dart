@@ -53,8 +53,12 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
     });
 
     try {
+      print('===== FETCHING NEWS PAGE $page =====');
       final authService = AuthService();
       final response = await authService.authenticatedRequest('GET', '/api/articles?page=$page');
+
+      print('News API Status: ${response.statusCode}');
+      print('News API Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -65,15 +69,26 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
           newsList.addAll(newsData.data!);
           isLoading = false;
         });
-        print(newsData);
+        print('News loaded successfully: ${newsData.data!.length} items');
       } else {
-        throw Exception('Failed to load news data');
+        throw Exception('Failed to load news. Status: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error fetching news: $e');
       setState(() {
         isLoading = false;
       });
-      rethrow;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load news. Please try again.'),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _fetchNewsData(page),
+            ),
+          ),
+        );
+      }
     }
   }
 

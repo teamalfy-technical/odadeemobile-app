@@ -52,8 +52,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     });
 
     try {
+      print('===== FETCHING PROJECTS PAGE $page =====');
       final authService = AuthService();
       final response = await authService.authenticatedRequest('GET', '/api/projects?page=$page');
+
+      print('Projects API Status: ${response.statusCode}');
+      print('Projects API Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -64,15 +68,26 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           projectList.addAll(projectData.data!);
           isLoading = false;
         });
-        print(projectData);
+        print('Projects loaded successfully: ${projectData.data!.length} items');
       } else {
-        throw Exception('Failed to load project data');
+        throw Exception('Failed to load projects. Status: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error fetching projects: $e');
       setState(() {
         isLoading = false;
       });
-      rethrow;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load projects. Please try again.'),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _fetchProjectsData(page),
+            ),
+          ),
+        );
+      }
     }
   }
 
