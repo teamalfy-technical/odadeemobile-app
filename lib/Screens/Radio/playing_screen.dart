@@ -10,6 +10,7 @@ import 'package:odadee/Screens/Radio/models/radios_models.dart';
 import 'package:odadee/Screens/Radio/playing_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 import 'package:radio_player/radio_player.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:http/http.dart' as http;
@@ -17,30 +18,25 @@ import 'package:http/http.dart' as http;
 
 
 Future<RadiosModel> getRadioStations() async {
+  try {
+    final authService = AuthService();
+    final response = await authService.authenticatedRequest('POST', "/api/stations");
 
-  var token = await getApiPref();
+    if (response.statusCode == 200) {
+      print(jsonDecode(response.body));
 
-  final response = await http.post(
-    Uri.parse(hostName + "/api/stations"),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer ' + token.toString()
-    },
+      return RadiosModel.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 422) {
+      print(jsonDecode(response.body));
+      return RadiosModel.fromJson(jsonDecode(response.body));
+    } else {
+      print(jsonDecode(response.body));
 
-  );
-
-  if (response.statusCode == 200) {
-    print(jsonDecode(response.body));
-
-    return RadiosModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 422) {
-    print(jsonDecode(response.body));
-    return RadiosModel.fromJson(jsonDecode(response.body));
-  }  else {
-    print(jsonDecode(response.body));
-
-    throw Exception('Failed to load data');
+      throw Exception('Failed to load data');
+    }
+  } catch (e) {
+    print('Error loading radio stations: $e');
+    rethrow;
   }
 }
 

@@ -38,8 +38,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final authService = AuthService();
       final response = await authService.authenticatedRequest('GET', '/api/users');
 
+      print('===== USERS API RESPONSE =====');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('==============================');
+
       if (response.statusCode == 200) {
-        return AllUsersModel.fromJson(jsonDecode(response.body));
+        final jsonData = jsonDecode(response.body);
+        print('Decoded JSON: $jsonData');
+        return AllUsersModel.fromJson(jsonData);
       } else if (response.statusCode == 401) {
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -47,17 +54,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
         throw Exception('Session expired. Please sign in again.');
       } else {
-        throw Exception('Failed to load users. Please try again.');
+        throw Exception('Failed to load users. Status: ${response.statusCode}');
       }
-    } on SocketException {
+    } on SocketException catch (e) {
+      print('Socket error: $e');
       throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
-    } on http.ClientException {
+    } on http.ClientException catch (e) {
+      print('Client error: $e');
       throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
-    } on HttpException {
+    } on HttpException catch (e) {
+      print('HTTP error: $e');
       throw Exception('Network error: Unable to connect to server.');
-    } on FormatException {
+    } on FormatException catch (e) {
+      print('Format error: $e');
       throw Exception('Invalid data received from server.');
-    } on Exception {
+    } catch (e) {
+      print('Unexpected error in _fetchAllUsersData: $e');
       rethrow;
     }
   }
@@ -185,17 +197,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
+                    ),
                     SizedBox(
                       height: 10,
                     ),
-                    Text("Please Wait...")
+                    Text("Loading dashboard data...")
                   ],
                 ),
               );
             } else if (snapshot.hasError) {
+              print('Dashboard error: ${snapshot.error}');
               return Center(
-                child: Text('Error: ${snapshot.error}'),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red, size: 60),
+                      SizedBox(height: 20),
+                      Text(
+                        'Error loading dashboard',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        '${snapshot.error}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {});
+                        },
+                        child: Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
               );
             } else if (snapshot.hasData) {
               final userData = snapshot.data![0];

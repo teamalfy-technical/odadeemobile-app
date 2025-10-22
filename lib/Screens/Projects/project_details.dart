@@ -8,6 +8,7 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Radio/radio_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:http/http.dart' as http;
 
@@ -17,30 +18,24 @@ import '../Radio/playing_screen.dart';
 
 
 Future<ProjectDetailModel> getProjectDetail(project_id) async {
+  try {
+    final authService = AuthService();
+    final response = await authService.authenticatedRequest('GET', "/api/projects/${project_id.toString()}");
 
-  var token = await getApiPref();
+    if (response.statusCode == 200) {
+      print("DAAAAAAAAAA");
+      print(jsonDecode(response.body));
 
-  final response = await http.get(
-    Uri.parse(hostName + "/api/projects/" + project_id.toString()),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer ' + token.toString()
-    },
-
-  );
-
-  if (response.statusCode == 200) {
-    print("DAAAAAAAAAA");
-    print(jsonDecode(response.body));
-
-    return ProjectDetailModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 422) {
-    print(jsonDecode(response.body));
-    return ProjectDetailModel.fromJson(jsonDecode(response.body));
-  }  else {
-
-    throw Exception('Failed to load data');
+      return ProjectDetailModel.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 422) {
+      print(jsonDecode(response.body));
+      return ProjectDetailModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load data');
+    }
+  } catch (e) {
+    print('Error loading project details: $e');
+    rethrow;
   }
 }
 
