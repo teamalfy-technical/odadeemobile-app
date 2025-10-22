@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const bool isDevelopment = false;
+  static const bool isDevelopment = true;
   
   static String get baseUrl {
     return isDevelopment
