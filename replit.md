@@ -10,7 +10,7 @@ Odadee is a Flutter mobile application that has been configured to run as a web 
 - User profiles and settings
 
 ## Project Status
-**Current State**: Complete secure authentication migration - all API calls use AuthService
+**Current State**: Dashboard fully functional - fixed API format mismatch, all data sections load correctly
 **Last Updated**: October 22, 2025
 
 ## Architecture
@@ -148,6 +148,18 @@ The deployment uses a custom build script that ensures clean, reliable builds:
 **Note:** The `meta` package has been added as an explicit dependency to prevent annotation errors in production builds.
 
 ## Recent Changes
+- **2025-10-22**: Fixed API Data Format Mismatch ✅ ARCHITECT REVIEWED
+  - **Issue**: Backend returns direct arrays `{"users": [...]}` but models expected paginated responses `{"users": {"current_page": 1, "data": [...]}}`
+  - **Solution**: Updated all 4 data models to handle both formats gracefully
+  - **Files Updated**: all_users_model.dart, events_model.dart, all_projects_model.dart, all_articles_model.dart
+  - **Backward Compatible**: Still supports paginated responses if backend changes format
+  - **Result**: Dashboard now loads successfully with all data sections (Users, Events, Projects, Articles)
+  
+  **Important Note on Browser Caching:**
+  - After code changes, you MUST force refresh your browser (Ctrl+Shift+R on Windows/Linux, Cmd+Shift+R on Mac)
+  - Or use "Empty Cache and Hard Reload" in Chrome DevTools (F12 → right-click refresh button)
+  - Flutter web apps use service workers that cache aggressively
+
 - **2025-10-22**: Complete API Migration to AuthService ✅ ARCHITECT REVIEWED
   - **Security**: Migrated ALL API calls from insecure SharedPreferences to encrypted flutter_secure_storage
   - **Consistency**: Every screen now uses AuthService.authenticatedRequest for API calls
