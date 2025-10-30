@@ -21,7 +21,6 @@ import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/components/stat_card.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
-import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Authentication/SignIn/sgin_in_screen.dart';
 import '../Radio/playing_screen.dart';
@@ -447,7 +446,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     title: 'Total Members',
                                     value: '$usersCount',
                                     icon: Icons.people,
-                                    gradientColors: [odaPrimary, odaSecondary],
+                                    subtitle: 'Registered alumni',
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -457,10 +456,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     },
                                   ),
                                   StatCard(
-                                    title: 'Upcoming Events',
+                                    title: 'Events',
                                     value: '$eventsCount',
                                     icon: Icons.event,
-                                    gradientColors: [odaSecondary, odaPrimary],
+                                    subtitle: 'Upcoming events',
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -470,10 +469,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     },
                                   ),
                                   StatCard(
-                                    title: 'Active Projects',
+                                    title: 'Products',
                                     value: '$projectsCount',
-                                    icon: Icons.work,
-                                    gradientColors: [odaPrimary.withOpacity(0.8), odaSecondary.withOpacity(0.8)],
+                                    icon: Icons.card_giftcard,
+                                    subtitle: 'In shop',
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -483,10 +482,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     },
                                   ),
                                   StatCard(
-                                    title: 'Discussions',
-                                    value: '$discussionsCount',
-                                    icon: Icons.forum,
-                                    gradientColors: [odaSecondary.withOpacity(0.8), odaPrimary.withOpacity(0.8)],
+                                    title: 'Contributions',
+                                    value: 'GH¢ 0',
+                                    icon: Icons.payments,
+                                    subtitle: 'Total raised',
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
@@ -525,15 +524,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       AllRegisteredUsers()));
                                         },
                                         child: Container(
-                                          child: GradientText('View All',
+                                          child: Text('View All',
                                               style: const TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w600,
-                                                  color: odaSecondary),
-                                              colors: [
-                                                odaPrimary,
-                                                odaSecondary,
-                                              ]),
+                                                  color: odaPrimary)),
                                         ),
                                       ),
                                     ],
@@ -616,21 +611,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         width: 80,
                                                         decoration: BoxDecoration(
                                                           shape: BoxShape.circle,
-                                                          gradient: LinearGradient(
-                                                            colors: [
-                                                              odaPrimary.withOpacity(0.7),
-                                                              odaSecondary.withOpacity(0.7),
-                                                            ],
-                                                            begin: Alignment.topLeft,
-                                                            end: Alignment.bottomRight,
+                                                          color: Color(0xFF334155),
+                                                          border: Border.all(
+                                                            color: Color(0xFF475569),
+                                                            width: 2,
                                                           ),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: odaPrimary.withOpacity(0.3),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 4),
-                                                            ),
-                                                          ],
                                                         ),
                                                         child: Center(
                                                           child: Text(
@@ -641,8 +626,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                 ? userData.users.data[index].lastName!.substring(0, 1)
                                                                 : ''),
                                                             style: TextStyle(
-                                                                fontSize: 28,
-                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 24,
+                                                                fontWeight: FontWeight.w600,
                                                                 color: Colors.white),
                                                           ),
                                                         ),
@@ -692,15 +677,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               context) =>
                                                           EventsScreen()));
                                             },
-                                            child: GradientText('View All',
+                                            child: Text('View All',
                                                 style: const TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w600,
-                                                    color: odaSecondary),
-                                                colors: [
-                                                  odaPrimary,
-                                                  odaSecondary,
-                                                ]),
+                                                    color: odaPrimary)),
                                           ),
                                         ],
                                       ),
@@ -797,25 +778,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             padding:
                                                                 EdgeInsets.all(12),
                                                             decoration: BoxDecoration(
-                                                              gradient: LinearGradient(
-                                                                colors: [
-                                                                  odaPrimary,
-                                                                  odaSecondary,
-                                                                ],
-                                                                begin: Alignment.topLeft,
-                                                                end: Alignment.bottomRight,
-                                                              ),
+                                                              color: Color(0xFF334155),
                                                               borderRadius:
                                                                   BorderRadius
                                                                       .circular(
                                                                           10),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                  color: odaPrimary.withOpacity(0.3),
-                                                                  blurRadius: 6,
-                                                                  offset: Offset(0, 3),
-                                                                ),
-                                                              ],
+                                                              border: Border.all(
+                                                                color: Color(0xFF475569),
+                                                                width: 1,
+                                                              ),
                                                             ),
                                                             child: _buildEventDate(eventsData.events.data[index].startDate),
                                                           ),
@@ -877,15 +848,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               context) =>
                                                           ProjectsScreen()));
                                             },
-                                            child: GradientText('View All',
+                                            child: Text('View All',
                                                 style: const TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w600,
-                                                    color: odaSecondary),
-                                                colors: [
-                                                  odaPrimary,
-                                                  odaSecondary,
-                                                ]),
+                                                    color: odaPrimary)),
                                           ),
                                         ],
                                       ),
@@ -971,16 +938,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                     topLeft: Radius.circular(15),
                                                                     topRight: Radius.circular(15),
                                                                   ),
-                                                              gradient: (project.image?.isNotEmpty ?? false)
+                                                              color: (project.image?.isNotEmpty ?? false)
                                                                 ? null
-                                                                : LinearGradient(
-                                                                    colors: [
-                                                                      odaPrimary.withOpacity(0.3),
-                                                                      odaSecondary.withOpacity(0.3),
-                                                                    ],
-                                                                    begin: Alignment.topLeft,
-                                                                    end: Alignment.bottomRight,
-                                                                  ),
+                                                                : Color(0xFF1e293b),
                                                               image: (project.image?.isNotEmpty ?? false)
                                                                   ? DecorationImage(
                                                                       image: NetworkImage(project.image!),
@@ -991,9 +951,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                 ? null
                                                                 : Center(
                                                                     child: Icon(
-                                                                      Icons.image_outlined,
+                                                                      Icons.card_giftcard_outlined,
                                                                       size: 50,
-                                                                      color: Colors.grey[400],
+                                                                      color: Color(0xFF64748b),
                                                                     ),
                                                                   ),
                                                           ),
@@ -1065,19 +1025,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       child: Container(
                                                                         padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                                                                         decoration: BoxDecoration(
-                                                                          gradient: LinearGradient(
-                                                                            colors: [odaPrimary, odaSecondary],
-                                                                            begin: Alignment.centerLeft,
-                                                                            end: Alignment.centerRight,
-                                                                          ),
+                                                                          color: odaPrimary,
                                                                           borderRadius: BorderRadius.circular(10),
-                                                                          boxShadow: [
-                                                                            BoxShadow(
-                                                                              color: odaPrimary.withOpacity(0.3),
-                                                                              blurRadius: 6,
-                                                                              offset: Offset(0, 3),
-                                                                            ),
-                                                                          ],
                                                                         ),
                                                                         child: Center(
                                                                           child: Text(
@@ -1144,14 +1093,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               context) =>
                                                           AllNewsScreen()));
                                             },
-                                            child: GradientText('View All',
+                                            child: Text('View All',
                                                 style: const TextStyle(
                                                     fontSize: 12,
-                                                    color: odaSecondary),
-                                                colors: [
-                                                  odaPrimary,
-                                                  odaSecondary,
-                                                ]),
+                                                    fontWeight: FontWeight.w600,
+                                                    color: odaPrimary)),
                                           ),
                                         ],
                                       ),
