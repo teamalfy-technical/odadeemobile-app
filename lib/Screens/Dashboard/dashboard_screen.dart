@@ -751,15 +751,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                   BorderRadius
                                                                       .circular(
                                                                           15),
-                                                              image: DecorationImage(
-                                                                  image: NetworkImage(
-                                                                      projectsData
-                                                                          .projects
-                                                                          .data[
-                                                                              index]
-                                                                          .image),
-                                                                  fit: BoxFit
-                                                                      .cover))),
+                                                              color: odaPrimary.withOpacity(0.1),
+                                                              image: (projectsData.projects.data[index].image?.isNotEmpty ?? false)
+                                                                  ? DecorationImage(
+                                                                      image: NetworkImage(
+                                                                          projectsData
+                                                                              .projects
+                                                                              .data[
+                                                                                  index]
+                                                                              .image!),
+                                                                      fit: BoxFit
+                                                                          .cover)
+                                                                  : null),
+                                                          child: (projectsData.projects.data[index].image?.isNotEmpty ?? false)
+                                                              ? null
+                                                              : Center(
+                                                                  child: Icon(
+                                                                    Icons.image_outlined,
+                                                                    size: 50,
+                                                                    color: Colors.grey,
+                                                                  ),
+                                                                )),
                                                       SizedBox(
                                                         height: 8,
                                                       ),
@@ -770,7 +782,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             projectsData
                                                                 .projects
                                                                 .data[index]
-                                                                .title,
+                                                                .title ?? 'Untitled Project',
                                                             maxLines: 1,
                                                             overflow:
                                                                 TextOverflow
@@ -789,7 +801,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         projectsData
                                                             .projects
                                                             .data[index]
-                                                            .content,
+                                                            .content ?? '',
                                                         maxLines: 1,
                                                         overflow: TextOverflow
                                                             .ellipsis,
@@ -827,11 +839,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             ),
                                                           ),
                                                           Text(
-                                                            "\$" +
-                                                                projectsData
-                                                                    .projects
-                                                                    .data[index]
-                                                                    .fundingTargetDollar,
+                                                            "\$${projectsData.projects.data[index].fundingTargetDollar ?? '0'}",
                                                             style: TextStyle(
                                                                 color:
                                                                     odaSecondary,
