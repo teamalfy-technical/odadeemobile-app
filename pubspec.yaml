@@ -52,6 +52,7 @@ dependencies:
   shared_preferences: ^2.2.0
   simple_gradient_text: ^1.2.4
   uuid: ^4.0.0
+  vector_math: ^2.1.4
   win32: ^5.11.0
 
 dev_dependencies:
