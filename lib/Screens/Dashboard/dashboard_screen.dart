@@ -18,6 +18,7 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Projects/projects_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
+import 'package:odadee/components/stat_card.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
@@ -195,6 +196,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<Map<String, dynamic>?> _fetchStats() async {
+    try {
+      final authService = AuthService();
+      final response = await authService.authenticatedRequest('GET', '/api/stats');
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching stats (non-critical): $e');
+      return null;
+    }
+  }
+
   String? user_year_group;
 
   @override
@@ -220,23 +236,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
       
       final dateInfo = extractDateInfo(dateString);
       return Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          GradientText(
+          Text(
             dateInfo['day'].toString(),
-            style: const TextStyle(fontSize: 36, color: odaSecondary),
-            colors: [odaPrimary, odaSecondary],
+            style: const TextStyle(
+              fontSize: 32, 
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-          SizedBox(width: 5),
+          SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 dateInfo['month'].toString(),
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(
+                  fontSize: 11, 
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 dateInfo['year'].toString(),
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(
+                  fontSize: 11, 
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -250,12 +279,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildDateFallback() {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.event, color: odaPrimary, size: 36),
-        SizedBox(width: 5),
+        Icon(Icons.event, color: Colors.white, size: 32),
+        SizedBox(width: 8),
         Text(
           'TBA',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 12, 
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -271,6 +305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _fetchAllEventsData(),
             _fetchAllProjectsData(),
             _fetchAllArticlesData(),
+            _fetchStats(),
           ]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -330,6 +365,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               final articlesData = snapshot.data![3];
 
+              final statsData = snapshot.data![4] as Map<String, dynamic>?;
+
               // Check if critical data is null (users, events, projects are required)
               if (userData == null ||
                   eventsData == null ||
@@ -350,6 +387,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 );
               }
+
+              final int usersCount = userData.users?.data?.length ?? 0;
+              final int eventsCount = eventsData.events?.data?.length ?? 0;
+              final int projectsCount = projectsData.projects?.data?.length ?? 0;
+              final int discussionsCount = articlesData?.news?.data?.length ?? 0;
 
               return SafeArea(
                 bottom: false,
@@ -392,6 +434,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                              child: GridView.count(
+                                crossAxisCount: 2,
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                crossAxisSpacing: 15,
+                                mainAxisSpacing: 15,
+                                childAspectRatio: 1.4,
+                                children: [
+                                  StatCard(
+                                    title: 'Total Members',
+                                    value: '$usersCount',
+                                    icon: Icons.people,
+                                    gradientColors: [odaPrimary, odaSecondary],
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => AllRegisteredUsers(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  StatCard(
+                                    title: 'Upcoming Events',
+                                    value: '$eventsCount',
+                                    icon: Icons.event,
+                                    gradientColors: [odaSecondary, odaPrimary],
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => EventsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  StatCard(
+                                    title: 'Active Projects',
+                                    value: '$projectsCount',
+                                    icon: Icons.work,
+                                    gradientColors: [odaPrimary.withOpacity(0.8), odaSecondary.withOpacity(0.8)],
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => ProjectsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  StatCard(
+                                    title: 'Discussions',
+                                    value: '$discussionsCount',
+                                    icon: Icons.forum,
+                                    gradientColors: [odaSecondary.withOpacity(0.8), odaPrimary.withOpacity(0.8)],
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => AllNewsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 15),
+                            Padding(
                               padding: const EdgeInsets.all(15.0),
                               child: Column(
                                 children: [
@@ -404,7 +512,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             ? "${user_year_group!.substring(user_year_group!.length - 2)} year group"
                                             : "Year group",
                                         style: const TextStyle(
-                                            fontSize: 20, color: odaSecondary),
+                                            fontSize: 20, 
+                                            fontWeight: FontWeight.bold,
+                                            color: odaSecondary),
                                       ),
                                       InkWell(
                                         onTap: () {
@@ -418,6 +528,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           child: GradientText('View All',
                                               style: const TextStyle(
                                                   fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
                                                   color: odaSecondary),
                                               colors: [
                                                 odaPrimary,
@@ -427,139 +538,136 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                     ],
                                   ),
-                                  Container(
-                                    height: 100,
-                                    width: MediaQuery.of(context).size.width,
-                                    //color: Colors.red,
-                                    child: Row(
-                                      children: [
-                                        /*   Column(
-                                          children: [
-                                            Expanded(
-                                              child: Container(
-                                                margin: EdgeInsets.all(10),
-        
-                                                width: 60,
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    gradient: LinearGradient(
-                                                      colors: [
-                                                        odaPrimary,
-                                                        odaSecondary,
-                                                      ],begin: Alignment.topLeft,
-                                                      end: Alignment.bottomRight,
-                                                    )
-                                                ),
-                                                child: Center(
-                                                  child: Image.asset("assets/images/pring.png", height: 30,),
-                                                ),
-                                              ),
+                                  SizedBox(height: 10),
+                                  if (userData.users.data.isEmpty)
+                                    Container(
+                                      padding: EdgeInsets.all(40),
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.people_outline, size: 60, color: Colors.grey[400]),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            'No members yet',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                            Text("", style: TextStyle( fontSize: 16, color: odaSecondary),),
-        
-        
-                                          ],
-                                        ),*/
-                                        Expanded(
-                                          child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount:
-                                                  userData.users.data.length,
-                                              itemBuilder: (context, index) {
-                                                return InkWell(
-                                                  onTap: () {
-                                                    Navigator.of(context).push(
-                                                        MaterialPageRoute(
-                                                            builder: (BuildContext
-                                                                    context) =>
-                                                                UserDetailScreen(
-                                                                    data: userData
-                                                                            .users
-                                                                            .data[
-                                                                        index])));
-                                                  },
-                                                  child: Column(
-                                                    children: [
-                                                      if (userData
-                                                              .users
-                                                              .data[index]
-                                                              .image !=
-                                                          "") ...[
-                                                        Expanded(
-                                                          child: Container(
-                                                            margin:
-                                                                EdgeInsets.all(
-                                                                    10),
-                                                            height: 30,
-                                                            width: 80,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            10),
-                                                                image: DecorationImage(
-                                                                    image: NetworkImage(userData
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Container(
+                                      height: 120,
+                                      width: MediaQuery.of(context).size.width,
+                                      child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount:
+                                              userData.users.data.length,
+                                          itemBuilder: (context, index) {
+                                            return InkWell(
+                                              onTap: () {
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (BuildContext
+                                                                context) =>
+                                                            UserDetailScreen(
+                                                                data: userData
                                                                         .users
                                                                         .data[
-                                                                            index]
-                                                                        .image),
-                                                                    fit: BoxFit
-                                                                        .cover)),
-                                                          ),
-                                                        ),
-                                                      ] else ...[
-                                                        Expanded(
-                                                          child: Container(
-                                                            margin:
-                                                                EdgeInsets.all(
-                                                                    10),
-                                                            height: 30,
-                                                            width: 80,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            10),
-                                                                color: odaPrimary
-                                                                    .withOpacity(
-                                                                        0.1)),
-                                                            child: Center(
-                                                              child: Text(
-                                                                ((userData.users.data[index].firstName?.isNotEmpty ?? false)
-                                                                    ? userData.users.data[index].firstName!.substring(0, 1)
-                                                                    : '') +
-                                                                ((userData.users.data[index].lastName?.isNotEmpty ?? false)
-                                                                    ? userData.users.data[index].lastName!.substring(0, 1)
-                                                                    : ''),
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        19,
-                                                                    color: Colors
-                                                                        .grey),
-                                                              ),
+                                                                    index])));
+                                              },
+                                              borderRadius: BorderRadius.circular(15),
+                                              child: Container(
+                                                margin: EdgeInsets.symmetric(horizontal: 8),
+                                                child: Column(
+                                                  children: [
+                                                    if (userData
+                                                            .users
+                                                            .data[index]
+                                                            .image !=
+                                                        "") ...[
+                                                      Container(
+                                                        height: 80,
+                                                        width: 80,
+                                                        decoration: BoxDecoration(
+                                                          shape: BoxShape.circle,
+                                                          image: DecorationImage(
+                                                              image: NetworkImage(userData
+                                                                  .users
+                                                                  .data[
+                                                                      index]
+                                                                  .image),
+                                                              fit: BoxFit
+                                                                  .cover),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: odaPrimary.withOpacity(0.3),
+                                                              blurRadius: 10,
+                                                              offset: Offset(0, 4),
                                                             ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ] else ...[
+                                                      Container(
+                                                        height: 80,
+                                                        width: 80,
+                                                        decoration: BoxDecoration(
+                                                          shape: BoxShape.circle,
+                                                          gradient: LinearGradient(
+                                                            colors: [
+                                                              odaPrimary.withOpacity(0.7),
+                                                              odaSecondary.withOpacity(0.7),
+                                                            ],
+                                                            begin: Alignment.topLeft,
+                                                            end: Alignment.bottomRight,
+                                                          ),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: odaPrimary.withOpacity(0.3),
+                                                              blurRadius: 10,
+                                                              offset: Offset(0, 4),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Center(
+                                                          child: Text(
+                                                            ((userData.users.data[index].firstName?.isNotEmpty ?? false)
+                                                                ? userData.users.data[index].firstName!.substring(0, 1)
+                                                                : '') +
+                                                            ((userData.users.data[index].lastName?.isNotEmpty ?? false)
+                                                                ? userData.users.data[index].lastName!.substring(0, 1)
+                                                                : ''),
+                                                            style: TextStyle(
+                                                                fontSize: 28,
+                                                                fontWeight: FontWeight.bold,
+                                                                color: Colors.white),
                                                           ),
                                                         ),
-                                                      ],
-                                                      Text(
-                                                        userData.users.data[index].firstName ?? '',
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            color: Colors.grey),
                                                       ),
                                                     ],
-                                                  ),
-                                                );
-                                              }),
-                                        ),
-                                      ],
+                                                    SizedBox(height: 8),
+                                                    Text(
+                                                      userData.users.data[index].firstName ?? '',
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Colors.grey[800]),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
+                            SizedBox(height: 15),
                             Container(
-                              color: odaSecondary.withOpacity(0.2),
+                              color: odaSecondary.withOpacity(0.05),
                               child: Padding(
                                 padding: const EdgeInsets.all(15.0),
                                 child: Container(
@@ -573,6 +681,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             "Latest Events",
                                             style: TextStyle(
                                                 fontSize: 20,
+                                                fontWeight: FontWeight.bold,
                                                 color: odaSecondary),
                                           ),
                                           InkWell(
@@ -586,6 +695,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             child: GradientText('View All',
                                                 style: const TextStyle(
                                                     fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
                                                     color: odaSecondary),
                                                 colors: [
                                                   odaPrimary,
@@ -595,87 +705,154 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ],
                                       ),
                                       SizedBox(
-                                        height: 10,
+                                        height: 15,
                                       ),
-                                      Container(
-                                        height: 130,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        //color: Colors.red,
-                                        child: ListView.builder(
-                                            scrollDirection: Axis.horizontal,
-                                            itemCount:
-                                                eventsData.events.data.length,
-                                            itemBuilder: (context, index) {
-                                              return InkWell(
-                                                onTap: () {
+                                      if (eventsData.events.data.isEmpty)
+                                        Container(
+                                          padding: EdgeInsets.all(40),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(15),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey.withOpacity(0.1),
+                                                blurRadius: 5,
+                                                offset: Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Icon(Icons.event_busy, size: 60, color: Colors.grey[400]),
+                                              SizedBox(height: 16),
+                                              Text(
+                                                'No upcoming events',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: 12),
+                                              ElevatedButton(
+                                                onPressed: () {
                                                   Navigator.of(context).push(
-                                                      MaterialPageRoute(
-                                                          builder: (BuildContext
-                                                                  context) =>
-                                                              EventDetailsScreen(
-                                                                  data: eventsData
-                                                                          .events
-                                                                          .data[
-                                                                      index])));
+                                                    MaterialPageRoute(
+                                                      builder: (context) => EventsScreen(),
+                                                    ),
+                                                  );
                                                 },
-                                                child: Container(
-                                                  margin: EdgeInsets.all(5),
-                                                  width: 140,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Container(
-                                                        padding:
-                                                            EdgeInsets.all(10),
-                                                        decoration: BoxDecoration(
-                                                            color: Colors.white,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5)),
-                                                        child: _buildEventDate(eventsData.events.data[index].startDate),
-                                                      ),
-                                                      SizedBox(
-                                                        height: 8,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                              child: Text(
-                                                            eventsData
-                                                                .events
-                                                                .data[index]
-                                                                .title,
-                                                            maxLines: 2,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .black),
-                                                          )),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                    ],
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: odaPrimary,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(10),
                                                   ),
                                                 ),
-                                              );
-                                            }),
-                                      ),
+                                                child: Text('Browse Events', style: TextStyle(color: Colors.white)),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        Container(
+                                          height: 150,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount:
+                                                  eventsData.events.data.length,
+                                              itemBuilder: (context, index) {
+                                                return InkWell(
+                                                  onTap: () {
+                                                    Navigator.of(context).push(
+                                                        MaterialPageRoute(
+                                                            builder: (BuildContext
+                                                                    context) =>
+                                                                EventDetailsScreen(
+                                                                    data: eventsData
+                                                                            .events
+                                                                            .data[
+                                                                        index])));
+                                                  },
+                                                  borderRadius: BorderRadius.circular(15),
+                                                  child: Material(
+                                                    elevation: 4,
+                                                    borderRadius: BorderRadius.circular(15),
+                                                    shadowColor: odaPrimary.withOpacity(0.2),
+                                                    child: Container(
+                                                      margin: EdgeInsets.only(right: 12),
+                                                      padding: EdgeInsets.all(12),
+                                                      width: 160,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.circular(15),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Container(
+                                                            padding:
+                                                                EdgeInsets.all(12),
+                                                            decoration: BoxDecoration(
+                                                              gradient: LinearGradient(
+                                                                colors: [
+                                                                  odaPrimary,
+                                                                  odaSecondary,
+                                                                ],
+                                                                begin: Alignment.topLeft,
+                                                                end: Alignment.bottomRight,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: odaPrimary.withOpacity(0.3),
+                                                                  blurRadius: 6,
+                                                                  offset: Offset(0, 3),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: _buildEventDate(eventsData.events.data[index].startDate),
+                                                          ),
+                                                          SizedBox(
+                                                            height: 10,
+                                                          ),
+                                                          Expanded(
+                                                            child: Text(
+                                                              eventsData
+                                                                  .events
+                                                                  .data[index]
+                                                                  .title,
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: TextStyle(
+                                                                  fontSize: 15,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  color: Colors
+                                                                      .black87),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                        ),
                                     ],
                                   ),
                                 ),
                               ),
                             ),
+                            SizedBox(height: 15),
                             Container(
-                              // color: odaSecondary.withOpacity(0.2),
                               child: Padding(
                                 padding: const EdgeInsets.all(15.0),
                                 child: Container(
@@ -689,6 +866,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             "Projects",
                                             style: TextStyle(
                                                 fontSize: 20,
+                                                fontWeight: FontWeight.bold,
                                                 color: odaSecondary),
                                           ),
                                           InkWell(
@@ -702,6 +880,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             child: GradientText('View All',
                                                 style: const TextStyle(
                                                     fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
                                                     color: odaSecondary),
                                                 colors: [
                                                   odaPrimary,
@@ -711,156 +890,234 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ],
                                       ),
                                       SizedBox(
-                                        height: 10,
+                                        height: 15,
                                       ),
-                                      Container(
-                                        height: 280,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        //color: Colors.red,
-                                        child: ListView.builder(
-                                            scrollDirection: Axis.horizontal,
-                                            itemCount: projectsData
-                                                .projects.data.length,
-                                            itemBuilder: (context, index) {
-                                              return InkWell(
-                                                onTap: () {
-                                                  Navigator.of(context).push(
-                                                      MaterialPageRoute(
-                                                          builder: (BuildContext
-                                                                  context) =>
-                                                              ProjectDetailsScreen(
-                                                                  data: projectsData
-                                                                          .projects
-                                                                          .data[
-                                                                      index])));
-                                                },
-                                                child: Container(
-                                                  margin: EdgeInsets.all(5),
-                                                  //color: Colors.red,
-                                                  width: 296,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Container(
-                                                          height: 169,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          15),
-                                                              color: odaPrimary.withOpacity(0.1),
-                                                              image: (projectsData.projects.data[index].image?.isNotEmpty ?? false)
-                                                                  ? DecorationImage(
-                                                                      image: NetworkImage(
-                                                                          projectsData
-                                                                              .projects
-                                                                              .data[
-                                                                                  index]
-                                                                              .image!),
-                                                                      fit: BoxFit
-                                                                          .cover)
-                                                                  : null),
-                                                          child: (projectsData.projects.data[index].image?.isNotEmpty ?? false)
-                                                              ? null
-                                                              : Center(
-                                                                  child: Icon(
-                                                                    Icons.image_outlined,
-                                                                    size: 50,
-                                                                    color: Colors.grey,
-                                                                  ),
-                                                                )),
-                                                      SizedBox(
-                                                        height: 8,
+                                      if (projectsData.projects.data.isEmpty)
+                                        Container(
+                                          padding: EdgeInsets.all(40),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(15),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey.withOpacity(0.1),
+                                                blurRadius: 5,
+                                                offset: Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Icon(Icons.work_off, size: 60, color: Colors.grey[400]),
+                                              SizedBox(height: 16),
+                                              Text(
+                                                'No active projects',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        Container(
+                                          height: 320,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount: projectsData
+                                                  .projects.data.length,
+                                              itemBuilder: (context, index) {
+                                                final project = projectsData.projects.data[index];
+                                                final currentFunding = double.tryParse(project.currentFunding ?? '0') ?? 0;
+                                                final targetFunding = double.tryParse(project.fundingTarget ?? '1') ?? 1;
+                                                final fundingProgress = targetFunding > 0 ? (currentFunding / targetFunding).clamp(0.0, 1.0) : 0.0;
+                                                final fundingPercentage = (fundingProgress * 100).toInt();
+                                                
+                                                return InkWell(
+                                                  onTap: () {
+                                                    Navigator.of(context).push(
+                                                        MaterialPageRoute(
+                                                            builder: (BuildContext
+                                                                    context) =>
+                                                                ProjectDetailsScreen(
+                                                                    data: project)));
+                                                  },
+                                                  borderRadius: BorderRadius.circular(15),
+                                                  child: Material(
+                                                    elevation: 6,
+                                                    borderRadius: BorderRadius.circular(15),
+                                                    shadowColor: odaPrimary.withOpacity(0.2),
+                                                    child: Container(
+                                                      margin: EdgeInsets.only(right: 15),
+                                                      width: 280,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.circular(15),
                                                       ),
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                              child: Text(
-                                                            projectsData
-                                                                .projects
-                                                                .data[index]
-                                                                .title ?? 'Untitled Project',
-                                                            maxLines: 1,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .black),
-                                                          )),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Text(
-                                                        projectsData
-                                                            .projects
-                                                            .data[index]
-                                                            .content ?? '',
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.grey),
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
                                                           Container(
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    10),
-                                                            width: 150,
+                                                            height: 160,
                                                             decoration: BoxDecoration(
-                                                                color:
-                                                                    odaPrimary,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5)),
-                                                            child: Center(
-                                                              child: Text(
-                                                                "View Project",
-                                                                style: TextStyle(
-                                                                    color: Colors
-                                                                        .white),
-                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius.only(
+                                                                    topLeft: Radius.circular(15),
+                                                                    topRight: Radius.circular(15),
+                                                                  ),
+                                                              gradient: (project.image?.isNotEmpty ?? false)
+                                                                ? null
+                                                                : LinearGradient(
+                                                                    colors: [
+                                                                      odaPrimary.withOpacity(0.3),
+                                                                      odaSecondary.withOpacity(0.3),
+                                                                    ],
+                                                                    begin: Alignment.topLeft,
+                                                                    end: Alignment.bottomRight,
+                                                                  ),
+                                                              image: (project.image?.isNotEmpty ?? false)
+                                                                  ? DecorationImage(
+                                                                      image: NetworkImage(project.image!),
+                                                                      fit: BoxFit.cover)
+                                                                  : null,
+                                                            ),
+                                                            child: (project.image?.isNotEmpty ?? false)
+                                                                ? null
+                                                                : Center(
+                                                                    child: Icon(
+                                                                      Icons.image_outlined,
+                                                                      size: 50,
+                                                                      color: Colors.grey[400],
+                                                                    ),
+                                                                  ),
+                                                          ),
+                                                          Padding(
+                                                            padding: EdgeInsets.all(12),
+                                                            child: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  project.title ?? 'Untitled Project',
+                                                                  maxLines: 1,
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                  style: TextStyle(
+                                                                      fontSize: 16,
+                                                                      fontWeight: FontWeight.bold,
+                                                                      color: Colors.black87),
+                                                                ),
+                                                                SizedBox(height: 4),
+                                                                Text(
+                                                                  project.content ?? '',
+                                                                  maxLines: 2,
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                  style: TextStyle(
+                                                                      fontSize: 12,
+                                                                      color: Colors.grey[600]),
+                                                                ),
+                                                                SizedBox(height: 10),
+                                                                Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text(
+                                                                          'Funding Progress',
+                                                                          style: TextStyle(
+                                                                            fontSize: 11,
+                                                                            color: Colors.grey[600],
+                                                                            fontWeight: FontWeight.w500,
+                                                                          ),
+                                                                        ),
+                                                                        Text(
+                                                                          '$fundingPercentage%',
+                                                                          style: TextStyle(
+                                                                            fontSize: 12,
+                                                                            color: odaPrimary,
+                                                                            fontWeight: FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    SizedBox(height: 6),
+                                                                    ClipRRect(
+                                                                      borderRadius: BorderRadius.circular(10),
+                                                                      child: LinearProgressIndicator(
+                                                                        value: fundingProgress,
+                                                                        backgroundColor: Colors.grey[200],
+                                                                        valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
+                                                                        minHeight: 8,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                SizedBox(height: 12),
+                                                                Row(
+                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                  children: [
+                                                                    Expanded(
+                                                                      child: Container(
+                                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                                                                        decoration: BoxDecoration(
+                                                                          gradient: LinearGradient(
+                                                                            colors: [odaPrimary, odaSecondary],
+                                                                            begin: Alignment.centerLeft,
+                                                                            end: Alignment.centerRight,
+                                                                          ),
+                                                                          borderRadius: BorderRadius.circular(10),
+                                                                          boxShadow: [
+                                                                            BoxShadow(
+                                                                              color: odaPrimary.withOpacity(0.3),
+                                                                              blurRadius: 6,
+                                                                              offset: Offset(0, 3),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        child: Center(
+                                                                          child: Text(
+                                                                            "View Project",
+                                                                            style: TextStyle(
+                                                                              color: Colors.white,
+                                                                              fontWeight: FontWeight.bold,
+                                                                              fontSize: 13,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(width: 10),
+                                                                    Text(
+                                                                      "\$${project.fundingTargetDollar ?? '0'}",
+                                                                      style: TextStyle(
+                                                                        color: odaSecondary,
+                                                                        fontWeight: FontWeight.w900,
+                                                                        fontSize: 18,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ],
                                                             ),
                                                           ),
-                                                          Text(
-                                                            "\$${projectsData.projects.data[index].fundingTargetDollar ?? '0'}",
-                                                            style: TextStyle(
-                                                                color:
-                                                                    odaSecondary,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w900,
-                                                                fontSize: 20),
-                                                          )
                                                         ],
-                                                      )
-                                                    ],
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                              );
-                                            }),
-                                      ),
+                                                );
+                                              }),
+                                        ),
                                     ],
                                   ),
                                 ),
                               ),
                             ),
+                            SizedBox(height: 15),
                             if (articlesData != null && articlesData.news != null && articlesData.news!.data != null && articlesData.news!.data!.isNotEmpty)
                               Container(
                                 // color: odaSecondary.withOpacity(0.2),
