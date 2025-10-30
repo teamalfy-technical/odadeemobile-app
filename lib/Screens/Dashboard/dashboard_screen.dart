@@ -132,32 +132,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<AllArticlesModel> _fetchAllArticlesData() async{
+  Future<AllArticlesModel?> _fetchAllArticlesData() async{
     try {
       final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/articles');
+      final response = await authService.authenticatedRequest('GET', '/api/discussions');
+
+      print('===== DISCUSSIONS API RESPONSE =====');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body.substring(0, response.body.length < 200 ? response.body.length : 200)}...');
+      print('====================================');
 
       if (response.statusCode == 200) {
-        return AllArticlesModel.fromJson(jsonDecode(response.body));
+        final jsonData = jsonDecode(response.body);
+        
+        if (jsonData['discussions'] != null) {
+          final discussionsList = jsonData['discussions'] as List;
+          
+          final articlesJson = {
+            'news': {
+              'data': discussionsList.map((discussion) {
+                final content = discussion['content']?.toString() ?? '';
+                final summary = content.isNotEmpty 
+                  ? content.substring(0, content.length > 100 ? 100 : content.length)
+                  : '';
+                
+                return {
+                  'id': 0,
+                  'title': discussion['title'] ?? '',
+                  'slug': '',
+                  'content': content,
+                  'summary': summary,
+                  'video': '',
+                  'image': '',
+                  'userId': 0,
+                  'yeargroup': 0,
+                  'yearmonth': '',
+                  'admin': '',
+                  'sticky': '',
+                  'homePage': '',
+                  'createdTime': discussion['createdAt'] ?? '',
+                };
+              }).toList()
+            }
+          };
+          
+          return AllArticlesModel.fromJson(articlesJson);
+        }
+        return null;
       } else if (response.statusCode == 401) {
         if (mounted) {
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
         }
-        throw Exception('Session expired. Please sign in again.');
+        return null;
       } else {
-        throw Exception('Failed to load articles. Please try again.');
+        print('Failed to load discussions. Status: ${response.statusCode}');
+        return null;
       }
-    } on SocketException {
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
-    } on http.ClientException {
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
-    } on HttpException {
-      throw Exception('Network error: Unable to connect to server.');
-    } on FormatException {
-      throw Exception('Invalid data received from server.');
-    } on Exception {
-      rethrow;
+    } catch (e) {
+      print('Error fetching discussions (non-critical): $e');
+      return null;
     }
   }
 
@@ -247,13 +281,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               final articlesData = snapshot.data![3];
 
-              // Check if any of the data is null (indicating an error)
+              // Check if critical data is null (users, events, projects are required)
               if (userData == null ||
                   eventsData == null ||
-                  projectsData == null ||
-                  articlesData == null) {
+                  projectsData == null) {
                 return Center(
-                  child: Text('Error: Some data could not be fetched'),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red, size: 60),
+                      SizedBox(height: 20),
+                      Text('Error: Unable to load required data'),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () => setState(() {}),
+                        child: Text('Retry'),
+                      ),
+                    ],
+                  ),
                 );
               }
 
@@ -830,19 +875,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ),
                             ),
-                            Container(
-                              // color: odaSecondary.withOpacity(0.2),
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Container(
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "Latest News",
+                            if (articlesData != null && articlesData.news != null && articlesData.news!.data != null && articlesData.news!.data!.isNotEmpty)
+                              Container(
+                                // color: odaSecondary.withOpacity(0.2),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(15.0),
+                                  child: Container(
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Latest Discussions",
                                             style: TextStyle(
                                                 fontSize: 20,
                                                 color: odaSecondary),
@@ -877,7 +923,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         child: ListView.builder(
                                             scrollDirection: Axis.horizontal,
                                             itemCount:
-                                                articlesData.news.data.length,
+                                                articlesData!.news!.data!.length,
                                             itemBuilder: (context, index) {
                                               return InkWell(
                                                 onTap: () {
@@ -886,9 +932,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           builder: (BuildContext
                                                                   context) =>
                                                               NewsDetailsScreen(
-                                                                  data: articlesData
-                                                                          .news
-                                                                          .data[
+                                                                  data: articlesData!
+                                                                          .news!
+                                                                          .data![
                                                                       index])));
                                                 },
                                                 child: Container(
@@ -900,21 +946,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             .start,
                                                     children: [
                                                       Container(
-                                                          height: 169,
-                                                          decoration: BoxDecoration(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          15),
-                                                              image: DecorationImage(
-                                                                  image: NetworkImage(
-                                                                      articlesData
-                                                                          .news
-                                                                          .data[
-                                                                              index]
-                                                                          .image),
-                                                                  fit: BoxFit
-                                                                      .cover))),
+                                                        height: 169,
+                                                        decoration: BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius.circular(15),
+                                                          color: odaPrimary.withOpacity(0.1),
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            Icons.article_outlined,
+                                                            size: 50,
+                                                            color: odaPrimary,
+                                                          ),
+                                                        ),
+                                                      ),
                                                       SizedBox(
                                                         height: 8,
                                                       ),
@@ -922,14 +967,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         children: [
                                                           Expanded(
                                                               child: Text(
-                                                            articlesData
-                                                                .news
-                                                                .data[index]
-                                                                .title,
+                                                            articlesData!
+                                                                .news!
+                                                                .data![index]
+                                                                .title ?? '',
                                                             style: TextStyle(
                                                                 fontSize: 16,
                                                                 color: Colors
                                                                     .black),
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
                                                           )),
                                                         ],
                                                       ),
@@ -937,10 +984,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         height: 5,
                                                       ),
                                                       Text(
-                                                        articlesData
-                                                            .news
-                                                            .data[index]
-                                                            .createdTime,
+                                                        articlesData!
+                                                            .news!
+                                                            .data![index]
+                                                            .createdTime ?? '',
                                                         style: TextStyle(
                                                             fontSize: 12,
                                                             color: Colors.grey),
