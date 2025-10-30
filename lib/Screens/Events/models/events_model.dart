@@ -105,8 +105,8 @@ class Events {
 }
 
 class Data {
-  int? id;
-  int? userId;
+  String? id;
+  String? userId;
   String? invite;
   int? yeargroup;
   String? title;
@@ -115,7 +115,7 @@ class Data {
   String? startDate;
   String? endDate;
   String? allDay;
-  int? categoryId;
+  String? categoryId;
   String? homePage;
   String? createdTime;
 

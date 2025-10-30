@@ -105,7 +105,7 @@ class Users {
 }
 
 class Data {
-  int? id;
+  String? id;
   String? username;
   String? odadeeId;
   String? firstName;
@@ -321,10 +321,10 @@ class Data {
 }
 
 class UserStatus {
-  int? id;
+  String? id;
   String? status;
   String? attachment;
-  int? userId;
+  String? userId;
   String? createdTime;
 
   UserStatus(

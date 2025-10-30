@@ -105,14 +105,14 @@ class News {
 }
 
 class Data {
-  int? id;
+  String? id;
   String? title;
   String? slug;
   String? content;
   String? summary;
   String? video;
   String? image;
-  int? userId;
+  String? userId;
   int? yeargroup;
   String? yearmonth;
   String? admin;

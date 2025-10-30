@@ -105,15 +105,15 @@ class Projects {
 }
 
 class Data {
-  int? id;
+  String? id;
   String? title;
   String? slug;
-  int? categoryId;
+  String? categoryId;
   String? content;
   String? status;
   String? startDate;
   String? endDate;
-  int? userId;
+  String? userId;
   int? yeargroup;
   String? image;
   String? fundingTarget;
@@ -122,7 +122,7 @@ class Data {
   String? progress;
   String? currency;
   String? homePage;
-  int? forumId;
+  String? forumId;
   String? createdTime;
 
   Data(
