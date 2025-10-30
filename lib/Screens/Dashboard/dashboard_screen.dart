@@ -212,6 +212,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Widget _buildEventDate(String? dateString) {
+    try {
+      if (dateString == null || dateString.isEmpty) {
+        return _buildDateFallback();
+      }
+      
+      final dateInfo = extractDateInfo(dateString);
+      return Row(
+        children: [
+          GradientText(
+            dateInfo['day'].toString(),
+            style: const TextStyle(fontSize: 36, color: odaSecondary),
+            colors: [odaPrimary, odaSecondary],
+          ),
+          SizedBox(width: 5),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                dateInfo['month'].toString(),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              Text(
+                dateInfo['year'].toString(),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ],
+      );
+    } catch (e) {
+      print('Error parsing event date: $e');
+      return _buildDateFallback();
+    }
+  }
+
+  Widget _buildDateFallback() {
+    return Row(
+      children: [
+        Icon(Icons.event, color: odaPrimary, size: 36),
+        SizedBox(width: 5),
+        Text(
+          'TBA',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -587,63 +636,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                 BorderRadius
                                                                     .circular(
                                                                         5)),
-                                                        child: Row(
-                                                          children: [
-                                                            GradientText(
-                                                                extractDateInfo(eventsData
-                                                                            .events
-                                                                            .data[
-                                                                                index]
-                                                                            .startDate!)[
-                                                                        'day']
-                                                                    .toString(),
-                                                                style: const TextStyle(
-                                                                    fontSize:
-                                                                        36,
-                                                                    color:
-                                                                        odaSecondary),
-                                                                colors: [
-                                                                  odaPrimary,
-                                                                  odaSecondary,
-                                                                ]),
-                                                            SizedBox(
-                                                              width: 5,
-                                                            ),
-                                                            Column(
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                Text(
-                                                                  extractDateInfo(eventsData
-                                                                          .events
-                                                                          .data[
-                                                                              index]
-                                                                          .startDate!)['month']
-                                                                      .toString(),
-                                                                  style: const TextStyle(
-                                                                      fontSize:
-                                                                          12,
-                                                                      color: Colors
-                                                                          .grey),
-                                                                ),
-                                                                Text(
-                                                                  extractDateInfo(eventsData
-                                                                          .events
-                                                                          .data[
-                                                                              index]
-                                                                          .startDate!)['year']
-                                                                      .toString(),
-                                                                  style: const TextStyle(
-                                                                      fontSize:
-                                                                          12,
-                                                                      color: Colors
-                                                                          .grey),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        ),
+                                                        child: _buildEventDate(eventsData.events.data[index].startDate),
                                                       ),
                                                       SizedBox(
                                                         height: 8,
