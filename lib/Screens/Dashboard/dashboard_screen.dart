@@ -476,24 +476,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                         0.1)),
                                                             child: Center(
                                                               child: Text(
-                                                                userData
-                                                                        .users
-                                                                        .data[
-                                                                            index]
-                                                                        .firstName
-                                                                        .toString()
-                                                                        .substring(
-                                                                            0,
-                                                                            1) +
-                                                                    userData
-                                                                        .users
-                                                                        .data[
-                                                                            index]
-                                                                        .lastName
-                                                                        .toString()
-                                                                        .substring(
-                                                                            0,
-                                                                            1),
+                                                                ((userData.users.data[index].firstName?.isNotEmpty ?? false)
+                                                                    ? userData.users.data[index].firstName!.substring(0, 1)
+                                                                    : '') +
+                                                                ((userData.users.data[index].lastName?.isNotEmpty ?? false)
+                                                                    ? userData.users.data[index].lastName!.substring(0, 1)
+                                                                    : ''),
                                                                 style: TextStyle(
                                                                     fontSize:
                                                                         19,
@@ -505,10 +493,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         ),
                                                       ],
                                                       Text(
-                                                        userData
-                                                            .users
-                                                            .data[index]
-                                                            .firstName,
+                                                        userData.users.data[index].firstName ?? '',
                                                         style: TextStyle(
                                                             fontSize: 16,
                                                             color: Colors.grey),
