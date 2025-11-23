@@ -69,7 +69,9 @@ class PaymentService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
           final data = jsonDecode(response.body);
-          final paymentUrl = data['paymentUrl'];
+          
+          // Extract payment URL from nested payment object
+          final paymentUrl = data['payment']?['paymentUrl'] ?? data['paymentUrl'];
           
           if (paymentUrl == null || paymentUrl.isEmpty) {
             print('Payment response: ${response.body}');
