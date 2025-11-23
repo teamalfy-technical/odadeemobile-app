@@ -7,6 +7,7 @@ import 'package:odadee/Screens/AllUsers/all_users_screen.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/Screens/AllUsers/user_detail_screen.dart';
 import 'package:odadee/Screens/Articles/all_news_screen.dart';
+import 'package:odadee/Screens/Members/members_screen.dart';
 import 'package:odadee/Screens/Articles/models/all_articles_model.dart';
 import 'package:odadee/Screens/Articles/news_details.dart';
 import 'package:odadee/Screens/Events/event_details.dart';
@@ -579,7 +580,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              AllRegisteredUsers(),
+                                              MembersScreen(),
                                         ),
                                       );
                                     },
@@ -624,7 +625,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (context) => AllNewsScreen(),
+                                          builder: (context) => PayDues(),
                                         ),
                                       );
                                     },
