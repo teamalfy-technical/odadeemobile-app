@@ -26,11 +26,14 @@ class PaymentService {
       
       print('Raw user data from API: $userData');
       
-      final firstName = userData['firstName']?.toString() ?? 
-                        userData['first_name']?.toString() ?? '';
-      final lastName = userData['lastName']?.toString() ?? 
-                       userData['last_name']?.toString() ?? '';
-      final email = userData['email']?.toString() ?? '';
+      // Extract user object (API returns {user: {...}} structure)
+      final userObj = userData['user'] ?? userData;
+      
+      final firstName = userObj['firstName']?.toString() ?? 
+                        userObj['first_name']?.toString() ?? '';
+      final lastName = userObj['lastName']?.toString() ?? 
+                       userObj['last_name']?.toString() ?? '';
+      final email = userObj['email']?.toString() ?? '';
       
       print('Extracted - firstName: "$firstName", lastName: "$lastName", email: "$email"');
       
