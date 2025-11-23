@@ -297,8 +297,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           _buildProfileHeader(),
           SizedBox(height: 20),
-          if (_userData!['bio'] != null && _userData!['bio'].toString().isNotEmpty)
-            _buildBioSection(),
+          _buildBioSection(),
           _buildContactSection(),
           if (_hasProfessionalInfo()) _buildProfessionalSection(),
           if (_hasSkills()) _buildSkillsSection(),
@@ -311,7 +310,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildProfileHeader() {
     final firstName = _userData!['firstName'] ?? '';
     final lastName = _userData!['lastName'] ?? '';
-    final profileImage = _userData!['profileImage'];
+    final profileImagePath = _userData!['profileImage'];
+    // Convert relative path to full URL
+    final profileImage = profileImagePath != null && profileImagePath.toString().isNotEmpty
+        ? (profileImagePath.toString().startsWith('http')
+            ? profileImagePath.toString()
+            : 'https://odadee-connect.replit.app/$profileImagePath')
+        : null;
     final graduationYear = _userData!['graduationYear'];
 
     return Container(
@@ -399,6 +404,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildBioSection() {
+    final bio = _userData!['bio']?.toString().trim() ?? '';
+    if (bio.isEmpty) return SizedBox.shrink();
+    
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -422,7 +430,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             SizedBox(height: 8),
             Text(
-              _userData!['bio'],
+              bio,
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 14,
@@ -561,7 +569,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String? value) {
-    if (value == null || value.isEmpty) return SizedBox.shrink();
+    // Treat empty strings as null
+    final displayValue = value?.trim();
+    if (displayValue == null || displayValue.isEmpty) return SizedBox.shrink();
 
     return Padding(
       padding: EdgeInsets.only(bottom: 12),
@@ -583,7 +593,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  value,
+                  displayValue,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -598,9 +608,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   bool _hasProfessionalInfo() {
-    return _userData!['currentRole'] != null ||
-        _userData!['company'] != null ||
-        _userData!['profession'] != null;
+    // Treat empty strings as null
+    final currentRole = _userData!['currentRole']?.toString().trim();
+    final company = _userData!['company']?.toString().trim();
+    final profession = _userData!['profession']?.toString().trim();
+    
+    return (currentRole != null && currentRole.isNotEmpty) ||
+        (company != null && company.isNotEmpty) ||
+        (profession != null && profession.isNotEmpty);
   }
 
   bool _hasSkills() {

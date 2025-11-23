@@ -64,6 +64,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  String? _getProfileImageUrl() {
+    final profileImagePath = widget.currentUser['profileImage'];
+    if (profileImagePath == null || profileImagePath.toString().trim().isEmpty) {
+      return null;
+    }
+    // Convert relative path to full URL
+    return profileImagePath.toString().startsWith('http')
+        ? profileImagePath.toString()
+        : 'https://odadee-connect.replit.app/$profileImagePath';
+  }
+
+  DecorationImage? _getProfileImageDecoration() {
+    if (_selectedImage != null) {
+      return DecorationImage(
+        image: FileImage(_selectedImage!),
+        fit: BoxFit.cover,
+      );
+    }
+    
+    final imageUrl = _getProfileImageUrl();
+    if (imageUrl != null) {
+      return DecorationImage(
+        image: NetworkImage(imageUrl),
+        fit: BoxFit.cover,
+      );
+    }
+    
+    return null;
+  }
+
   Future<void> _pickImage() async {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -243,19 +273,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           color: Color(0xFF1e293b),
                           shape: BoxShape.circle,
                           border: Border.all(color: odaSecondary, width: 3),
-                          image: _selectedImage != null
-                              ? DecorationImage(
-                                  image: FileImage(_selectedImage!),
-                                  fit: BoxFit.cover,
-                                )
-                              : widget.currentUser['profileImage'] != null
-                                  ? DecorationImage(
-                                      image: NetworkImage(widget.currentUser['profileImage']),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : null,
+                          image: _getProfileImageDecoration(),
                         ),
-                        child: _selectedImage == null && widget.currentUser['profileImage'] == null
+                        child: _selectedImage == null && _getProfileImageUrl() == null
                             ? Icon(Icons.person, size: 60, color: Colors.white54)
                             : null,
                       ),
