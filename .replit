@@ -46,6 +46,10 @@ externalPort = 3002
 localPort = 43339
 externalPort = 3001
 
+[[ports]]
+localPort = 44651
+externalPort = 3003
+
 [deployment]
 deploymentTarget = "autoscale"
 run = ["flutter", "run", "-d", "web-server", "--web-port=5000", "--web-hostname=0.0.0.0", "--release"]
