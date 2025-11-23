@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/AllUsers/all_users_screen.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
-import 'package:odadee/Screens/AllUsers/user_detail_screen.dart';
+import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
 import 'package:odadee/Screens/Articles/all_news_screen.dart';
 import 'package:odadee/Screens/Members/members_screen.dart';
 import 'package:odadee/Screens/Articles/models/all_articles_model.dart';
@@ -658,7 +658,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               MaterialPageRoute(
                                                   builder: (BuildContext
                                                           context) =>
-                                                      AllRegisteredUsers()));
+                                                      MembersScreen()));
                                         },
                                         child: Container(
                                           child: Text('View All',
@@ -710,8 +710,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   MaterialPageRoute(
                                                       builder: (BuildContext
                                                               context) =>
-                                                          UserDetailScreen(
-                                                              data: user)));
+                                                          MemberDetailPage(
+                                                              memberData: user)));
                                             },
                                             borderRadius:
                                                 BorderRadius.circular(12),
