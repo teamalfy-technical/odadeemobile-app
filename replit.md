@@ -38,16 +38,25 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - Card grid layout displaying all registered members from `/api/search/members` endpoint
 - Search functionality with interactive search icon and clear button
 - Each member card shows: profile image (with AuthenticatedImage), name, graduation year, current role
-- Clickable cards navigate to individual member's full profile (UserDetailScreen)
+- Clickable cards navigate to individual member's full profile (MemberDetailPage)
 - Responsive grid layout (2 columns on mobile, 3 on larger screens)
 - Loading states, error handling, and empty state messages
 - Integrated with dashboard "Total Members" card for seamless navigation
-- **UserDetailScreen null safety**: Comprehensive null handling throughout user profile details:
-  - Strongly-typed Data model with null-aware field access (`??` operators) and sensible fallbacks
-  - Element-level null guards for UserStatus items preventing crashes on missing status data
-  - Multi-format date parser (`_safeConvertDate`) supporting RFC, ISO, and custom date formats with graceful fallbacks
-  - AuthenticatedImage component with base URL normalization for all profile and status attachment images
-  - All profile fields (name, bio, location, work info, etc.) use null-coalescing with 'N/A' defaults
+- **Navigation Architecture**: Two separate profile viewing contexts:
+  - `MemberDetailPage` - For viewing other users' profiles (back button only, no bottom nav)
+  - `UserProfileScreen` - For viewing own profile (full app navigation with bottom nav bar)
+- **MemberDetailPage Design**: Clean, professional aesthetic matching dashboard:
+  - White app bar with back button and member name
+  - Dark backgrounds: #0f172a (main), #1e293b (cards)
+  - Blue CTAs (#2563eb), yellow borders only (#f4d03f)
+  - Zero gradients - completely flat design
+  - Information/Status tabs with proper data mapping
+- **Data Mapping**: Comprehensive field translation from search API to Data model:
+  - Image URL normalization: handles protocol-relative (//), absolute (http/https), and relative paths
+  - Field fallbacks: company→workPlace, currentRole→position, bio→about, graduationYear→yearGroup
+  - Safe userStatus conversion: dynamic list to List<Map<String, dynamic>>
+  - Null safety throughout with proper error handling
+- **Known Limitation**: Status tab may show limited data due to API field name differences between `/api/search/members` (createdAt, updatedAt) and UserStatus model expectations (createdTime)
 
 **Settings & App Store Compliance:** Comprehensive settings page meeting all App Store/Play Store requirements:
 - **Account Deletion**: Double confirmation with DELETE `/api/auth/delete-account` integration
