@@ -28,10 +28,11 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - Edit profile screen with comprehensive form validation and user feedback
 - All profile image fallbacks use Odadee logo (oda_logo.png) for consistent branding
 
-**Video Splash Screen:** Hero video splash screen on app launch:
-- Auto-plays PRESEC hero video (`assets/images/splash_video.mp4`) using `video_player` package
-- Automatically navigates to onboarding when video completes
-- Provides branding immersion for first-time and returning users
+**Splash Screen:** Clean, simple splash screen on app launch:
+- Displays PRESEC logo (`assets/images/presec_logo.webp`) on dark background
+- Shows for 4 seconds before automatically navigating to login/registration
+- Provides branding without video loading complexity
+- Uses simple timer-based navigation for reliability
 
 **Settings & App Store Compliance:** Comprehensive settings page meeting all App Store/Play Store requirements:
 - **Account Deletion**: Double confirmation with DELETE `/api/auth/delete-account` integration
@@ -92,7 +93,6 @@ The application leverages a responsive design approach with `device_preview` for
 - `device_info_plus`: Gathers device information for authentication tracking.
 - `uuid`: Generates unique identifiers.
 - `vector_math`: For geometry types and vector operations.
-- `video_player`: Plays hero video on splash screen.
 - `package_info_plus`: Retrieves app version and build number for settings display.
 
 ### Cloud Services
