@@ -19,6 +19,7 @@ Odadee is a Flutter mobile application, configured for web deployment, serving a
 - **Fixed dues amount parsing:** Updated PayDuesModal to handle string amounts (e.g., "50.00") from backend API using double.parse(), resolving TypeError that prevented dues from loading for year groups like Class of 1995
 - **Fixed network/CORS error:** Replaced Dio library with AuthService.authenticatedRequest (http package) for better Flutter Web compatibility, eliminating XMLHttpRequest CORS errors
 - **Fixed endpoint URL:** Corrected payment endpoint from `/payments/create` to `/api/payments/create` to match backend CORS configuration (all endpoints require `/api/` prefix)
+- **Fixed 400 validation error:** Updated PaymentService to include firstName, lastName, and email from current user in payment request (required fields for public payments)
 - Added comprehensive error handling for non-JSON responses (HTML/text gateway errors) with fallback to raw response body
 - Production-ready implementation verified by architect review
 
