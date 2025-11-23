@@ -22,10 +22,27 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 **Profile Management:** Full-featured user profile system:
 - `UserService` for centralized profile API calls (`getCurrentUser()`, `updateUserProfile()`)
 - Live data fetching from `/api/auth/me` with proper handling of nested `{user: {...}}` response structure
-- Image handling: Automatic conversion of relative image paths (`uploads/xxx`) to full URLs (`https://odadee-connect.replit.app/uploads/xxx`)
+- Image handling: CORS workaround via `AuthenticatedImage` component that fetches images through authenticated HTTP requests instead of direct URLs
 - Data normalization: Empty strings treated as null for optional fields (location, bio, role, company, profession)
 - Profile updates via PATCH `/api/users/:id/profile` with multipart form data for image uploads
 - Edit profile screen with comprehensive form validation and user feedback
+- All profile image fallbacks use Odadee logo (oda_logo.png) for consistent branding
+
+**Video Splash Screen:** Hero video splash screen on app launch:
+- Auto-plays PRESEC hero video (`assets/images/splash_video.mp4`) using `video_player` package
+- Automatically navigates to onboarding when video completes
+- Provides branding immersion for first-time and returning users
+
+**Settings & App Store Compliance:** Comprehensive settings page meeting all App Store/Play Store requirements:
+- **Account Deletion**: Double confirmation with DELETE `/api/auth/delete-account` integration
+- **Data Export**: GDPR-compliant POST `/api/users/export-data` with email delivery confirmation
+- **Privacy & Legal**: WebView links to Privacy Policy (`odadee.net/privacy-policy`) and Terms of Service (`odadee.net/terms-service`)
+- **Cache Management**: Clear cached data while preserving auth tokens (access_token, refresh_token, user data)
+- **Notification Settings**: Toggle push notifications with API synchronization via PATCH `/api/users/:id/preferences`
+- **Support Features**: Contact support via email, Rate App links (Play Store/App Store), Open Source Licenses
+- **App Info**: Version and build number display using `package_info_plus`
+- **Navigation**: Logout, view/edit profile shortcuts
+- All features include proper error handling, confirmation dialogs, loading states, and user feedback
 
 Error handling, null safety, and proper data transformation are implemented throughout the application.
 
@@ -41,6 +58,15 @@ Error handling, null safety, and proper data transformation are implemented thro
   - Automatic image URL normalization (relative paths converted to absolute URLs)
   - Empty string handling (treated as null for cleaner UI display)
   - Form validation and error handling
+  - CORS-proof image loading via authenticated HTTP requests
+- **Settings & Compliance**: Full settings page for App Store/Play Store compliance:
+  - Account deletion with double confirmation
+  - GDPR-compliant data export via email
+  - Privacy Policy and Terms of Service via WebView
+  - Push notification preferences with API sync
+  - Cache clearing (preserves auth tokens)
+  - Support features: Contact, Rate App, Open Source Licenses
+  - App version display and About section
 - **Deployment**: Automated build process (`build.sh`) for optimized production web builds, including cache cleaning, dependency installation, and web release building.
 
 ### System Design Choices
@@ -55,17 +81,19 @@ The application leverages a responsive design approach with `device_preview` for
 - **Full API Documentation**: `https://odadee-connect.replit.app/api-docs` (80+ endpoints).
 
 ### Core Libraries
-- `http`: For all API communications.
+- `http`: For all API communications and authenticated image fetching.
 - `flutter_secure_storage`: Securely stores authentication tokens and sensitive user data.
 - `shared_preferences`: Used for local storage of user preferences.
 - `radio_player`: Enables audio streaming.
-- `url_launcher`: For launching URLs, used in payment flows.
-- `webview_flutter`: For embedding web views, used in payment flows.
-- `image_picker` & `image_cropper`: For handling image selection and manipulation.
+- `url_launcher`: For launching URLs and external links (payment flows, support email, rate app).
+- `webview_flutter`: For embedding web views (payment flows, Privacy Policy, Terms of Service).
+- `image_picker` & `image_cropper`: For handling image selection and manipulation in profile editing.
 - `intl`: Provides internationalization and date formatting utilities.
-- `device_info_plus`: Gathers device information.
+- `device_info_plus`: Gathers device information for authentication tracking.
 - `uuid`: Generates unique identifiers.
 - `vector_math`: For geometry types and vector operations.
+- `video_player`: Plays hero video on splash screen.
+- `package_info_plus`: Retrieves app version and build number for settings display.
 
 ### Cloud Services
 - **Replit**: Hosting and deployment platform for the web application.
