@@ -20,20 +20,17 @@ class PaymentService {
     String? eventId,
   }) async {
     try {
-      // Always try to get fresh user data from API first
+      // Get user data from API (AuthService now returns normalized data)
       print('Fetching user data from API...');
       final userData = await authService.getCurrentUser();
       
-      print('Raw user data from API: $userData');
+      print('User data from API: $userData');
       
-      // Extract user object (API returns {user: {...}} structure)
-      final userObj = userData['user'] ?? userData;
-      
-      final firstName = userObj['firstName']?.toString() ?? 
-                        userObj['first_name']?.toString() ?? '';
-      final lastName = userObj['lastName']?.toString() ?? 
-                       userObj['last_name']?.toString() ?? '';
-      final email = userObj['email']?.toString() ?? '';
+      final firstName = userData['firstName']?.toString() ?? 
+                        userData['first_name']?.toString() ?? '';
+      final lastName = userData['lastName']?.toString() ?? 
+                       userData['last_name']?.toString() ?? '';
+      final email = userData['email']?.toString() ?? '';
       
       print('Extracted - firstName: "$firstName", lastName: "$lastName", email: "$email"');
       

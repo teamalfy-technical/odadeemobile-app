@@ -35,6 +35,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     try {
       final userData = await _userService.getCurrentUser();
+      
+      // Debug: Print all received data
+      print('===== PROFILE DATA RECEIVED =====');
+      print('Full userData: $userData');
+      print('Keys: ${userData.keys.toList()}');
+      print('firstName: ${userData['firstName']}');
+      print('lastName: ${userData['lastName']}');
+      print('email: ${userData['email']}');
+      print('phoneNumber: ${userData['phoneNumber']}');
+      print('phone: ${userData['phone']}');
+      print('location: ${userData['location']}');
+      print('profileImage: ${userData['profileImage']}');
+      print('coverImage: ${userData['coverImage']}');
+      print('bio: ${userData['bio']}');
+      print('currentRole: ${userData['currentRole']}');
+      print('company: ${userData['company']}');
+      print('profession: ${userData['profession']}');
+      print('skills: ${userData['skills']}');
+      print('graduationYear: ${userData['graduationYear']}');
+      print('openToMentor: ${userData['openToMentor']}');
+      print('=================================');
+      
       setState(() {
         _userData = userData;
         _isLoading = false;

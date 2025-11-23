@@ -244,7 +244,9 @@ class AuthService {
       final response = await authenticatedRequest('GET', ApiConfig.meEndpoint);
 
       if (response.statusCode == 200) {
-        final userData = jsonDecode(response.body);
+        final responseData = jsonDecode(response.body);
+        // API returns {user: {...}} structure, extract the nested user object
+        final userData = responseData['user'] ?? responseData;
         await _storeUser(userData);
         return userData;
       } else {

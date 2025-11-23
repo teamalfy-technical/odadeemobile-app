@@ -9,6 +9,7 @@ class UserService {
   final AuthService _authService = AuthService();
 
   Future<Map<String, dynamic>> getCurrentUser() async {
+    // AuthService now returns normalized user data (already extracted from nested structure)
     return await _authService.getCurrentUser();
   }
 
@@ -41,6 +42,12 @@ class UserService {
       // Get user ID from stored user data
       final currentUser = await getCurrentUser();
       final userId = currentUser['id'];
+      
+      if (userId == null || userId.toString().isEmpty) {
+        throw Exception('User ID not found. Please login again.');
+      }
+      
+      debugPrint('Updating profile for user ID: $userId');
 
       final response = await _authService.authenticatedRequest(
         'PATCH',
