@@ -625,7 +625,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (context) => PayDues(),
+                                          builder: (context) => PayDuesScreen(),
                                         ),
                                       );
                                     },

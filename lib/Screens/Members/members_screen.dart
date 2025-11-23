@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:odadee/Screens/Profile/user_profile_screen.dart';
+import 'package:odadee/Screens/AllUsers/user_detail_screen.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/config/api_config.dart';
 import 'package:odadee/services/auth_service.dart';
 
 class MembersScreen extends StatefulWidget {
@@ -103,12 +104,18 @@ class _MembersScreenState extends State<MembersScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search members...',
                   hintStyle: TextStyle(color: Colors.white54),
-                  prefixIcon: Icon(Icons.search, color: odaSecondary),
+                  prefixIcon: IconButton(
+                    icon: Icon(Icons.search, color: odaSecondary),
+                    onPressed: _performSearch,
+                  ),
                   suffixIcon: searchController.text.isNotEmpty
                       ? IconButton(
                           icon: Icon(Icons.clear, color: Colors.white54),
                           onPressed: () {
                             searchController.clear();
+                            setState(() {
+                              isLoading = true;
+                            });
                             _fetchMembers();
                           },
                         )
@@ -211,7 +218,7 @@ class _MembersScreenState extends State<MembersScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UserProfileScreen(userId: userId),
+            builder: (context) => UserDetailScreen(data: member),
           ),
         );
       },
