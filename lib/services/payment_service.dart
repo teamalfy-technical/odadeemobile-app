@@ -20,35 +20,24 @@ class PaymentService {
     String? eventId,
   }) async {
     try {
-      // Get user data for payment request
-      var firstName = await storage.read(key: 'user_first_name') ?? '';
-      var lastName = await storage.read(key: 'user_last_name') ?? '';
-      var email = await storage.read(key: 'user_email') ?? '';
+      // Always try to get fresh user data from API first
+      print('Fetching user data from API...');
+      final userData = await authService.getCurrentUser();
       
-      // If user data is missing, try to refresh from API
-      if (firstName.isEmpty || lastName.isEmpty || email.isEmpty) {
-        print('User data missing from storage, fetching from API...');
-        try {
-          final userData = await authService.getCurrentUser();
-          firstName = userData['firstName'] ?? userData['first_name'] ?? '';
-          lastName = userData['lastName'] ?? userData['last_name'] ?? '';
-          email = userData['email'] ?? '';
-          
-          // Store refreshed data for future use
-          if (firstName.isNotEmpty && lastName.isNotEmpty && email.isNotEmpty) {
-            await storage.write(key: 'user_first_name', value: firstName);
-            await storage.write(key: 'user_last_name', value: lastName);
-            await storage.write(key: 'user_email', value: email);
-            print('Refreshed user data saved to storage');
-          }
-        } catch (e) {
-          print('Failed to fetch user data: $e');
-        }
-      }
+      print('Raw user data from API: $userData');
+      
+      final firstName = userData['firstName']?.toString() ?? 
+                        userData['first_name']?.toString() ?? '';
+      final lastName = userData['lastName']?.toString() ?? 
+                       userData['last_name']?.toString() ?? '';
+      final email = userData['email']?.toString() ?? '';
+      
+      print('Extracted - firstName: "$firstName", lastName: "$lastName", email: "$email"');
       
       // Validate required fields
       if (firstName.isEmpty || lastName.isEmpty || email.isEmpty) {
-        throw Exception('User information incomplete. Please try logging in again.');
+        print('ERROR: Missing fields - firstName: ${firstName.isEmpty}, lastName: ${lastName.isEmpty}, email: ${email.isEmpty}');
+        throw Exception('User information incomplete. Please ensure your profile has firstName, lastName, and email filled in.');
       }
       
       // Map payment types to backend product codes
