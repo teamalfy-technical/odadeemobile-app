@@ -84,8 +84,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final response =
           await authService.authenticatedRequest('GET', '/api/events');
 
+      print('===== EVENTS API RESPONSE =====');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
+      print('===============================');
+
       if (response.statusCode == 200) {
-        return AllEventsModel.fromJson(jsonDecode(response.body));
+        final eventsModel = AllEventsModel.fromJson(jsonDecode(response.body));
+        print('Events parsed: ${eventsModel.events?.data?.length ?? 0} events');
+        return eventsModel;
       } else if (response.statusCode == 401) {
         if (mounted) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -116,8 +123,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final response =
           await authService.authenticatedRequest('GET', '/api/projects');
 
+      print('===== PROJECTS API RESPONSE =====');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
+      print('=================================');
+
       if (response.statusCode == 200) {
-        return AllProjectsModel.fromJson(jsonDecode(response.body));
+        final projectsModel = AllProjectsModel.fromJson(jsonDecode(response.body));
+        print('Projects parsed: ${projectsModel.projects?.data?.length ?? 0} projects');
+        return projectsModel;
       } else if (response.statusCode == 401) {
         if (mounted) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(
