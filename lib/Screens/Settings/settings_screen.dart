@@ -163,34 +163,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _handleExportData() async {
+    final confirmed = await _showConfirmDialog(
+      title: 'Export Data',
+      message: 'We will send a copy of your data to your registered email address. This may take a few minutes.',
+      confirmText: 'Export My Data',
+      isDangerous: false,
+    );
+
+    if (!confirmed) return;
+
     _showLoadingDialog();
     
     try {
       final authService = AuthService();
       final response = await authService.authenticatedRequest(
-        'GET',
+        'POST',
         '/api/users/export-data',
       );
 
       Navigator.pop(context); // Close loading dialog
 
-      if (response.statusCode == 200) {
-        // On web, this would trigger a download
-        // On mobile, save to downloads folder
-        _showSuccess('Data export requested. Check your email for the download link.');
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        // 200 = immediate export, 202 = queued for processing
+        _showDialog(
+          title: 'Export Requested',
+          message: 'Your data export has been initiated. You will receive an email with a download link within the next 24 hours.',
+          isSuccess: true,
+        );
+      } else if (response.statusCode == 429) {
+        _showError('Too many export requests. Please try again later.');
       } else {
-        _showError('Failed to export data. Please try again.');
+        _showError('Failed to export data. Please contact support if this persists.');
       }
     } catch (e) {
       Navigator.pop(context); // Close loading dialog
-      _showError('Failed to export data. Please try again.');
+      print('Export data error: $e');
+      _showError('Failed to export data. Please check your internet connection and try again.');
     }
+  }
+
+  void _showDialog({
+    required String title,
+    required String message,
+    required bool isSuccess,
+  }) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF1e293b),
+          title: Row(
+            children: [
+              Icon(
+                isSuccess ? Icons.check_circle : Icons.error,
+                color: isSuccess ? Colors.green : Colors.red,
+              ),
+              SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK', style: TextStyle(color: odaSecondary)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _handleClearCache() async {
     final confirmed = await _showConfirmDialog(
       title: 'Clear Cache',
-      message: 'This will clear all cached data. You may need to re-download some content.',
+      message: 'This will clear cached images and temporary data. Your login session will be preserved.',
       confirmText: 'Clear Cache',
       isDangerous: false,
     );
@@ -198,12 +251,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed) {
       try {
         final prefs = await SharedPreferences.getInstance();
-        // Keep auth and notification settings
+        
+        // Preserve critical auth and settings data
         final notification = prefs.getString('notification');
+        final accessToken = prefs.getString('access_token');
+        final refreshToken = prefs.getString('refresh_token');
+        final userId = prefs.getString('user_id');
+        final userEmail = prefs.getString('user_email');
+        final userFirstName = prefs.getString('user_first_name');
+        final userLastName = prefs.getString('user_last_name');
+        
+        // Clear all preferences
         await prefs.clear();
-        if (notification != null) {
-          await prefs.setString('notification', notification);
-        }
+        
+        // Restore preserved data
+        if (notification != null) await prefs.setString('notification', notification);
+        if (accessToken != null) await prefs.setString('access_token', accessToken);
+        if (refreshToken != null) await prefs.setString('refresh_token', refreshToken);
+        if (userId != null) await prefs.setString('user_id', userId);
+        if (userEmail != null) await prefs.setString('user_email', userEmail);
+        if (userFirstName != null) await prefs.setString('user_first_name', userFirstName);
+        if (userLastName != null) await prefs.setString('user_last_name', userLastName);
         
         _showSuccess('Cache cleared successfully');
       } catch (e) {
@@ -230,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       MaterialPageRoute(
         builder: (context) => WebViewPage(
           title: 'Terms of Service',
-          url: 'https://odadee.net/terms',
+          url: 'https://odadee.net/terms-service',
         ),
       ),
     );
