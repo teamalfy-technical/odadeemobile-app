@@ -4,6 +4,15 @@
 Odadee is a Flutter mobile application, configured for web deployment, serving as a community platform. It integrates features such as user authentication, community discussions, event management, live radio streaming, and functionalities for project funding and dues payment. The platform also supports user profiles and settings, aiming to foster community engagement and streamline administrative tasks.
 
 ## Recent Changes
+**November 23, 2025 - Pay Dues Screen Enhancement**
+- Added Year Group Impact stats card to Pay Dues screen to encourage contributions
+- Card fetches and displays user's year group name for personalization (e.g., "Class of 1995 Impact")
+- Shows "Payment Statistics Coming Soon" section with clear messaging about feature availability
+- Includes encouraging message: "Be part of the change! Your contribution helps fund [Year Group] activities..."
+- Flat design with yellow border, dark background, no gradients (adheres to design guidelines)
+- Loading state while fetching user's year group data from AuthService
+- Note: Actual payment statistics (total collected, contributor count) require backend API endpoint (e.g., GET /api/year-groups/:id/payment-stats) which is not yet available
+
 **November 23, 2025 - PayAngel Payment Integration**
 - Implemented complete PayAngel payment integration for year group dues payment
 - Added PaymentService class (lib/services/payment_service.dart) with createPayment method connecting to /payments/create endpoint
