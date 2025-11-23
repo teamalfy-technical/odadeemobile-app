@@ -16,7 +16,7 @@ class ApiConfig {
   static const String eventsEndpoint = '/api/events';
   static const String projectsEndpoint = '/api/projects';
   
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.1.0';
   
   static const Duration accessTokenLifetime = Duration(minutes: 15);
   static const Duration refreshTokenLifetime = Duration(days: 30);

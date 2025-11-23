@@ -95,6 +95,7 @@ localPort = 46065
 externalPort = 5173
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "static"
 run = ["flutter", "run", "-d", "web-server", "--web-port=5000", "--web-hostname=0.0.0.0", "--release"]
 build = ["bash", "build.sh"]
+publicDir = "build/web"
