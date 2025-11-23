@@ -264,6 +264,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          icon,
+          color: isActive ? Color(0xFF1a1a1a) : Colors.white,
+          size: 26,
+        ),
+      ),
+    );
+  }
+
   Widget _buildEventDate(String? dateString) {
     try {
       if (dateString == null || dateString.isEmpty) {
@@ -1226,129 +1250,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
+                        left: 20,
+                        right: 20,
+                        bottom: 20,
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 15),
+                          padding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Color(0xFF1a1a1a),
+                            borderRadius: BorderRadius.circular(30),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset:
-                                    Offset(0, 3), // changes position of shadow
+                                color: Colors.black.withOpacity(0.3),
+                                spreadRadius: 0,
+                                blurRadius: 20,
+                                offset: Offset(0, 10),
                               ),
                             ],
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              InkWell(
-                                onTap: () {
-                                  /*      Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => DashboardScreen()));
-                        */
-                                },
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.home,
-                                      color: odaSecondary,
-                                    ),
-                                    SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text(
-                                      'Home',
-                                      style: TextStyle(
-                                          color: odaSecondary, fontSize: 12),
-                                    ),
-                                  ],
-                                ),
+                              _buildNavItem(
+                                icon: Icons.home_rounded,
+                                label: 'Home',
+                                isActive: true,
+                                onTap: () {},
                               ),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (BuildContext context) =>
-                                          RadioScreen()));
-                                },
-                                child: Column(
-                                  children: [
-                                    Icon(Icons.radio, color: Colors.grey),
-                                    SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text('Radio',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                  ],
-                                ),
-                              ),
-                              InkWell(
+                              _buildNavItem(
+                                icon: Icons.payment_rounded,
+                                label: 'Pay Dues',
+                                isActive: false,
                                 onTap: () {
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (BuildContext context) =>
                                           PayDuesScreen()));
                                 },
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.phone_android,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text('Pay Dues',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                  ],
-                                ),
                               ),
-                              InkWell(
+                              _buildNavItem(
+                                icon: Icons.settings_rounded,
+                                label: 'Settings',
+                                isActive: false,
                                 onTap: () {
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (BuildContext context) =>
                                           SettingsScreen()));
                                 },
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.settings,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text('Settings',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                  ],
-                                ),
                               ),
-                              InkWell(
+                              _buildNavItem(
+                                icon: Icons.person_rounded,
+                                label: 'Profile',
+                                isActive: false,
                                 onTap: () {
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (BuildContext context) =>
                                           UserProfileScreen()));
                                 },
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text('Profile',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                  ],
-                                ),
                               ),
                             ],
                           ),
