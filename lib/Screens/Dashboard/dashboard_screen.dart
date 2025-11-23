@@ -224,10 +224,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String? user_year_group;
+  String? userName;
+  String? userEmail;
+  String? userClass;
 
   @override
   void initState() {
     get_user_year_group();
+    _fetchCurrentUser();
     super.initState();
   }
 
@@ -237,6 +241,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         user_year_group = yearGroup;
       });
+    }
+  }
+
+  Future<void> _fetchCurrentUser() async {
+    try {
+      final authService = AuthService();
+      final userData = await authService.getCurrentUser();
+      
+      if (mounted) {
+        setState(() {
+          final firstName = userData['firstName']?.toString() ?? '';
+          final lastName = userData['lastName']?.toString() ?? '';
+          userName = firstName.isNotEmpty && lastName.isNotEmpty 
+              ? '$firstName $lastName' 
+              : firstName.isNotEmpty 
+                  ? firstName 
+                  : 'User';
+          userEmail = userData['email']?.toString() ?? '';
+          
+          final yearGroup = userData['yearGroup']?.toString() ?? '';
+          userClass = yearGroup.isNotEmpty ? 'Class of $yearGroup' : '';
+        });
+      }
+    } catch (e) {
+      print('Error fetching current user: $e');
     }
   }
 
@@ -370,13 +399,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               );
             } else if (snapshot.hasData) {
-              final userData = snapshot.data![0];
+              final userData = snapshot.data![0] as AllUsersModel;
 
-              final eventsData = snapshot.data![1];
+              final eventsData = snapshot.data![1] as AllEventsModel;
 
-              final projectsData = snapshot.data![2];
+              final projectsData = snapshot.data![2] as AllProjectsModel;
 
-              final articlesData = snapshot.data![3];
+              final articlesData = snapshot.data![3] as AllArticlesModel?;
 
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
 
@@ -421,47 +450,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    "Dashboard",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 26),
-                                  ),
-                                  Stack(
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Icon(
-                                        Icons.notifications_none_outlined,
-                                        color: odaSecondary,
-                                        size: 30,
-                                      ),
-                                      Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: CircleAvatar(
-                                          backgroundColor: odaSecondary,
-                                          radius: 5,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              userName != null 
+                                                  ? "Welcome back, $userName!" 
+                                                  : "Welcome back!",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 24,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            if (userEmail != null && userEmail!.isNotEmpty) ...[
+                                              SizedBox(height: 4),
+                                              Text(
+                                                userEmail!,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color(0xFF94a3b8),
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                            if (userClass != null && userClass!.isNotEmpty) ...[
+                                              SizedBox(height: 2),
+                                              Text(
+                                                userClass!,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color(0xFF94a3b8),
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
+                                      ),
+                                      Stack(
+                                        children: [
+                                          Icon(
+                                            Icons.notifications_none_outlined,
+                                            color: odaSecondary,
+                                            size: 30,
+                                          ),
+                                          Positioned(
+                                            bottom: 0,
+                                            right: 0,
+                                            child: CircleAvatar(
+                                              backgroundColor: odaSecondary,
+                                              radius: 5,
+                                            ),
+                                          )
+                                        ],
                                       )
                                     ],
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 15.0),
-                              child: GridView.count(
-                                crossAxisCount: 2,
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                crossAxisSpacing: 15,
-                                mainAxisSpacing: 15,
-                                childAspectRatio: 1.4,
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
                                 children: [
                                   StatCard(
                                     title: 'Total Members',
@@ -477,6 +536,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       );
                                     },
                                   ),
+                                  SizedBox(height: 15),
                                   StatCard(
                                     title: 'Events',
                                     value: '$eventsCount',
@@ -490,6 +550,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       );
                                     },
                                   ),
+                                  SizedBox(height: 15),
                                   StatCard(
                                     title: 'Products',
                                     value: '$projectsCount',
@@ -504,6 +565,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       );
                                     },
                                   ),
+                                  SizedBox(height: 15),
                                   StatCard(
                                     title: 'Contributions',
                                     value: statsData != null
@@ -522,9 +584,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: 15),
+                            SizedBox(height: 30),
                             Padding(
-                              padding: const EdgeInsets.all(15.0),
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Column(
                                 children: [
                                   Row(
@@ -539,7 +601,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         style: const TextStyle(
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
-                                            color: odaSecondary),
+                                            color: Colors.white),
                                       ),
                                       InkWell(
                                         onTap: () {
@@ -559,21 +621,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 10),
-                                  if (userData.users.data.isEmpty)
+                                  SizedBox(height: 15),
+                                  if (userData.users?.data?.isEmpty ?? true)
                                     Container(
                                       padding: EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF1e293b),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFF334155),
+                                          width: 1,
+                                        ),
+                                      ),
                                       child: Column(
                                         children: [
                                           Icon(Icons.people_outline,
                                               size: 60,
-                                              color: Colors.grey[400]),
+                                              color: Color(0xFF64748b)),
                                           SizedBox(height: 16),
                                           Text(
                                             'No members yet',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              color: Colors.grey[600],
+                                              color: Color(0xFF94a3b8),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -581,845 +651,582 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                     )
                                   else
-                                    Container(
-                                      height: 120,
-                                      width: MediaQuery.of(context).size.width,
-                                      child: ListView.builder(
-                                          scrollDirection: Axis.horizontal,
-                                          itemCount: userData.users.data.length,
-                                          itemBuilder: (context, index) {
-                                            return InkWell(
-                                              onTap: () {
-                                                Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                        builder: (BuildContext
-                                                                context) =>
-                                                            UserDetailScreen(
-                                                                data: userData
-                                                                        .users
-                                                                        .data[
-                                                                    index])));
-                                              },
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              child: Container(
-                                                margin: EdgeInsets.symmetric(
-                                                    horizontal: 8),
-                                                child: Column(
-                                                  children: [
-                                                    if (userData
-                                                            .users
-                                                            .data[index]
-                                                            .image !=
-                                                        "") ...[
-                                                      Container(
-                                                        height: 80,
-                                                        width: 80,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          image: DecorationImage(
-                                                              image: NetworkImage(
-                                                                  userData
-                                                                      .users
-                                                                      .data[
-                                                                          index]
-                                                                      .image),
-                                                              fit:
-                                                                  BoxFit.cover),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: odaPrimary
-                                                                  .withOpacity(
-                                                                      0.3),
-                                                              blurRadius: 10,
-                                                              offset:
-                                                                  Offset(0, 4),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ] else ...[
-                                                      Container(
-                                                        height: 80,
-                                                        width: 80,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          color:
-                                                              Color(0xFF334155),
-                                                          border: Border.all(
-                                                            color: Color(
-                                                                0xFF475569),
-                                                            width: 2,
-                                                          ),
-                                                        ),
-                                                        child: Center(
-                                                          child: Text(
-                                                            ((userData
-                                                                            .users
-                                                                            .data[
-                                                                                index]
-                                                                            .firstName
-                                                                            ?.isNotEmpty ??
-                                                                        false)
-                                                                    ? userData
-                                                                        .users
-                                                                        .data[
-                                                                            index]
-                                                                        .firstName!
-                                                                        .substring(
-                                                                            0,
-                                                                            1)
-                                                                    : '') +
-                                                                ((userData
-                                                                            .users
-                                                                            .data[
-                                                                                index]
-                                                                            .lastName
-                                                                            ?.isNotEmpty ??
-                                                                        false)
-                                                                    ? userData
-                                                                        .users
-                                                                        .data[
-                                                                            index]
-                                                                        .lastName!
-                                                                        .substring(
-                                                                            0,
-                                                                            1)
-                                                                    : ''),
-                                                            style: TextStyle(
-                                                                fontSize: 24,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                color: Colors
-                                                                    .white),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                    SizedBox(height: 8),
-                                                    Text(
-                                                      userData.users.data[index]
-                                                              .firstName ??
-                                                          '',
-                                                      style: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          color:
-                                                              Colors.grey[800]),
-                                                    ),
-                                                  ],
+                                    Column(
+                                      children: userData.users!.data!.take(6).map((user) {
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 15),
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          UserDetailScreen(
+                                                              data: user)));
+                                            },
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: EdgeInsets.all(20),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Color(0xFF334155),
+                                                  width: 1,
                                                 ),
                                               ),
-                                            );
-                                          }),
+                                              child: Row(
+                                                children: [
+                                                  if (user.image != null && user.image!.isNotEmpty) ...[
+                                                    Container(
+                                                      height: 60,
+                                                      width: 60,
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        shape:
+                                                            BoxShape.circle,
+                                                        image: DecorationImage(
+                                                            image: NetworkImage(
+                                                                user.image!),
+                                                            fit:
+                                                                BoxFit.cover),
+                                                      ),
+                                                    ),
+                                                  ] else ...[
+                                                    Container(
+                                                      height: 60,
+                                                      width: 60,
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        shape:
+                                                            BoxShape.circle,
+                                                        color:
+                                                            Color(0xFF334155),
+                                                        border: Border.all(
+                                                          color: Color(
+                                                              0xFF475569),
+                                                          width: 2,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          ((user.firstName?.isNotEmpty ?? false)
+                                                                  ? user.firstName!.substring(0, 1)
+                                                                  : '') +
+                                                              ((user.lastName?.isNotEmpty ?? false)
+                                                                  ? user.lastName!.substring(0, 1)
+                                                                  : ''),
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: Colors
+                                                                  .white),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  SizedBox(width: 15),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              color: Colors.white),
+                                                        ),
+                                                        if (user.email != null && user.email!.isNotEmpty) ...[
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            user.email!,
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Color(0xFF94a3b8)),
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 16,
+                                                    color: Color(0xFF64748b),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
                                     ),
                                 ],
                               ),
                             ),
-                            SizedBox(height: 15),
-                            Container(
-                              color: odaSecondary.withOpacity(0.05),
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Container(
-                                  child: Column(
+                            SizedBox(height: 30),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                      Text(
+                                        "Latest Events",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (BuildContext
+                                                          context) =>
+                                                      EventsScreen()));
+                                        },
+                                        child: Text('View All',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: odaPrimary)),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 15),
+                                  if (eventsData.events?.data?.isEmpty ?? true)
+                                    Container(
+                                      padding: EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF1e293b),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFF334155),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
                                         children: [
+                                          Icon(Icons.event_busy,
+                                              size: 60,
+                                              color: Color(0xFF64748b)),
+                                          SizedBox(height: 16),
                                           Text(
-                                            "Latest Events",
+                                            'No upcoming events',
                                             style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: odaSecondary),
+                                              fontSize: 16,
+                                              color: Color(0xFF94a3b8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                           ),
-                                          InkWell(
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Column(
+                                      children: eventsData.events!.data!.take(3).map((event) {
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 15),
+                                          child: InkWell(
                                             onTap: () {
                                               Navigator.of(context).push(
                                                   MaterialPageRoute(
                                                       builder: (BuildContext
                                                               context) =>
-                                                          EventsScreen()));
+                                                          EventDetailsScreen(
+                                                              data: event)));
                                             },
-                                            child: Text('View All',
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: odaPrimary)),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 15,
-                                      ),
-                                      if (eventsData.events.data.isEmpty)
-                                        Container(
-                                          padding: EdgeInsets.all(40),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.1),
-                                                blurRadius: 5,
-                                                offset: Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Icon(Icons.event_busy,
-                                                  size: 60,
-                                                  color: Colors.grey[400]),
-                                              SizedBox(height: 16),
-                                              Text(
-                                                'No upcoming events',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.grey[600],
-                                                  fontWeight: FontWeight.w500,
+                                                BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: EdgeInsets.all(20),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Color(0xFF334155),
+                                                  width: 1,
                                                 ),
                                               ),
-                                              SizedBox(height: 12),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          EventsScreen(),
-                                                    ),
-                                                  );
-                                                },
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: odaPrimary,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                  ),
-                                                ),
-                                                child: Text('Browse Events',
-                                                    style: TextStyle(
-                                                        color: Colors.white)),
-                                              ),
-                                            ],
-                                          ),
-                                        )
-                                      else
-                                        Container(
-                                          height: 150,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount:
-                                                  eventsData.events.data.length,
-                                              itemBuilder: (context, index) {
-                                                return InkWell(
-                                                  onTap: () {
-                                                    Navigator.of(context).push(
-                                                        MaterialPageRoute(
-                                                            builder: (BuildContext
-                                                                    context) =>
-                                                                EventDetailsScreen(
-                                                                    data: eventsData
-                                                                            .events
-                                                                            .data[
-                                                                        index])));
-                                                  },
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child: Material(
-                                                    elevation: 4,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
-                                                    shadowColor: odaPrimary
-                                                        .withOpacity(0.2),
-                                                    child: Container(
-                                                      margin: EdgeInsets.only(
-                                                          right: 12),
-                                                      padding:
-                                                          EdgeInsets.all(12),
-                                                      width: 160,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(15),
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Container(
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    12),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Color(
-                                                                  0xFF334155),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10),
-                                                              border:
-                                                                  Border.all(
-                                                                color: Color(
-                                                                    0xFF475569),
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            child: _buildEventDate(
-                                                                eventsData
-                                                                    .events
-                                                                    .data[index]
-                                                                    .startDate),
-                                                          ),
-                                                          SizedBox(
-                                                            height: 10,
-                                                          ),
-                                                          Expanded(
-                                                            child: Text(
-                                                              eventsData
-                                                                  .events
-                                                                  .data[index]
-                                                                  .title,
-                                                              maxLines: 2,
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              style: TextStyle(
-                                                                  fontSize: 15,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color: Colors
-                                                                      .black87),
-                                                            ),
-                                                          ),
-                                                        ],
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    padding: EdgeInsets.all(12),
+                                                    decoration: BoxDecoration(
+                                                      color: Color(0xFF334155),
+                                                      borderRadius:
+                                                          BorderRadius.circular(10),
+                                                      border: Border.all(
+                                                        color: Color(0xFF475569),
+                                                        width: 1,
                                                       ),
                                                     ),
+                                                    child: _buildEventDate(event.startDate),
                                                   ),
-                                                );
-                                              }),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 15),
-                            Container(
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Container(
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "Projects",
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: odaSecondary),
-                                          ),
-                                          InkWell(
-                                            onTap: () {
-                                              Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                      builder: (BuildContext
-                                                              context) =>
-                                                          ProjectsScreen()));
-                                            },
-                                            child: Text('View All',
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: odaPrimary)),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 15,
-                                      ),
-                                      if (projectsData.projects.data.isEmpty)
-                                        Container(
-                                          padding: EdgeInsets.all(40),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.1),
-                                                blurRadius: 5,
-                                                offset: Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Icon(Icons.work_off,
-                                                  size: 60,
-                                                  color: Colors.grey[400]),
-                                              SizedBox(height: 16),
-                                              Text(
-                                                'No active projects',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.grey[600],
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        )
-                                      else
-                                        Container(
-                                          height: 320,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: projectsData
-                                                  .projects.data.length,
-                                              itemBuilder: (context, index) {
-                                                final project = projectsData
-                                                    .projects.data[index];
-                                                final currentFunding =
-                                                    double.tryParse(project
-                                                                .currentFunding ??
-                                                            '0') ??
-                                                        0;
-                                                final targetFunding =
-                                                    double.tryParse(project
-                                                                .fundingTarget ??
-                                                            '1') ??
-                                                        1;
-                                                final fundingProgress =
-                                                    targetFunding > 0
-                                                        ? (currentFunding /
-                                                                targetFunding)
-                                                            .clamp(0.0, 1.0)
-                                                        : 0.0;
-                                                final fundingPercentage =
-                                                    (fundingProgress * 100)
-                                                        .toInt();
-
-                                                return InkWell(
-                                                  onTap: () {
-                                                    Navigator.of(context).push(
-                                                        MaterialPageRoute(
-                                                            builder: (BuildContext
-                                                                    context) =>
-                                                                ProjectDetailsScreen(
-                                                                    data:
-                                                                        project)));
-                                                  },
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child: Material(
-                                                    elevation: 6,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
-                                                    shadowColor: odaPrimary
-                                                        .withOpacity(0.2),
-                                                    child: Container(
-                                                      margin: EdgeInsets.only(
-                                                          right: 15),
-                                                      width: 280,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(15),
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Container(
-                                                            height: 160,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .only(
-                                                                topLeft: Radius
-                                                                    .circular(
-                                                                        15),
-                                                                topRight: Radius
-                                                                    .circular(
-                                                                        15),
-                                                              ),
-                                                              color: (project
-                                                                          .image
-                                                                          ?.isNotEmpty ??
-                                                                      false)
-                                                                  ? null
-                                                                  : Color(
-                                                                      0xFF1e293b),
-                                                              image: (project
-                                                                          .image
-                                                                          ?.isNotEmpty ??
-                                                                      false)
-                                                                  ? DecorationImage(
-                                                                      image: NetworkImage(
-                                                                          project
-                                                                              .image!),
-                                                                      fit: BoxFit
-                                                                          .cover)
-                                                                  : null,
-                                                            ),
-                                                            child: (project
-                                                                        .image
-                                                                        ?.isNotEmpty ??
-                                                                    false)
-                                                                ? null
-                                                                : Center(
-                                                                    child: Icon(
-                                                                      Icons
-                                                                          .card_giftcard_outlined,
-                                                                      size: 50,
-                                                                      color: Color(
-                                                                          0xFF64748b),
-                                                                    ),
-                                                                  ),
-                                                          ),
-                                                          Padding(
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    12),
-                                                            child: Column(
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                Text(
-                                                                  project.title ??
-                                                                      'Untitled Project',
-                                                                  maxLines: 1,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      color: Colors
-                                                                          .black87),
-                                                                ),
-                                                                SizedBox(
-                                                                    height: 4),
-                                                                Text(
-                                                                  project.content ??
-                                                                      '',
-                                                                  maxLines: 2,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          12,
-                                                                      color: Colors
-                                                                              .grey[
-                                                                          600]),
-                                                                ),
-                                                                SizedBox(
-                                                                    height: 10),
-                                                                Column(
-                                                                  crossAxisAlignment:
-                                                                      CrossAxisAlignment
-                                                                          .start,
-                                                                  children: [
-                                                                    Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .spaceBetween,
-                                                                      children: [
-                                                                        Text(
-                                                                          'Funding Progress',
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                11,
-                                                                            color:
-                                                                                Colors.grey[600],
-                                                                            fontWeight:
-                                                                                FontWeight.w500,
-                                                                          ),
-                                                                        ),
-                                                                        Text(
-                                                                          '$fundingPercentage%',
-                                                                          style:
-                                                                              TextStyle(
-                                                                            fontSize:
-                                                                                12,
-                                                                            color:
-                                                                                odaPrimary,
-                                                                            fontWeight:
-                                                                                FontWeight.bold,
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    SizedBox(
-                                                                        height:
-                                                                            6),
-                                                                    ClipRRect(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              10),
-                                                                      child:
-                                                                          LinearProgressIndicator(
-                                                                        value:
-                                                                            fundingProgress,
-                                                                        backgroundColor:
-                                                                            Colors.grey[200],
-                                                                        valueColor:
-                                                                            AlwaysStoppedAnimation<Color>(odaPrimary),
-                                                                        minHeight:
-                                                                            8,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                                SizedBox(
-                                                                    height: 12),
-                                                                Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    Expanded(
-                                                                      child:
-                                                                          Container(
-                                                                        padding: EdgeInsets.symmetric(
-                                                                            vertical:
-                                                                                10,
-                                                                            horizontal:
-                                                                                12),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color:
-                                                                              odaPrimary,
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(10),
-                                                                        ),
-                                                                        child:
-                                                                            Center(
-                                                                          child:
-                                                                              Text(
-                                                                            "View Project",
-                                                                            style:
-                                                                                TextStyle(
-                                                                              color: Colors.white,
-                                                                              fontWeight: FontWeight.bold,
-                                                                              fontSize: 13,
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    SizedBox(
-                                                                        width:
-                                                                            10),
-                                                                    Text(
-                                                                      "\$${project.fundingTargetDollar ?? '0'}",
-                                                                      style:
-                                                                          TextStyle(
-                                                                        color:
-                                                                            odaSecondary,
-                                                                        fontWeight:
-                                                                            FontWeight.w900,
-                                                                        fontSize:
-                                                                            18,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 15),
-                            if (articlesData != null &&
-                                articlesData.news != null &&
-                                articlesData.news!.data != null &&
-                                articlesData.news!.data!.isNotEmpty)
-                              Container(
-                                // color: odaSecondary.withOpacity(0.2),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(15.0),
-                                  child: Container(
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Latest Discussions",
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  color: odaSecondary),
-                                            ),
-                                            InkWell(
-                                              onTap: () {
-                                                Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                        builder: (BuildContext
-                                                                context) =>
-                                                            AllNewsScreen()));
-                                              },
-                                              child: Text('View All',
-                                                  style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: odaPrimary)),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Container(
-                                          height: 270,
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          //color: Colors.red,
-                                          child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: articlesData!
-                                                  .news!.data!.length,
-                                              itemBuilder: (context, index) {
-                                                return InkWell(
-                                                  onTap: () {
-                                                    Navigator.of(context).push(
-                                                        MaterialPageRoute(
-                                                            builder: (BuildContext
-                                                                    context) =>
-                                                                NewsDetailsScreen(
-                                                                    data: articlesData!
-                                                                            .news!
-                                                                            .data![
-                                                                        index])));
-                                                  },
-                                                  child: Container(
-                                                    margin: EdgeInsets.all(5),
-                                                    width: 296,
+                                                  SizedBox(width: 15),
+                                                  Expanded(
                                                     child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
-                                                        Container(
-                                                          height: 169,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        15),
-                                                            color: odaPrimary
-                                                                .withOpacity(
-                                                                    0.1),
-                                                          ),
-                                                          child: Center(
-                                                            child: Icon(
-                                                              Icons
-                                                                  .article_outlined,
-                                                              size: 50,
-                                                              color: odaPrimary,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          height: 8,
-                                                        ),
-                                                        Row(
-                                                          children: [
-                                                            Expanded(
-                                                                child: Text(
-                                                              articlesData!
-                                                                      .news!
-                                                                      .data![
-                                                                          index]
-                                                                      .title ??
-                                                                  '',
-                                                              style: TextStyle(
-                                                                  fontSize: 16,
-                                                                  color: Colors
-                                                                      .black),
-                                                              maxLines: 2,
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            )),
-                                                          ],
-                                                        ),
-                                                        SizedBox(
-                                                          height: 5,
-                                                        ),
                                                         Text(
-                                                          articlesData!
-                                                                  .news!
-                                                                  .data![index]
-                                                                  .createdTime ??
-                                                              '',
+                                                          event.title ?? 'Untitled Event',
                                                           style: TextStyle(
-                                                              fontSize: 12,
-                                                              color:
-                                                                  Colors.grey),
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              color: Colors.white),
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow.ellipsis,
                                                         ),
                                                       ],
                                                     ),
                                                   ),
-                                                );
-                                              }),
+                                                  Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 16,
+                                                    color: Color(0xFF64748b),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 30),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Projects",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (BuildContext
+                                                          context) =>
+                                                      ProjectsScreen()));
+                                        },
+                                        child: Text('View All',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: odaPrimary)),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 15),
+                                  if (projectsData.projects?.data?.isEmpty ?? true)
+                                    Container(
+                                      padding: EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF1e293b),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFF334155),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.work_off,
+                                              size: 60,
+                                              color: Color(0xFF64748b)),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            'No active projects',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFF94a3b8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Column(
+                                      children: projectsData.projects!.data!.take(3).map((project) {
+                                        final currentFunding = double.tryParse(project.currentFunding ?? '0') ?? 0;
+                                        final targetFunding = double.tryParse(project.fundingTarget ?? '1') ?? 1;
+                                        final fundingProgress = targetFunding > 0 ? (currentFunding / targetFunding).clamp(0.0, 1.0) : 0.0;
+                                        final fundingPercentage = (fundingProgress * 100).toInt();
+
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 15),
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                      builder: (BuildContext context) =>
+                                                          ProjectDetailsScreen(data: project)));
+                                            },
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: EdgeInsets.all(20),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Color(0xFF334155),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        height: 60,
+                                                        width: 60,
+                                                        decoration: BoxDecoration(
+                                                          borderRadius: BorderRadius.circular(10),
+                                                          color: (project.image?.isNotEmpty ?? false)
+                                                              ? null
+                                                              : Color(0xFF334155),
+                                                          border: Border.all(
+                                                            color: Color(0xFF475569),
+                                                            width: 1,
+                                                          ),
+                                                          image: (project.image?.isNotEmpty ?? false)
+                                                              ? DecorationImage(
+                                                                  image: NetworkImage(project.image!),
+                                                                  fit: BoxFit.cover)
+                                                              : null,
+                                                        ),
+                                                        child: (project.image?.isNotEmpty ?? false)
+                                                            ? null
+                                                            : Center(
+                                                                child: Icon(
+                                                                  Icons.card_giftcard_outlined,
+                                                                  size: 30,
+                                                                  color: Color(0xFF64748b),
+                                                                ),
+                                                              ),
+                                                      ),
+                                                      SizedBox(width: 15),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text(
+                                                              project.title ?? 'Untitled Project',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  color: Colors.white),
+                                                              maxLines: 1,
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                            if (project.content != null && project.content!.isNotEmpty) ...[
+                                                              SizedBox(height: 4),
+                                                              Text(
+                                                                project.content!,
+                                                                style: TextStyle(
+                                                                    fontSize: 13,
+                                                                    color: Color(0xFF94a3b8)),
+                                                                maxLines: 2,
+                                                                overflow: TextOverflow.ellipsis,
+                                                              ),
+                                                            ],
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Icon(
+                                                        Icons.arrow_forward_ios,
+                                                        size: 16,
+                                                        color: Color(0xFF64748b),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 12),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        'Funding Progress',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Color(0xFF94a3b8),
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '$fundingPercentage%',
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: odaPrimary,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  ClipRRect(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    child: LinearProgressIndicator(
+                                                      value: fundingProgress,
+                                                      backgroundColor: Color(0xFF334155),
+                                                      valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
+                                                      minHeight: 8,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 30),
+                            if (articlesData != null &&
+                                articlesData.news != null &&
+                                articlesData.news!.data != null &&
+                                articlesData.news!.data!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Latest Discussions",
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                    builder: (BuildContext
+                                                            context) =>
+                                                        AllNewsScreen()));
+                                          },
+                                          child: Text('View All',
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight:
+                                                      FontWeight.w600,
+                                                  color: odaPrimary)),
                                         ),
                                       ],
                                     ),
-                                  ),
+                                    SizedBox(height: 15),
+                                    Column(
+                                      children: articlesData.news!.data!.take(3).map((article) {
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 15),
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                      builder: (BuildContext context) =>
+                                                          NewsDetailsScreen(data: article)));
+                                            },
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: EdgeInsets.all(20),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius: BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Color(0xFF334155),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    height: 60,
+                                                    width: 60,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      color: Color(0xFF334155),
+                                                      border: Border.all(
+                                                        color: Color(0xFF475569),
+                                                        width: 1,
+                                                      ),
+                                                    ),
+                                                    child: Center(
+                                                      child: Icon(
+                                                        Icons.article_outlined,
+                                                        size: 30,
+                                                        color: odaPrimary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 15),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          article.title ?? 'Untitled Discussion',
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w600,
+                                                              color: Colors.white),
+                                                          maxLines: 2,
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                        if (article.createdTime != null && article.createdTime!.isNotEmpty) ...[
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            convertToFormattedDate(article.createdTime!),
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Color(0xFF94a3b8)),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 16,
+                                                    color: Color(0xFF64748b),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            SizedBox(
-                              height: 80,
-                            )
+                            SizedBox(height: 80)
                           ],
                         ),
                       ),
