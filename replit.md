@@ -36,6 +36,8 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 
 **Members Directory:** Clean, modern members list screen for browsing all alumni:
 - Card grid layout displaying all registered members from `/api/search/members` endpoint
+- **Full Pagination**: Fetches ALL pages from API (loops through all pages until complete) before displaying
+- **Semantic Search**: Client-side fuzzy filtering across firstName, lastName, email, graduationYear, currentRole, company fields
 - Search functionality with interactive search icon and clear button
 - Each member card shows: profile image (with AuthenticatedImage), name, graduation year, current role
 - Clickable cards navigate to individual member's full profile (MemberDetailPage)
@@ -69,11 +71,20 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - **Navigation**: Logout, view/edit profile shortcuts
 - All features include proper error handling, confirmation dialogs, loading states, and user feedback
 
-**Dashboard Navigation:** All dashboard stat cards now route to valid functional pages:
-- **Total Members** → MembersScreen (card grid view of all alumni)
-- **Events** → EventsScreen (upcoming events list)
-- **Products** → ProjectsScreen (community projects and shop items)
+**Dashboard Navigation:** All dashboard stat cards now route to valid functional pages with consistent clean design:
+- **Total Members** → MembersScreen (card grid view of all alumni with semantic search)
+- **Events** → EventsScreen (upcoming events list with clean white app bar, back button navigation)
+- **Products** → ProjectsScreen (community projects and shop items with clean white app bar, back button navigation)
 - **Contributions** → PayDuesScreen (payment functionality for dues)
+- **Year Group Members** → Individual cards navigate to MemberDetailPage (clean design, back button only)
+- **"View All" Button** → MembersScreen (full member directory with search)
+
+**Events & Projects Screens:** Redesigned to match MemberDetailPage clean aesthetic:
+- **EventsScreen**: White app bar with back button, dark backgrounds (#0f172a main, #1e293b cards), blue CTAs (#2563eb), yellow accents (#f4d03f), zero gradients, no bottom nav
+- **ProjectsScreen**: Same clean design pattern - white app bar, back button only, dark cards, flat colors, no bottom nav
+- **Navigation**: Both screens use simple back navigation instead of full app navigation to maintain focus
+- **Event Details**: Dashboard "Latest Events" section properly passes full event objects to EventDetailsScreen (no null errors)
+- **Design Consistency**: All secondary screens (Members, Events, Projects) follow identical visual patterns for unified UX
 
 Error handling, null safety, and proper data transformation are implemented throughout the application.
 
