@@ -4,11 +4,19 @@
 Odadee is a Flutter mobile application, configured for web deployment, serving as a community platform. It integrates features such as user authentication, community discussions, event management, live radio streaming, and functionalities for project funding and dues payment. The platform also supports user profiles and settings, aiming to foster community engagement and streamline administrative tasks.
 
 ## Recent Changes
+**November 23, 2025 - Footer Navigation Enhancement**
+- Added 2px yellow border (odaSecondary #f4d03f) around footer navigation container for enhanced visual definition
+- Created reusable FooterNav component (components/footer_nav.dart) that now persists across all app pages
+- Footer appears on Dashboard, Settings, Profile, and Pay Dues screens with correct active tab indicators
+- Uses pushReplacement navigation to prevent stack buildup when switching between tabs
+- Fixed Profile screen structure with proper Stack + Positioned.fill wrapper for content (80px bottom padding to avoid footer overlap)
+- Removed all Radio tab references from navigation and cleaned up unused imports
+- Footer design: Dark rounded container (#1a1a1a) with yellow border, 30px border radius, positioned 20px from edges
+
 **November 23, 2025 - Webapp-Style Dashboard Redesign**
 - Implemented comprehensive dashboard redesign matching clean odadee.net webapp aesthetic
 - Added personalized welcome header: "Welcome back, [FirstName]!" with user's first name only, email and graduation class from API
 - Redesigned footer navigation: Removed Radio tab, kept only Home, Pay Dues, Settings, and Profile
-- New footer design: Dark rounded container (#1a1a1a) with 30px border radius, positioned 20px from edges
 - Active tab indicator: White background with dark icon, inactive tabs show white icons on transparent background
 - Modern rounded icons (home_rounded, payment_rounded, settings_rounded, person_rounded) for cleaner look
 - Changed stat cards from 2x2 grid to full-width vertical stack (one card per row) for better mobile readability
