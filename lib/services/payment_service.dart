@@ -44,7 +44,7 @@ class PaymentService {
       }
       
       // Map payment types to backend product codes
-      final productCode = paymentType == 'dues' ? 'YEAR_GROUP_DUES' : paymentType;
+      final productCode = paymentType == 'dues' ? 'year_group_dues' : paymentType;
       
       print('Creating payment: productCode=$productCode, amount=$amount, yearGroupId=$yearGroupId');
       print('User info: firstName=$firstName, lastName=$lastName, email=$email');
