@@ -2,9 +2,7 @@ class ApiConfig {
   static const bool isDevelopment = false;
   
   static String get baseUrl {
-    return isDevelopment
-        ? 'https://a784362b-4352-4c94-81a8-8c3994588922-00-1img99c8h7fps.worf.replit.dev'
-        : 'https://odadee-connect.replit.app';
+    return 'https://odadee.net';
   }
   
   static const String loginEndpoint = '/api/auth/mobile/login';
@@ -12,6 +10,11 @@ class ApiConfig {
   static const String logoutEndpoint = '/api/auth/mobile/logout';
   static const String logoutAllEndpoint = '/api/auth/mobile/logout-all';
   static const String meEndpoint = '/api/auth/me';
+  
+  static const String publicEventsEndpoint = '/api/public/events';
+  static const String publicProjectsEndpoint = '/api/public/projects';
+  static const String eventsEndpoint = '/api/events';
+  static const String projectsEndpoint = '/api/projects';
   
   static const String appVersion = '1.0.0';
   

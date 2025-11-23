@@ -3,15 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Events/event_details.dart';
-import 'package:odadee/Screens/Events/models/events_model.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';
-import 'package:odadee/Screens/Projects/models/all_projects_model.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Radio/playing_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
-import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/event_service.dart';
+import 'package:odadee/models/event.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import 'package:http/http.dart' as http;
@@ -24,64 +23,36 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  List eventsList = [];
-  int currentPage = 1;
-  int lastPage = 1;
+  List<Event> eventsList = [];
   bool isLoading = false;
-  ScrollController _scrollController = ScrollController();
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _fetchEventsData(currentPage);
-    _scrollController.addListener(_scrollListener);
+    _fetchEventsData();
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      if (currentPage < lastPage && !isLoading) {
-        currentPage++;
-        _fetchEventsData(currentPage);
-      }
-    }
-  }
-
-  Future<void> _fetchEventsData(int page) async {
+  Future<void> _fetchEventsData() async {
     setState(() {
       isLoading = true;
+      errorMessage = null;
     });
 
     try {
-      print('===== FETCHING EVENTS PAGE $page =====');
-      final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/events?page=$page');
+      final eventService = EventService();
+      final events = await eventService.getPublicEvents();
 
-      print('Events API Status: ${response.statusCode}');
-      print('Events API Response: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final eventData = Events.fromJson(data['events']);
-
-        setState(() {
-          lastPage = eventData.lastPage!;
-          eventsList.addAll(eventData.data!);
-          isLoading = false;
-        });
-        print('Events loaded successfully: ${eventData.data!.length} items');
-      } else {
-        throw Exception('Failed to load events. Status: ${response.statusCode}');
-      }
+      setState(() {
+        eventsList = events;
+        isLoading = false;
+      });
+      print('Events loaded successfully: ${events.length} items');
     } catch (e) {
       print('Error fetching events: $e');
       setState(() {
         isLoading = false;
+        errorMessage = 'Failed to load events. Please try again.';
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +60,7 @@ class _EventsScreenState extends State<EventsScreen> {
             content: Text('Failed to load events. Please try again.'),
             action: SnackBarAction(
               label: 'Retry',
-              onPressed: () => _fetchEventsData(page),
+              onPressed: () => _fetchEventsData(),
             ),
           ),
         );
@@ -167,11 +138,12 @@ class _EventsScreenState extends State<EventsScreen> {
                 ),
               )
             : ListView.builder(
-                controller: _scrollController,
                 itemCount: eventsList.length,
                 padding: EdgeInsets.all(15),
                 itemBuilder: (context, index) {
                   final eventItem = eventsList[index];
+                  final dateInfo = _extractDateInfo(eventItem.startDate);
+                  
                   return Container(
                     margin: EdgeInsets.only(bottom: 15),
                     child: InkWell(
@@ -208,22 +180,19 @@ class _EventsScreenState extends State<EventsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text(
-                                    extractDateInfo(eventItem.startDate!)['day']
-                                        .toString(),
+                                    dateInfo['day'].toString(),
                                     style: TextStyle(
                                         fontSize: 32,
                                         color: Color(0xFF2563eb),
                                         fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    extractDateInfo(eventItem.startDate!)['month']
-                                        .toString(),
+                                    dateInfo['month'].toString(),
                                     style: TextStyle(
                                         fontSize: 12, color: Color(0xFF94a3b8)),
                                   ),
                                   Text(
-                                    extractDateInfo(eventItem.startDate!)['year']
-                                        .toString(),
+                                    dateInfo['year'].toString(),
                                     style: TextStyle(
                                         fontSize: 10, color: Color(0xFF64748b)),
                                   ),
@@ -236,7 +205,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    eventItem.title ?? 'Untitled Event',
+                                    eventItem.title,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -246,7 +215,7 @@ class _EventsScreenState extends State<EventsScreen> {
                                   ),
                                   SizedBox(height: 8),
                                   Text(
-                                    eventItem.content ?? '',
+                                    eventItem.description,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -269,5 +238,14 @@ class _EventsScreenState extends State<EventsScreen> {
               ),
       ),
     );
+  }
+
+  Map<String, dynamic> _extractDateInfo(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return {
+      'day': date.day.toString().padLeft(2, '0'),
+      'month': months[date.month - 1],
+      'year': date.year.toString(),
+    };
   }
 }

@@ -12,9 +12,7 @@ import 'package:odadee/Screens/Articles/models/all_articles_model.dart';
 import 'package:odadee/Screens/Articles/news_details.dart';
 import 'package:odadee/Screens/Events/event_details.dart';
 import 'package:odadee/Screens/Events/events_list.dart';
-import 'package:odadee/Screens/Events/models/events_model.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';
-import 'package:odadee/Screens/Projects/models/all_projects_model.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Projects/projects_screen.dart';
@@ -23,6 +21,10 @@ import 'package:odadee/components/stat_card.dart';
 import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/event_service.dart';
+import 'package:odadee/services/project_service.dart';
+import 'package:odadee/models/event.dart';
+import 'package:odadee/models/project.dart';
 
 import '../Authentication/SignIn/sgin_in_screen.dart';
 
@@ -78,80 +80,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<AllEventsModel> _fetchAllEventsData() async {
+  Future<List<Event>> _fetchAllEventsData() async {
     try {
-      final authService = AuthService();
-      final response =
-          await authService.authenticatedRequest('GET', '/api/events');
-
-      print('===== EVENTS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
-      print('===============================');
-
-      if (response.statusCode == 200) {
-        final eventsModel = AllEventsModel.fromJson(jsonDecode(response.body));
-        print('Events parsed: ${eventsModel.events?.data?.length ?? 0} events');
-        return eventsModel;
-      } else if (response.statusCode == 401) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (BuildContext context) => const SignInScreen()));
-        }
-        throw Exception('Session expired. Please sign in again.');
-      } else {
-        throw Exception('Failed to load events. Please try again.');
-      }
-    } on SocketException {
-      throw Exception(
-          'Network error: Unable to connect to server. Please check your internet connection.');
-    } on http.ClientException {
-      throw Exception(
-          'Network error: Unable to connect to server. Please check your internet connection.');
-    } on HttpException {
-      throw Exception('Network error: Unable to connect to server.');
-    } on FormatException {
-      throw Exception('Invalid data received from server.');
-    } on Exception {
+      final eventService = EventService();
+      final events = await eventService.getPublicEvents();
+      print('Fetched ${events.length} public events from odadee.net');
+      return events;
+    } catch (e) {
+      print('Error fetching events: $e');
       rethrow;
     }
   }
 
-  Future<AllProjectsModel> _fetchAllProjectsData() async {
+  Future<List<Project>> _fetchAllProjectsData() async {
     try {
-      final authService = AuthService();
-      final response =
-          await authService.authenticatedRequest('GET', '/api/projects');
-
-      print('===== PROJECTS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
-      print('=================================');
-
-      if (response.statusCode == 200) {
-        final projectsModel = AllProjectsModel.fromJson(jsonDecode(response.body));
-        print('Projects parsed: ${projectsModel.projects?.data?.length ?? 0} projects');
-        return projectsModel;
-      } else if (response.statusCode == 401) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (BuildContext context) => const SignInScreen()));
-        }
-        throw Exception('Session expired. Please sign in again.');
-      } else {
-        throw Exception('Failed to load projects. Please try again.');
-      }
-    } on SocketException {
-      throw Exception(
-          'Network error: Unable to connect to server. Please check your internet connection.');
-    } on http.ClientException {
-      throw Exception(
-          'Network error: Unable to connect to server. Please check your internet connection.');
-    } on HttpException {
-      throw Exception('Network error: Unable to connect to server.');
-    } on FormatException {
-      throw Exception('Invalid data received from server.');
-    } on Exception {
+      final projectService = ProjectService();
+      final projects = await projectService.getPublicProjects();
+      print('Fetched ${projects.length} public projects from odadee.net');
+      return projects;
+    } catch (e) {
+      print('Error fetching projects: $e');
       rethrow;
     }
   }
@@ -309,13 +257,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Widget _buildEventDate(String? dateString) {
+  Widget _buildEventDate(dynamic date) {
     try {
-      if (dateString == null || dateString.isEmpty) {
+      DateTime dateTime;
+      if (date == null) {
+        return _buildDateFallback();
+      } else if (date is String) {
+        if (date.isEmpty) return _buildDateFallback();
+        dateTime = DateTime.parse(date);
+      } else if (date is DateTime) {
+        dateTime = date;
+      } else {
         return _buildDateFallback();
       }
 
-      final dateInfo = extractDateInfo(dateString);
+      final dateInfo = _extractDateInfoFromDateTime(dateTime);
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -374,6 +330,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ],
     );
+  }
+
+  Map<String, dynamic> _extractDateInfoFromDateTime(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return {
+      'day': date.day.toString().padLeft(2, '0'),
+      'month': months[date.month - 1],
+      'year': date.year.toString(),
+    };
   }
 
   @override
@@ -441,9 +406,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             } else if (snapshot.hasData) {
               final userData = snapshot.data![0] as AllUsersModel;
 
-              final eventsData = snapshot.data![1] as AllEventsModel;
+              final eventsData = snapshot.data![1] as List<Event>;
 
-              final projectsData = snapshot.data![2] as AllProjectsModel;
+              final projectsData = snapshot.data![2] as List<Project>;
 
               final articlesData = snapshot.data![3] as AllArticlesModel?;
 
@@ -475,9 +440,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }
 
               final int usersCount = userData.users?.data?.length ?? 0;
-              final int eventsCount = eventsData.events?.data?.length ?? 0;
-              final int projectsCount =
-                  projectsData.projects?.data?.length ?? 0;
+              final int eventsCount = eventsData.length;
+              final int projectsCount = projectsData.length;
               final int discussionsCount =
                   articlesData?.news?.data?.length ?? 0;
 
@@ -866,7 +830,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ],
                                   ),
                                   SizedBox(height: 15),
-                                  if (eventsData.events?.data?.isEmpty ?? true)
+                                  if (eventsData.isEmpty)
                                     Container(
                                       padding: EdgeInsets.all(40),
                                       decoration: BoxDecoration(
@@ -896,7 +860,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     )
                                   else
                                     Column(
-                                      children: eventsData.events!.data!.take(3).map((event) {
+                                      children: eventsData.take(3).map((event) {
                                         return Container(
                                           margin: EdgeInsets.only(bottom: 15),
                                           child: InkWell(
@@ -1001,7 +965,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ],
                                   ),
                                   SizedBox(height: 15),
-                                  if (projectsData.projects?.data?.isEmpty ?? true)
+                                  if (projectsData.isEmpty)
                                     Container(
                                       padding: EdgeInsets.all(40),
                                       decoration: BoxDecoration(
@@ -1031,11 +995,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     )
                                   else
                                     Column(
-                                      children: projectsData.projects!.data!.take(3).map((project) {
-                                        final currentFunding = double.tryParse(project.currentFunding ?? '0') ?? 0;
-                                        final targetFunding = double.tryParse(project.fundingTarget ?? '1') ?? 1;
-                                        final fundingProgress = targetFunding > 0 ? (currentFunding / targetFunding).clamp(0.0, 1.0) : 0.0;
-                                        final fundingPercentage = (fundingProgress * 100).toInt();
+                                      children: projectsData.take(3).map((project) {
+                                        final fundingProgress = project.fundingProgress;
+                                        final fundingPercentage = project.fundingPercentage;
 
                                         return Container(
                                           margin: EdgeInsets.only(bottom: 15),
@@ -1067,20 +1029,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         width: 60,
                                                         decoration: BoxDecoration(
                                                           borderRadius: BorderRadius.circular(10),
-                                                          color: (project.image?.isNotEmpty ?? false)
+                                                          color: (project.imageUrl?.isNotEmpty ?? false)
                                                               ? null
                                                               : Color(0xFF334155),
                                                           border: Border.all(
                                                             color: Color(0xFF475569),
                                                             width: 1,
                                                           ),
-                                                          image: (project.image?.isNotEmpty ?? false)
+                                                          image: (project.imageUrl?.isNotEmpty ?? false)
                                                               ? DecorationImage(
-                                                                  image: NetworkImage(project.image!),
+                                                                  image: NetworkImage(project.imageUrl!),
                                                                   fit: BoxFit.cover)
                                                               : null,
                                                         ),
-                                                        child: (project.image?.isNotEmpty ?? false)
+                                                        child: (project.imageUrl?.isNotEmpty ?? false)
                                                             ? null
                                                             : Center(
                                                                 child: Icon(
@@ -1096,7 +1058,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           children: [
                                                             Text(
-                                                              project.title ?? 'Untitled Project',
+                                                              project.title,
                                                               style: TextStyle(
                                                                   fontSize: 16,
                                                                   fontWeight: FontWeight.w600,
@@ -1104,10 +1066,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               maxLines: 1,
                                                               overflow: TextOverflow.ellipsis,
                                                             ),
-                                                            if (project.content != null && project.content!.isNotEmpty) ...[
+                                                            if (project.description.isNotEmpty) ...[
                                                               SizedBox(height: 4),
                                                               Text(
-                                                                project.content!,
+                                                                project.description,
                                                                 style: TextStyle(
                                                                     fontSize: 13,
                                                                     color: Color(0xFF94a3b8)),
