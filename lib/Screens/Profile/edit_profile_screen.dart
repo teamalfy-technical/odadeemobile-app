@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/user_service.dart';
+import 'package:odadee/components/authenticated_image.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -75,23 +76,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         : 'https://odadee-connect.replit.app/$profileImagePath';
   }
 
-  DecorationImage? _getProfileImageDecoration() {
+  Widget _buildProfileImageWidget() {
     if (_selectedImage != null) {
-      return DecorationImage(
-        image: FileImage(_selectedImage!),
-        fit: BoxFit.cover,
+      return ClipOval(
+        child: Image.file(
+          _selectedImage!,
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+        ),
       );
     }
     
     final imageUrl = _getProfileImageUrl();
     if (imageUrl != null) {
-      return DecorationImage(
-        image: NetworkImage(imageUrl),
-        fit: BoxFit.cover,
+      return ClipOval(
+        child: AuthenticatedImage(
+          imageUrl: imageUrl,
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+          errorWidget: Icon(Icons.person, size: 60, color: Colors.white54),
+        ),
       );
     }
     
-    return null;
+    return Icon(Icons.person, size: 60, color: Colors.white54);
   }
 
   Future<void> _pickImage() async {
@@ -273,11 +283,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           color: Color(0xFF1e293b),
                           shape: BoxShape.circle,
                           border: Border.all(color: odaSecondary, width: 3),
-                          image: _getProfileImageDecoration(),
                         ),
-                        child: _selectedImage == null && _getProfileImageUrl() == null
-                            ? Icon(Icons.person, size: 60, color: Colors.white54)
-                            : null,
+                        child: _buildProfileImageWidget(),
                       ),
                       Positioned(
                         bottom: 0,

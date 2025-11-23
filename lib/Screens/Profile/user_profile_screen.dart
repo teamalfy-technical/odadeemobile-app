@@ -3,6 +3,7 @@ import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
 import 'package:odadee/Screens/Profile/edit_profile_screen.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/components/footer_nav.dart';
+import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/services/user_service.dart';
 import 'package:odadee/services/auth_service.dart';
 
@@ -310,17 +311,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: odaSecondary, width: 3),
-              image: profileImage != null
-                  ? DecorationImage(
-                      image: NetworkImage(profileImage),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-              color: profileImage == null ? Color(0xFF0f172a) : null,
             ),
-            child: profileImage == null
-                ? Icon(Icons.person, size: 60, color: Colors.white54)
-                : null,
+            child: ClipOval(
+              child: profileImage != null
+                  ? AuthenticatedImage(
+                      imageUrl: profileImage,
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                      errorWidget: Container(
+                        color: Color(0xFF0f172a),
+                        child: Icon(Icons.person, size: 60, color: Colors.white54),
+                      ),
+                    )
+                  : Container(
+                      color: Color(0xFF0f172a),
+                      child: Icon(Icons.person, size: 60, color: Colors.white54),
+                    ),
+            ),
           ),
           SizedBox(height: 16),
           Text(
