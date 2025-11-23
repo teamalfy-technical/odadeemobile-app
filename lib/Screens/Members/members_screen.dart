@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:odadee/Screens/AllUsers/user_detail_screen.dart';
+import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
+import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/config/api_config.dart';
@@ -215,10 +216,11 @@ class _MembersScreenState extends State<MembersScreen> {
 
     return GestureDetector(
       onTap: () {
+        final memberData = Data.fromJson(member);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UserDetailScreen(data: member),
+            builder: (context) => MemberDetailPage(data: memberData),
           ),
         );
       },
