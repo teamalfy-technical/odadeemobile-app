@@ -25,7 +25,7 @@ class PaymentService {
       
       final response = await authService.authenticatedRequest(
         'POST',
-        '/payments/create',
+        '/api/payments/create',
         body: {
           'paymentType': productCode,
           'amount': amount,
