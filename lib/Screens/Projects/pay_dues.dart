@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
-import 'package:odadee/Screens/Profile/user_profile_screen.dart';
-import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
-import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:odadee/components/footer_nav.dart';
+import 'package:odadee/components/pay_dues_modal.dart';
 
 class PayDuesScreen extends StatefulWidget {
   const PayDuesScreen({Key? key}) : super(key: key);
@@ -15,189 +11,185 @@ class PayDuesScreen extends StatefulWidget {
 }
 
 class _PayDuesScreenState extends State<PayDuesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Show payment modal after build completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showPayDuesModal();
+    });
+  }
 
-  bool show_password = false;
+  void _showPayDuesModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => PayDuesModal(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFF0f172a),
       body: SafeArea(
-        //padding: EdgeInsets.all(20),
         bottom: false,
         child: Stack(
           children: [
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Pay Dues", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.black),  ),
-
-                      Stack(
-                        children: [
-                          Icon(Icons.notifications_none_outlined, color: odaSecondary, size: 30,),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: CircleAvatar(
-                              backgroundColor: odaSecondary,
-                              radius: 5,
-                            ),
-                          )
-                        ],
-                      )
-                    ],
-
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
+            SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 100),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-
-                        Container(
-
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(50),
-                            image: DecorationImage(
-                              image: AssetImage("assets/images/paydues.png"),
-                              fit: BoxFit.cover
-                            )
+                        Text(
+                          "Pay Dues",
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
                           ),
                         ),
-
-
-                        SizedBox(
-                          height: 20,
-                        ),
-                        GradientText("Payment", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: odaPrimary), colors: [
-                          odaPrimary,
-                          odaSecondary,
-                        ]),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            //color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(
-                                  color: Colors.grey.withOpacity(0.4))),
-                          child: TextFormField(
-                            style: TextStyle(),
-                            decoration: InputDecoration(
-                              //hintText: 'Enter Username/Email',
-
-                              hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.normal),
-                              labelText: "Amount",
-                              labelStyle:
-                              TextStyle(fontSize: 15, color: bodyText2),
-                              enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.4))),
-                              focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.4))),
-                              border: InputBorder.none,),
-                            inputFormatters: [
-                              LengthLimitingTextInputFormatter(225),
-                              PasteTextInputFormatter(),
-                            ],
-                            validator: (value) {
-                              if (value!.isEmpty) {
-                                return 'Amount is required';
-                              }
-
-
-                              return null;
-                            },
-                            textInputAction: TextInputAction.next,
-                            autofocus: false,
-                            onSaved: (value) {
-                              setState(() {
-
-                              });
-                            },
-                          ),
-                        ),
-
-                        SizedBox(
-                          height: 20,
-                        ),
-
-                        Text("Secured payment", style: TextStyle(fontSize: 16, color: bodyText1), ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Row(
+                        Stack(
                           children: [
-                            Expanded(child: Image(image: AssetImage("assets/images/card1.png"))),
-                            Expanded(child: Image(image: AssetImage("assets/images/card2.png"))),
-
+                            Icon(
+                              Icons.notifications_none_outlined,
+                              color: odaSecondary,
+                              size: 30,
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: CircleAvatar(
+                                backgroundColor: odaSecondary,
+                                radius: 5,
+                              ),
+                            )
                           ],
-                        ),
-
-
-
-
-
-
+                        )
                       ],
                     ),
                   ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    children: [
-                      Align(
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          padding: EdgeInsets.all(15),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 200,
                           decoration: BoxDecoration(
-                              color: odaSecondary,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                _payDuesModal(context);
-                              },
-                              child: Align(
-                                child: Container(
-                                  child: Text(
-                                    "Submit",
-                                    style: TextStyle(
-                                        fontSize: 22, color: Colors.white),
-                                  ),
-                                ),
-                              ),
+                            borderRadius: BorderRadius.circular(20),
+                            image: DecorationImage(
+                              image: AssetImage("assets/images/paydues.png"),
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-
-                    ],
+                        SizedBox(height: 30),
+                        Text(
+                          'Pay Your Year Group Dues',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Support your year group by paying your annual dues. Contributions help fund year group activities, events, and initiatives.',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF94a3b8),
+                            height: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        ElevatedButton(
+                          onPressed: _showPayDuesModal,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: odaPrimary,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.payment, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                'Make Payment',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        Container(
+                          padding: EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF1e293b),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Color(0xFF334155),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: odaPrimary,
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'Payment Information',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              _buildInfoRow(
+                                Icons.security,
+                                'Secure payments powered by PayAngel',
+                              ),
+                              SizedBox(height: 12),
+                              _buildInfoRow(
+                                Icons.account_balance_wallet,
+                                'Pay with mobile money or card',
+                              ),
+                              SizedBox(height: 12),
+                              _buildInfoRow(
+                                Icons.receipt_long,
+                                'Instant payment confirmation',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-
-                SizedBox(
-                  height:80,
-                ),
-
-
-              ],
+                ],
+              ),
             ),
             FooterNav(activeTab: 'pay_dues'),
           ],
@@ -206,82 +198,25 @@ class _PayDuesScreenState extends State<PayDuesScreen> {
     );
   }
 
-
-  void _payDuesModal (BuildContext context) {
-    showModalBottomSheet(
-      backgroundColor: Colors.transparent,
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 250,
-          child: Stack(
-            children: [
-              Container(
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                    color: odaPrimary,
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(20.0),
-                        topLeft: Radius.circular(20.0)
-                    )
-                ),
-                height: 300,
-              ),
-              Positioned(
-                top: 15,
-                child: Container(
-                  height: 250,
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20.0),
-                          topLeft: Radius.circular(20.0)
-                      )
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(20),
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.05)
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Pay Dues", style: TextStyle(color: Colors.black, fontSize: 20),),
-                          ],
-                        ),
-                      ),
-
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        padding: EdgeInsets.all(30),
-
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.max,
-
-                          children: [
-                            Expanded(child: Text("This feature will be available soon", textAlign: TextAlign.center,style: TextStyle(fontSize: 28),))
-                          ],
-                        ),
-                      )
-
-
-                    ],
-
-                  ),
-                ),
-              )
-            ],
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: Color(0xFF94a3b8),
+          size: 18,
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Color(0xFF94a3b8),
+              fontSize: 14,
+            ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
-
-
 }

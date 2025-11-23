@@ -19,7 +19,7 @@ class FooterNav extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
         decoration: BoxDecoration(
-          color: Color(0xFF1a1a1a),
+          color: Color(0xFF0f172a),
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: odaSecondary,
@@ -121,7 +121,7 @@ class FooterNav extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: isActive ? Color(0xFF1a1a1a) : Colors.white,
+          color: isActive ? Color(0xFF0f172a) : Colors.white,
           size: 26,
         ),
       ),

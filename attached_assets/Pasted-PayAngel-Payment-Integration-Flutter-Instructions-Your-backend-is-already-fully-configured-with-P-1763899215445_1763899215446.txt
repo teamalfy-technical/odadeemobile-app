@@ -1,0 +1,187 @@
+PayAngel Payment Integration - Flutter Instructions
+Your backend is already fully configured with PayAngel! Flutter integration is simple - just 3 steps:
+
+Step 1: Create Payment
+Call your backend API to initiate a payment:
+
+// Required packages: dio (already installed from magic link setup)
+class PaymentService {
+  final Dio _dio;
+  
+  PaymentService(this._dio);
+  
+  // Create payment and get payment URL
+  Future<String> createPayment({
+    required String paymentType,  // "dues", "donation", "project", or "event"
+    required double amount,
+    required String yearGroupId,  // For dues/donations
+    String? description,
+    String? phoneNumber,  // Optional - user can enter at PayAngel checkout
+    String? projectId,    // Required if paymentType = "project"
+    String? eventId,      // Required if paymentType = "event"
+  }) async {
+    final response = await _dio.post(
+      '/payments/create',
+      data: {
+        'paymentType': paymentType,
+        'amount': amount,
+        'yearGroupId': yearGroupId,
+        'description': description,
+        'phoneNumber': phoneNumber,
+        'projectId': projectId,
+        'eventId': eventId,
+      },
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer ${await _getAccessToken()}',
+        },
+      ),
+    );
+    
+    // Returns the PayAngel payment URL
+    return response.data['paymentUrl'];
+  }
+  
+  Future<String> _getAccessToken() async {
+    final storage = FlutterSecureStorage();
+    return await storage.read(key: 'access_token') ?? '';
+  }
+}
+
+Step 2: Open Payment URL
+Open the payment URL in a WebView or external browser:
+
+import 'package:url_launcher/url_launcher.dart';
+// Option A: External browser (simpler)
+Future<void> openPayment(String paymentUrl) async {
+  final uri = Uri.parse(paymentUrl);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,  // Opens in browser
+    );
+  }
+}
+// Option B: In-app WebView (better UX)
+import 'package:webview_flutter/webview_flutter.dart';
+class PaymentScreen extends StatefulWidget {
+  final String paymentUrl;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Complete Payment')),
+      body: WebViewWidget(
+        controller: WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onNavigationRequest: (request) {
+                // Detect callback URLs
+                if (request.url.contains('/payment/success')) {
+                  Navigator.pop(context, true);  // Payment successful
+                  return NavigationDecision.prevent;
+                }
+                if (request.url.contains('/payment/failed')) {
+                  Navigator.pop(context, false);  // Payment failed
+                  return NavigationDecision.prevent;
+                }
+                return NavigationDecision.navigate;
+              },
+            ),
+          )
+          ..loadRequest(Uri.parse(paymentUrl)),
+      ),
+    );
+  }
+}
+
+Step 3: Handle Payment Result
+// Usage example
+Future<void> makePayment() async {
+  try {
+    // Step 1: Create payment
+    final paymentUrl = await paymentService.createPayment(
+      paymentType: 'donation',
+      amount: 100.0,
+      yearGroupId: 'year-group-id-here',
+      description: 'Alumni donation',
+      phoneNumber: '+233XXXXXXXXX',  // Optional
+    );
+    
+    // Step 2: Open payment URL
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentScreen(paymentUrl: paymentUrl),
+      ),
+    );
+    
+    // Step 3: Handle result
+    if (result == true) {
+      // Payment successful!
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment successful! Thank you.')),
+      );
+      // Refresh user data, update UI, etc.
+    } else if (result == false) {
+      // Payment failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment failed. Please try again.')),
+      );
+    }
+  } catch (e) {
+    // Handle errors
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+}
+
+Required Flutter Packages
+Add to pubspec.yaml:
+
+dependencies:
+  dio: ^5.4.0  # Already installed for auth
+  url_launcher: ^6.2.0  # For opening URLs
+  webview_flutter: ^4.4.0  # For in-app payments (recommended)
+
+Payment Types Reference
+Your backend supports these payment types:
+
+Payment Type	Required Fields	Example Use Case
+"dues"	amount, yearGroupId	Annual year group dues
+"donation"	amount, yearGroupId	General donations to year group
+"project"	amount, projectId	Donate to specific project
+"event"	amount, eventId	Pay for event registration
+Testing
+Test payment flow:
+
+// Use small amount for testing
+final url = await createPayment(
+  paymentType: 'donation',
+  amount: 1.0,  // GHS 1.00 for testing
+  yearGroupId: 'test-year-group-id',
+);
+
+Backend handles everything:
+
+✅ PayAngel API signature generation
+✅ Transaction creation
+✅ Payment URL generation
+✅ Success/failure callbacks
+✅ Database updates
+✅ Email notifications
+Expected behavior:
+
+User completes payment on PayAngel
+Backend receives callback
+Payment status updated automatically
+User redirected back to app
+That's It!
+The backend does all the heavy lifting. Flutter just needs to:
+
+✅ Create payment (API call)
+✅ Open payment URL (WebView or browser)
+✅ Handle success/failure (callback detection)
+No HMAC signatures, no PayAngel credentials needed in Flutter! 🎉
