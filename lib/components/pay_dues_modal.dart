@@ -97,8 +97,8 @@ class _PayDuesModalState extends State<PayDuesModal> {
         final newDuesItems = dues.map((d) => {
           'id': d['id'],
           'title': d['title'],
-          'amount': (d['amount'] is int) 
-              ? (d['amount'] as int).toDouble() 
+          'amount': (d['amount'] is String) 
+              ? double.parse(d['amount']) 
               : (d['amount'] as num).toDouble(),
           'currency': d['currency'] ?? 'GHS',
           'description': d['description'],
