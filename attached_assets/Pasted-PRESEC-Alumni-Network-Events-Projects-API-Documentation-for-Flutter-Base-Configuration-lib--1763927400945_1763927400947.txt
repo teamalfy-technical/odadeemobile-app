@@ -1,0 +1,659 @@
+PRESEC Alumni Network - Events & Projects API Documentation for Flutter
+Base Configuration
+// lib/config/api_config.dart
+class ApiConfig {
+  static const String baseUrl = 'https://odadee.net';
+  static const String apiPrefix = '/api';
+  
+  // Authentication headers
+  static Map<String, String> getAuthHeaders(String? accessToken) {
+    return {
+      'Content-Type': 'application/json',
+      if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+    };
+  }
+}
+
+📅 EVENTS API
+1. Get All Public Events (Landing Page)
+No authentication required
+
+// GET /api/public/events
+Future<List<Event>> getPublicEvents() async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/public/events'),
+    headers: {'Content-Type': 'application/json'},
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['events'] as List)
+        .map((e) => Event.fromJson(e))
+        .toList();
+  }
+  throw Exception('Failed to load events');
+}
+
+Response:
+
+{
+  "events": [
+    {
+      "id": "uuid",
+      "title": "Annual Homecoming 2025",
+      "description": "Join us for the biggest reunion...",
+      "bannerUrl": "https://...",
+      "startDate": "2025-12-15T10:00:00Z",
+      "endDate": "2025-12-15T18:00:00Z",
+      "location": "PRESEC Campus, Accra",
+      "type": "global",
+      "yearGroupId": null,
+      "ticketPrice": "150.00",
+      "maxAttendees": 500,
+      "status": "upcoming",
+      "createdBy": "uuid",
+      "createdAt": "2025-01-15T...",
+      "updatedAt": "2025-01-15T..."
+    }
+  ]
+}
+
+2. Get All Events (Authenticated)
+Requires: JWT access token
+
+// GET /api/events
+Future<List<Event>> getAllEvents(String accessToken) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/events'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['events'] as List)
+        .map((e) => Event.fromJson(e))
+        .toList();
+  }
+  throw Exception('Failed to load events');
+}
+
+3. Get Single Event Details
+Requires: JWT access token
+
+// GET /api/events/:id
+Future<Event> getEventDetails(String eventId, String accessToken) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/events/$eventId'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Event.fromJson(data['event']);
+  }
+  throw Exception('Event not found');
+}
+
+4. Register for Event
+Requires: JWT access token
+
+// POST /api/events/:id/register
+Future<EventRegistration> registerForEvent({
+  required String eventId,
+  required String accessToken,
+  required int ticketsPurchased,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/api/events/$eventId/register'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      'ticketsPurchased': ticketsPurchased,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return EventRegistration.fromJson(data['registration']);
+  }
+  throw Exception('Registration failed');
+}
+
+Request Body:
+
+{
+  "ticketsPurchased": 2
+}
+
+Response:
+
+{
+  "registration": {
+    "id": "uuid",
+    "eventId": "uuid",
+    "userId": "uuid",
+    "ticketsPurchased": 2,
+    "totalAmount": "300.00",
+    "paymentStatus": "pending",
+    "checkedIn": false,
+    "registeredAt": "2025-01-20T..."
+  }
+}
+
+5. Get My Event Registrations
+Requires: JWT access token
+
+// GET /api/events/my-registrations
+Future<List<EventRegistration>> getMyRegistrations(String accessToken) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/events/my-registrations'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['registrations'] as List)
+        .map((r) => EventRegistration.fromJson(r))
+        .toList();
+  }
+  throw Exception('Failed to load registrations');
+}
+
+6. Create Event (Year Group Admin)
+Requires: JWT access token + Year Group Admin role
+
+// POST /api/year-groups/:yearGroupId/events
+Future<Event> createEvent({
+  required String yearGroupId,
+  required String accessToken,
+  required String title,
+  required String description,
+  required DateTime startDate,
+  required String location,
+  String? bannerUrl,
+  DateTime? endDate,
+  double? ticketPrice,
+  int? maxAttendees,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/api/year-groups/$yearGroupId/events'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      'title': title,
+      'description': description,
+      'startDate': startDate.toIso8601String(),
+      'location': location,
+      if (bannerUrl != null) 'bannerUrl': bannerUrl,
+      if (endDate != null) 'endDate': endDate.toIso8601String(),
+      if (ticketPrice != null) 'ticketPrice': ticketPrice.toString(),
+      if (maxAttendees != null) 'maxAttendees': maxAttendees,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Event.fromJson(data['event']);
+  }
+  throw Exception('Failed to create event');
+}
+
+7. Update Event (Year Group Admin)
+Requires: JWT access token + Year Group Admin role
+
+// PATCH /api/year-groups/:yearGroupId/events/:id
+Future<Event> updateEvent({
+  required String yearGroupId,
+  required String eventId,
+  required String accessToken,
+  String? title,
+  String? description,
+  DateTime? startDate,
+  String? location,
+  String? status,
+}) async {
+  final response = await http.patch(
+    Uri.parse('${ApiConfig.baseUrl}/api/year-groups/$yearGroupId/events/$eventId'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (startDate != null) 'startDate': startDate.toIso8601String(),
+      if (location != null) 'location': location,
+      if (status != null) 'status': status,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Event.fromJson(data['event']);
+  }
+  throw Exception('Failed to update event');
+}
+
+8. Delete Event (Year Group Admin)
+Requires: JWT access token + Year Group Admin role
+
+// DELETE /api/year-groups/:yearGroupId/events/:id
+Future<void> deleteEvent({
+  required String yearGroupId,
+  required String eventId,
+  required String accessToken,
+}) async {
+  final response = await http.delete(
+    Uri.parse('${ApiConfig.baseUrl}/api/year-groups/$yearGroupId/events/$eventId'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode != 200) {
+    throw Exception('Failed to delete event');
+  }
+}
+
+Event Model (Flutter)
+// lib/models/event.dart
+class Event {
+  final String id;
+  final String title;
+  final String description;
+  final String? bannerUrl;
+  final DateTime startDate;
+  final DateTime? endDate;
+  final String location;
+  final String type; // "global" or "year_group"
+  final String? yearGroupId;
+  final double? ticketPrice;
+  final int? maxAttendees;
+  final String status; // "upcoming", "ongoing", "completed", "cancelled"
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  Event({
+    required this.id,
+    required this.title,
+    required this.description,
+    this.bannerUrl,
+    required this.startDate,
+    this.endDate,
+    required this.location,
+    required this.type,
+    this.yearGroupId,
+    this.ticketPrice,
+    this.maxAttendees,
+    required this.status,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  factory Event.fromJson(Map<String, dynamic> json) {
+    return Event(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      bannerUrl: json['bannerUrl'],
+      startDate: DateTime.parse(json['startDate']),
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
+      location: json['location'],
+      type: json['type'],
+      yearGroupId: json['yearGroupId'],
+      ticketPrice: json['ticketPrice'] != null 
+          ? double.parse(json['ticketPrice'].toString()) 
+          : null,
+      maxAttendees: json['maxAttendees'],
+      status: json['status'],
+      createdBy: json['createdBy'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+}
+
+🏗️ PROJECTS API
+1. Get All Public Projects
+No authentication required
+
+// GET /api/public/projects
+Future<List<Project>> getPublicProjects() async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/public/projects'),
+    headers: {'Content-Type': 'application/json'},
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['projects'] as List)
+        .map((p) => Project.fromJson(p))
+        .toList();
+  }
+  throw Exception('Failed to load projects');
+}
+
+2. Get All Projects (Authenticated)
+Requires: JWT access token
+
+// GET /api/projects
+Future<List<Project>> getAllProjects(String accessToken) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/projects'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['projects'] as List)
+        .map((p) => Project.fromJson(p))
+        .toList();
+  }
+  throw Exception('Failed to load projects');
+}
+
+3. Get Single Project Details
+Requires: JWT access token
+
+// GET /api/projects/:id
+Future<Project> getProjectDetails(String projectId, String accessToken) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/projects/$projectId'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Project.fromJson(data['project']);
+  }
+  throw Exception('Project not found');
+}
+
+Response:
+
+{
+  "project": {
+    "id": "uuid",
+    "title": "New Science Laboratory",
+    "description": "Building a state-of-the-art science lab...",
+    "category": "Infrastructure",
+    "targetAmount": "500000.00",
+    "currentAmount": "125000.00",
+    "imageUrl": "https://...",
+    "status": "active",
+    "contributionId": "uuid",
+    "yearGroupId": null,
+    "createdBy": "uuid",
+    "createdAt": "2025-01-10T...",
+    "updatedAt": "2025-01-20T..."
+  }
+}
+
+4. Create Project (Super Admin)
+Requires: JWT access token + Super Admin role
+
+// POST /api/projects
+Future<Project> createProject({
+  required String accessToken,
+  required String title,
+  required String description,
+  required String category,
+  double? targetAmount,
+  String? imageUrl,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/api/projects'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      'title': title,
+      'description': description,
+      'category': category,
+      if (targetAmount != null) 'targetAmount': targetAmount.toString(),
+      if (imageUrl != null) 'imageUrl': imageUrl,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Project.fromJson(data['project']);
+  }
+  throw Exception('Failed to create project');
+}
+
+5. Get Year Group Projects
+Requires: JWT access token
+
+// GET /api/year-groups/:yearGroupId/projects
+Future<List<Project>> getYearGroupProjects({
+  required String yearGroupId,
+  required String accessToken,
+}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/year-groups/$yearGroupId/projects'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['projects'] as List)
+        .map((p) => Project.fromJson(p))
+        .toList();
+  }
+  throw Exception('Failed to load year group projects');
+}
+
+6. Create Year Group Project (Year Group Admin)
+Requires: JWT access token + Year Group Admin role
+
+// POST /api/year-groups/:yearGroupId/projects
+Future<Project> createYearGroupProject({
+  required String yearGroupId,
+  required String accessToken,
+  required String title,
+  required String description,
+  required String category,
+  double? targetAmount,
+  String? imageUrl,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/api/year-groups/$yearGroupId/projects'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      'title': title,
+      'description': description,
+      'category': category,
+      if (targetAmount != null) 'targetAmount': targetAmount.toString(),
+      if (imageUrl != null) 'imageUrl': imageUrl,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Project.fromJson(data['project']);
+  }
+  throw Exception('Failed to create project');
+}
+
+7. Update Project (Year Group Admin)
+Requires: JWT access token + Year Group Admin role
+
+// PATCH /api/year-groups/:yearGroupId/projects/:id
+Future<Project> updateProject({
+  required String yearGroupId,
+  required String projectId,
+  required String accessToken,
+  String? title,
+  String? description,
+  String? category,
+  String? status,
+}) async {
+  final response = await http.patch(
+    Uri.parse('${ApiConfig.baseUrl}/api/year-groups/$yearGroupId/projects/$projectId'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (category != null) 'category': category,
+      if (status != null) 'status': status,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Project.fromJson(data['project']);
+  }
+  throw Exception('Failed to update project');
+}
+
+8. Get Project Updates
+Requires: JWT access token
+
+// GET /api/projects/:projectId/updates
+Future<List<ProjectUpdate>> getProjectUpdates({
+  required String projectId,
+  required String accessToken,
+}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/api/projects/$projectId/updates'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['updates'] as List)
+        .map((u) => ProjectUpdate.fromJson(u))
+        .toList();
+  }
+  throw Exception('Failed to load project updates');
+}
+
+9. Create Project Update (Admin Only)
+Requires: JWT access token + Admin role
+
+// POST /api/projects/:projectId/updates
+Future<ProjectUpdate> createProjectUpdate({
+  required String projectId,
+  required String accessToken,
+  required String title,
+  required String content,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/api/projects/$projectId/updates'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      'title': title,
+      'content': content,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return ProjectUpdate.fromJson(data['update']);
+  }
+  throw Exception('Failed to create update');
+}
+
+10. Donate to Project (via Contribution)
+Requires: JWT access token
+
+// POST /api/contributions/:id/donate
+// Note: Use the project's contributionId field
+Future<Donation> donateToProject({
+  required String contributionId,
+  required String accessToken,
+  required double amount,
+  bool isAnonymous = false,
+  String? message,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/api/contributions/$contributionId/donate'),
+    headers: ApiConfig.getAuthHeaders(accessToken),
+    body: jsonEncode({
+      'amount': amount.toString(),
+      'isAnonymous': isAnonymous,
+      if (message != null) 'message': message,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return Donation.fromJson(data['donation']);
+  }
+  throw Exception('Donation failed');
+}
+
+Project Model (Flutter)
+// lib/models/project.dart
+class Project {
+  final String id;
+  final String title;
+  final String description;
+  final String category;
+  final double? targetAmount;
+  final double currentAmount;
+  final String? imageUrl;
+  final String status; // "active", "completed", "closed"
+  final String? contributionId;
+  final String? yearGroupId;
+  final String createdBy;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  Project({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.category,
+    this.targetAmount,
+    required this.currentAmount,
+    this.imageUrl,
+    required this.status,
+    this.contributionId,
+    this.yearGroupId,
+    required this.createdBy,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  double get progressPercentage {
+    if (targetAmount == null || targetAmount == 0) return 0;
+    return (currentAmount / targetAmount!) * 100;
+  }
+  factory Project.fromJson(Map<String, dynamic> json) {
+    return Project(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      category: json['category'],
+      targetAmount: json['targetAmount'] != null 
+          ? double.parse(json['targetAmount'].toString()) 
+          : null,
+      currentAmount: double.parse(json['currentAmount'].toString()),
+      imageUrl: json['imageUrl'],
+      status: json['status'],
+      contributionId: json['contributionId'],
+      yearGroupId: json['yearGroupId'],
+      createdBy: json['createdBy'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+}
+class ProjectUpdate {
+  final String id;
+  final String projectId;
+  final String title;
+  final String content;
+  final String createdBy;
+  final DateTime createdAt;
+  ProjectUpdate({
+    required this.id,
+    required this.projectId,
+    required this.title,
+    required this.content,
+    required this.createdBy,
+    required this.createdAt,
+  });
+  factory ProjectUpdate.fromJson(Map<String, dynamic> json) {
+    return ProjectUpdate(
+      id: json['id'],
+      projectId: json['projectId'],
+      title: json['title'],
+      content: json['content'],
+      createdBy: json['createdBy'],
+      createdAt: DateTime.parse(json['createdAt']),
+    );
+  }
+}
+
