@@ -11,6 +11,7 @@ Odadee is a Flutter mobile application, configured for web deployment, serving a
 - Includes encouraging message: "Be part of the change! Your contribution helps fund [Year Group] activities..."
 - Flat design with yellow border, dark background, no gradients (adheres to design guidelines)
 - Loading state while fetching user's year group data from AuthService
+- Removed payment illustration image for cleaner, minimalist design
 - Note: Actual payment statistics (total collected, contributor count) require backend API endpoint (e.g., GET /api/year-groups/:id/payment-stats) which is not yet available
 
 **November 23, 2025 - PayAngel Payment Integration**
