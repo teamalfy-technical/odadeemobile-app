@@ -711,7 +711,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       builder: (BuildContext
                                                               context) =>
                                                           MemberDetailPage(
-                                                              memberData: user)));
+                                                              data: user)));
                                             },
                                             borderRadius:
                                                 BorderRadius.circular(12),

@@ -27,6 +27,8 @@ class _MembersScreenState extends State<MembersScreen> {
     _fetchMembers();
   }
 
+  List<dynamic> allMembers = [];
+  
   Future<void> _fetchMembers({String? query}) async {
     setState(() {
       isLoading = true;
@@ -35,26 +37,38 @@ class _MembersScreenState extends State<MembersScreen> {
 
     try {
       final authService = AuthService();
-      String endpoint = '/api/search/members';
+      List<dynamic> fetchedMembers = [];
+      int currentPage = 1;
+      int totalPages = 1;
       
-      if (query != null && query.isNotEmpty) {
-        endpoint += '?query=$query';
-      }
-      
-      final response = await authService.authenticatedRequest('GET', endpoint);
+      do {
+        String endpoint = '/api/search/members?page=$currentPage';
+        final response = await authService.authenticatedRequest('GET', endpoint);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          members = data['members'] ?? [];
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          error = 'Failed to load members';
-          isLoading = false;
-        });
-      }
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> pageMembers = data['members'] ?? [];
+          fetchedMembers.addAll(pageMembers);
+          
+          if (data.containsKey('pagination')) {
+            totalPages = data['pagination']['totalPages'] ?? 1;
+          } else if (pageMembers.isEmpty) {
+            break;
+          }
+          
+          currentPage++;
+        } else {
+          setState(() {
+            error = 'Failed to load members';
+            isLoading = false;
+          });
+          return;
+        }
+      } while (currentPage <= totalPages);
+      
+      allMembers = fetchedMembers;
+      _filterMembers(query);
+      
     } catch (e) {
       print('Error fetching members: $e');
       setState(() {
@@ -63,9 +77,41 @@ class _MembersScreenState extends State<MembersScreen> {
       });
     }
   }
+  
+  void _filterMembers(String? query) {
+    if (query == null || query.isEmpty) {
+      setState(() {
+        members = allMembers;
+        isLoading = false;
+      });
+      return;
+    }
+    
+    final searchLower = query.toLowerCase();
+    final filtered = allMembers.where((member) {
+      final firstName = (member['firstName'] ?? '').toString().toLowerCase();
+      final lastName = (member['lastName'] ?? '').toString().toLowerCase();
+      final email = (member['email'] ?? '').toString().toLowerCase();
+      final year = (member['graduationYear'] ?? '').toString();
+      final role = (member['currentRole'] ?? '').toString().toLowerCase();
+      final company = (member['company'] ?? '').toString().toLowerCase();
+      
+      return firstName.contains(searchLower) ||
+             lastName.contains(searchLower) ||
+             email.contains(searchLower) ||
+             year.contains(searchLower) ||
+             role.contains(searchLower) ||
+             company.contains(searchLower);
+    }).toList();
+    
+    setState(() {
+      members = filtered;
+      isLoading = false;
+    });
+  }
 
   void _performSearch() {
-    _fetchMembers(query: searchController.text);
+    _filterMembers(searchController.text);
   }
 
   @override
