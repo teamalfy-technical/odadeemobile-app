@@ -21,9 +21,35 @@ class PaymentService {
   }) async {
     try {
       // Get user data for payment request
-      final firstName = await storage.read(key: 'user_first_name') ?? '';
-      final lastName = await storage.read(key: 'user_last_name') ?? '';
-      final email = await storage.read(key: 'user_email') ?? '';
+      var firstName = await storage.read(key: 'user_first_name') ?? '';
+      var lastName = await storage.read(key: 'user_last_name') ?? '';
+      var email = await storage.read(key: 'user_email') ?? '';
+      
+      // If user data is missing, try to refresh from API
+      if (firstName.isEmpty || lastName.isEmpty || email.isEmpty) {
+        print('User data missing from storage, fetching from API...');
+        try {
+          final userData = await authService.getCurrentUser();
+          firstName = userData['firstName'] ?? userData['first_name'] ?? '';
+          lastName = userData['lastName'] ?? userData['last_name'] ?? '';
+          email = userData['email'] ?? '';
+          
+          // Store refreshed data for future use
+          if (firstName.isNotEmpty && lastName.isNotEmpty && email.isNotEmpty) {
+            await storage.write(key: 'user_first_name', value: firstName);
+            await storage.write(key: 'user_last_name', value: lastName);
+            await storage.write(key: 'user_email', value: email);
+            print('Refreshed user data saved to storage');
+          }
+        } catch (e) {
+          print('Failed to fetch user data: $e');
+        }
+      }
+      
+      // Validate required fields
+      if (firstName.isEmpty || lastName.isEmpty || email.isEmpty) {
+        throw Exception('User information incomplete. Please try logging in again.');
+      }
       
       // Map payment types to backend product codes
       final productCode = paymentType == 'dues' ? 'YEAR_GROUP_DUES' : paymentType;
