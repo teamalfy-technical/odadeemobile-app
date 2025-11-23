@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:odadee/services/auth_service.dart';
 
 class PaymentService {
@@ -7,6 +8,7 @@ class PaymentService {
   PaymentService._internal();
 
   final authService = AuthService();
+  final storage = const FlutterSecureStorage();
 
   Future<String> createPayment({
     required String paymentType,
@@ -18,10 +20,16 @@ class PaymentService {
     String? eventId,
   }) async {
     try {
+      // Get user data for payment request
+      final firstName = await storage.read(key: 'user_first_name') ?? '';
+      final lastName = await storage.read(key: 'user_last_name') ?? '';
+      final email = await storage.read(key: 'user_email') ?? '';
+      
       // Map payment types to backend product codes
       final productCode = paymentType == 'dues' ? 'YEAR_GROUP_DUES' : paymentType;
       
       print('Creating payment: productCode=$productCode, amount=$amount, yearGroupId=$yearGroupId');
+      print('User info: firstName=$firstName, lastName=$lastName, email=$email');
       
       final response = await authService.authenticatedRequest(
         'POST',
@@ -30,6 +38,9 @@ class PaymentService {
           'paymentType': productCode,
           'amount': amount,
           'yearGroupId': yearGroupId,
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': email,
           if (description != null) 'description': description,
           if (phoneNumber != null) 'phoneNumber': phoneNumber,
           if (projectId != null) 'projectId': projectId,
