@@ -4,6 +4,20 @@
 Odadee is a Flutter mobile application, configured for web deployment, serving as a community platform. It integrates features such as user authentication, community discussions, event management, live radio streaming, and functionalities for project funding and dues payment. The platform also supports user profiles and settings, aiming to foster community engagement and streamline administrative tasks.
 
 ## Recent Changes
+**November 23, 2025 - PayAngel Payment Integration**
+- Implemented complete PayAngel payment integration for year group dues payment
+- Added PaymentService class (lib/services/payment_service.dart) with createPayment method connecting to /payments/create endpoint
+- Created PaymentScreen widget with WebView for PayAngel checkout, properly detects callbacks via /payments/callback?transactionStatus
+- Built PayDuesModal component with interactive year group dropdown and dues selector
+- Modal automatically fetches available dues when year group changes, auto-selects first item
+- Updated pay_dues.dart to show modal on load with clean informational screen design
+- Footer navigation background color updated from #1a1a1a to #0f172a for consistency with app theme
+- Added required packages: url_launcher ^6.2.0, webview_flutter ^4.4.0, dio ^5.4.0
+- Payment flow: User selects year group → selects dues item → proceeds to PayAngel WebView → receives success/failure confirmation
+- PaymentService maps 'dues' to 'YEAR_GROUP_DUES' product code as expected by backend
+- PaymentScreen detects transactionStatus=SUCCESS|FAILED|CANCELLED in callback URLs with comprehensive fallback checks
+- Production-ready implementation verified by architect review
+
 **November 23, 2025 - Bug Fixes and Logo Addition**
 - Added PRESEC logo to dashboard header (50x50px with rounded corners, replaces placeholder "P")
 - Fixed event date parsing to handle ISO 8601 format (2024-12-20T18:00:00.000Z) and legacy formats
