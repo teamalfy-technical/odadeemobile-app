@@ -4,6 +4,21 @@
 Odadee is a Flutter mobile application, configured for web deployment, serving as a community platform. It integrates features such as user authentication, community discussions, event management, live radio streaming, and functionalities for project funding and dues payment. The platform also supports user profiles and settings, aiming to foster community engagement and streamline administrative tasks.
 
 ## Recent Changes
+**November 23, 2025 - Webapp-Style Dashboard Redesign**
+- Implemented comprehensive dashboard redesign matching clean odadee.net webapp aesthetic
+- Added personalized welcome header: "Welcome back, [Name]!" with user email and graduation class from API
+- Changed stat cards from 2x2 grid to full-width vertical stack (one card per row) for better mobile readability
+- Replaced all yellow section headers with white for cleaner, professional look (blue reserved for interactive links)
+- Converted all horizontal scrolling carousels to vertical stacked cards for "less is more" minimalism
+- Year Group section: Displays up to 6 members vertically stacked
+- Events section: Shows 3 upcoming events vertically with clean date boxes
+- Projects section: Displays 3 active projects vertically with contribution progress
+- Latest Discussions: Shows 3 recent discussions vertically with category badges
+- Increased spacing throughout: 30px between sections, 20px horizontal padding, generous breathing room
+- Fixed critical bugs: TypeError in articlesData (proper null-safe casting), removed invalid event.location references
+- All sections now gracefully hide when no data available with proper empty states
+- Design philosophy: Clean flat colors, white headers, minimal shadows, vertical flows for modern simplicity
+
 **October 30, 2025 - Flat Design Implementation**
 - Completely redesigned dashboard UI to match clean, minimal, professional aesthetic
 - Removed all gradients from StatCard component - now uses flat dark backgrounds (#1e293b) with simple borders (#334155)
