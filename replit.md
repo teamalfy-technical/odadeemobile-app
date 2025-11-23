@@ -19,6 +19,14 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - **Mobile:** Uses `webview_flutter` with embedded WebView that auto-detects payment callback URLs for automatic success/failure handling.
 - **Implementation:** Platform detection via `kIsWeb` runtime guards, with separated build methods for web confirmation screen and mobile WebView screen. All payment data (user info, amount, year group) is properly validated and extracted from nested API responses.
 
+**Profile Management:** Full-featured user profile system:
+- `UserService` for centralized profile API calls (`getCurrentUser()`, `updateUserProfile()`)
+- Live data fetching from `/api/auth/me` with proper handling of nested `{user: {...}}` response structure
+- Image handling: Automatic conversion of relative image paths (`uploads/xxx`) to full URLs (`https://odadee-connect.replit.app/uploads/xxx`)
+- Data normalization: Empty strings treated as null for optional fields (location, bio, role, company, profession)
+- Profile updates via PATCH `/api/users/:id/profile` with multipart form data for image uploads
+- Edit profile screen with comprehensive form validation and user feedback
+
 Error handling, null safety, and proper data transformation are implemented throughout the application.
 
 ### Feature Specifications
@@ -26,7 +34,13 @@ Error handling, null safety, and proper data transformation are implemented thro
 - **Content Management**: Display of community discussions, events, member profiles, and projects.
 - **Financial Features**: Project funding and payment of community dues, including a dedicated payment flow with external gateway integration.
 - **Multimedia**: Live radio streaming.
-- **User Management**: User profiles and settings.
+- **User Management**: Comprehensive user profile management with live API data:
+  - Profile viewing with real-time data from `/api/auth/me` endpoint
+  - Profile editing with image upload (profile picture and cover image)
+  - Fields: bio, phone, location, graduation year, professional info (current role, company, profession), skills, mentorship status
+  - Automatic image URL normalization (relative paths converted to absolute URLs)
+  - Empty string handling (treated as null for cleaner UI display)
+  - Form validation and error handling
 - **Deployment**: Automated build process (`build.sh`) for optimized production web builds, including cache cleaning, dependency installation, and web release building.
 
 ### System Design Choices
