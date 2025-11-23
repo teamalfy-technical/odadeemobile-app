@@ -252,12 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (mounted) {
         setState(() {
           final firstName = userData['firstName']?.toString() ?? '';
-          final lastName = userData['lastName']?.toString() ?? '';
-          userName = firstName.isNotEmpty && lastName.isNotEmpty 
-              ? '$firstName $lastName' 
-              : firstName.isNotEmpty 
-                  ? firstName 
-                  : 'User';
+          userName = firstName.isNotEmpty ? firstName : 'User';
           userEmail = userData['email']?.toString() ?? '';
           
           final yearGroup = userData['yearGroup']?.toString() ?? '';

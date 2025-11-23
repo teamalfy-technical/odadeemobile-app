@@ -6,7 +6,7 @@ Odadee is a Flutter mobile application, configured for web deployment, serving a
 ## Recent Changes
 **November 23, 2025 - Webapp-Style Dashboard Redesign**
 - Implemented comprehensive dashboard redesign matching clean odadee.net webapp aesthetic
-- Added personalized welcome header: "Welcome back, [Name]!" with user email and graduation class from API
+- Added personalized welcome header: "Welcome back, [FirstName]!" with user's first name only, email and graduation class from API
 - Changed stat cards from 2x2 grid to full-width vertical stack (one card per row) for better mobile readability
 - Replaced all yellow section headers with white for cleaner, professional look (blue reserved for interactive links)
 - Converted all horizontal scrolling carousels to vertical stacked cards for "less is more" minimalism
