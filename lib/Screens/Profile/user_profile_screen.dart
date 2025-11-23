@@ -4,10 +4,10 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:odadee/components/footer_nav.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Dashboard/dashboard_screen.dart';
-import '../Radio/playing_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -64,11 +64,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       body: SafeArea(
         bottom: false,
         child: Container(
-          child: Column(
+          child: Stack(
             children: [
-              Expanded(
+              Positioned.fill(
                 child: Column(
                   children: [
+                    Expanded(
+                      child: Column(
+                        children: [
                     Container(
                       color: odaSecondary.withOpacity(0.1),
                       child: Padding(
@@ -373,127 +376,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 15),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 5,
-                      blurRadius: 7,
-                      offset: Offset(0, 3), // changes position of shadow
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                DashboardScreen()));
-                      },
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.home,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          Text(
-                            'Home',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (BuildContext context) => RadioScreen()));
-                      },
-                      child: Column(
-                        children: [
-                          Icon(Icons.radio, color: Colors.grey),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          Text('Radio',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                PayDuesScreen()));
-                      },
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.phone_android,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          Text('Pay Dues',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                SettingsScreen()));
-                      },
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.settings,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          Text('Settings',
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {},
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: odaSecondary,
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          Text('Profile',
-                              style:
-                                  TextStyle(color: odaSecondary, fontSize: 12)),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
+              FooterNav(activeTab: 'profile'),
             ],
           ),
         ),

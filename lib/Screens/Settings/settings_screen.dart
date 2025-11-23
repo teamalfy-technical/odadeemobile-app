@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';
 import 'package:odadee/Screens/Projects/models/project_detail_model.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
-import 'package:odadee/Screens/Radio/radio_screen.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/components/footer_nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:http/http.dart' as http;
@@ -215,107 +215,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 ],
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 15),
-
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset: Offset(0, 3), // changes position of shadow
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      InkWell(
-                        onTap: (){
-                                Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => DashboardScreen()));
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.home, color: Colors.grey,),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Home', style: TextStyle(color: Colors.grey, fontSize: 12),),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => RadioScreen()));
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.radio, color: Colors.grey),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Radio', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => PayDuesScreen()));
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.phone_android, color: Colors.grey,),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Pay Dues', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-
-
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.settings, color: odaSecondary,),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Settings', style: TextStyle(color: odaSecondary, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        onTap: (){
-
-                          Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => UserProfileScreen()));
-
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.person, color: Colors.grey,),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Profile', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-
-
-                    ],
-                  ),
-                ),
-              ),
+              FooterNav(activeTab: 'settings'),
             ],
           ),
         ),

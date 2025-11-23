@@ -19,11 +19,11 @@ import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Projects/projects_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/components/stat_card.dart';
+import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
 
 import '../Authentication/SignIn/sgin_in_screen.dart';
-import '../Radio/playing_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -262,30 +262,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       print('Error fetching current user: $e');
     }
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(
-          icon,
-          color: isActive ? Color(0xFF1a1a1a) : Colors.white,
-          size: 26,
-        ),
-      ),
-    );
   }
 
   Widget _buildEventDate(String? dateString) {
@@ -1249,67 +1225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                       ),
-                      Positioned(
-                        left: 20,
-                        right: 20,
-                        bottom: 20,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF1a1a1a),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                spreadRadius: 0,
-                                blurRadius: 20,
-                                offset: Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildNavItem(
-                                icon: Icons.home_rounded,
-                                label: 'Home',
-                                isActive: true,
-                                onTap: () {},
-                              ),
-                              _buildNavItem(
-                                icon: Icons.payment_rounded,
-                                label: 'Pay Dues',
-                                isActive: false,
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (BuildContext context) =>
-                                          PayDuesScreen()));
-                                },
-                              ),
-                              _buildNavItem(
-                                icon: Icons.settings_rounded,
-                                label: 'Settings',
-                                isActive: false,
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (BuildContext context) =>
-                                          SettingsScreen()));
-                                },
-                              ),
-                              _buildNavItem(
-                                icon: Icons.person_rounded,
-                                label: 'Profile',
-                                isActive: false,
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (BuildContext context) =>
-                                          UserProfileScreen()));
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                      FooterNav(activeTab: 'home'),
                     ],
                   ),
                 ),
