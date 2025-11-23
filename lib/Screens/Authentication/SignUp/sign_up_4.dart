@@ -355,6 +355,38 @@ class _SignUp4State extends State<SignUp4> {
                 ),
               ),
             );
+          } else if (snapshot.hasError) {
+            return Scaffold(
+              body: Container(
+                width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 50),
+                    SizedBox(height: 20),
+                    Text(
+                      "An error occurred",
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Text(snapshot.error.toString(),
+                        textAlign: TextAlign.center),
+                    SizedBox(height: 30),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _futureUpdateBio = null;
+                        });
+                      },
+                      child: Text("Try Again"),
+                    )
+                  ],
+                ),
+              ),
+            );
           } else if (snapshot.hasData) {
             var data = snapshot.data!;
 
@@ -388,21 +420,60 @@ class _SignUp4State extends State<SignUp4> {
                       );
                     });
               });
+              // Return a placeholder while navigating
+              return Scaffold(body: Center(child: CircularProgressIndicator()));
+            } else {
+              // Handle non-success messages
+              return Scaffold(
+                body: Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.warning_amber_rounded,
+                          color: Colors.orange, size: 50),
+                      SizedBox(height: 20),
+                      Text(
+                        "Registration Failed",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 10),
+                      Text(data.message ?? "Unknown error",
+                          textAlign: TextAlign.center),
+                      SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _futureUpdateBio = null;
+                          });
+                        },
+                        child: Text("Try Again"),
+                      )
+                    ],
+                  ),
+                ),
+              );
             }
           }
 
+          // Fallback for unexpected states
           return Scaffold(
-            body: Container(
-              width: MediaQuery.of(context).size.width,
+            body: Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text("Please Wait...")
+                  Text("Something went wrong"),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _futureUpdateBio = null;
+                      });
+                    },
+                    child: Text("Try Again"),
+                  )
                 ],
               ),
             ),

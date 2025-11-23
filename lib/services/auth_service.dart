@@ -135,6 +135,67 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> requestMagicLink(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/request'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Magic link sent to your email'
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to send magic link'
+        };
+      }
+    } catch (e) {
+      debugPrint('Magic link request error: $e');
+      return {'success': false, 'message': 'Network error. Please try again.'};
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyMagicLink(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/validate/$token'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // For web, this creates a session cookie (no JWT tokens returned)
+        // For mobile apps, use password login instead
+        if (data['user'] != null) {
+          await _storeUser(data['user']);
+
+          // For web platform: Store a flag to indicate authenticated via session cookie
+          if (kIsWeb) {
+            await storage.write(key: 'access_token', value: 'web_session_auth');
+            await storage.write(key: 'auth_type', value: 'web_session');
+          }
+
+          return {'success': true, 'user': data['user']};
+        } else {
+          throw Exception('No user data returned from magic link');
+        }
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Invalid or expired magic link');
+      }
+    } catch (e) {
+      debugPrint('Magic link verification error: $e');
+      rethrow;
+    }
+  }
+
   Future<void> logout() async {
     try {
       final refreshToken = await storage.read(key: 'refresh_token');
@@ -202,6 +263,12 @@ class AuthService {
     Map<String, String>? additionalHeaders,
   }) async {
     String? accessToken = await storage.read(key: 'access_token');
+    final authType = await storage.read(key: 'auth_type');
+
+    // For web session auth, don't use JWT Bearer token - rely on cookies
+    if (kIsWeb && authType == 'web_session') {
+      accessToken = null; // Browser will send session cookie automatically
+    }
 
     final response = await _makeRequest(
       method,
@@ -211,7 +278,14 @@ class AuthService {
       additionalHeaders,
     );
 
+    // For web session auth, 401 means session expired - don't try to refresh
     if (response.statusCode == 401) {
+      if (kIsWeb && authType == 'web_session') {
+        await _clearStorage();
+        throw Exception('Session expired, please login again');
+      }
+
+      // For JWT auth, try to refresh token
       try {
         accessToken = await refreshToken();
         return await _makeRequest(
@@ -333,12 +407,16 @@ class AuthService {
 
   Future<void> _storeUser(Map<String, dynamic> user) async {
     await storage.write(key: 'user_data', value: jsonEncode(user));
-    
+
     await storage.write(key: 'user_id', value: user['id']?.toString() ?? '');
-    await storage.write(key: 'user_email', value: user['email']?.toString() ?? '');
-    await storage.write(key: 'user_first_name', value: user['firstName']?.toString() ?? '');
-    await storage.write(key: 'user_last_name', value: user['lastName']?.toString() ?? '');
-    await storage.write(key: 'user_role', value: user['role']?.toString() ?? '');
+    await storage.write(
+        key: 'user_email', value: user['email']?.toString() ?? '');
+    await storage.write(
+        key: 'user_first_name', value: user['firstName']?.toString() ?? '');
+    await storage.write(
+        key: 'user_last_name', value: user['lastName']?.toString() ?? '');
+    await storage.write(
+        key: 'user_role', value: user['role']?.toString() ?? '');
   }
 
   Future<void> _clearStorage() async {

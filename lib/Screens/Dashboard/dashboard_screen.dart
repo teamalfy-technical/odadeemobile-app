@@ -36,7 +36,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<AllUsersModel> _fetchAllUsersData() async {
     try {
       final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/users');
+      final response =
+          await authService.authenticatedRequest('GET', '/api/users');
 
       print('===== USERS API RESPONSE =====');
       print('Status Code: ${response.statusCode}');
@@ -49,8 +50,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return AllUsersModel.fromJson(jsonData);
       } else if (response.statusCode == 401) {
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (BuildContext context) => const SignInScreen()));
         }
         throw Exception('Session expired. Please sign in again.');
       } else {
@@ -58,10 +59,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     } on SocketException catch (e) {
       print('Socket error: $e');
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+      throw Exception(
+          'Network error: Unable to connect to server. Please check your internet connection.');
     } on http.ClientException catch (e) {
       print('Client error: $e');
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+      throw Exception(
+          'Network error: Unable to connect to server. Please check your internet connection.');
     } on HttpException catch (e) {
       print('HTTP error: $e');
       throw Exception('Network error: Unable to connect to server.');
@@ -77,23 +80,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<AllEventsModel> _fetchAllEventsData() async {
     try {
       final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/events');
+      final response =
+          await authService.authenticatedRequest('GET', '/api/events');
 
       if (response.statusCode == 200) {
         return AllEventsModel.fromJson(jsonDecode(response.body));
       } else if (response.statusCode == 401) {
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (BuildContext context) => const SignInScreen()));
         }
         throw Exception('Session expired. Please sign in again.');
       } else {
         throw Exception('Failed to load events. Please try again.');
       }
     } on SocketException {
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+      throw Exception(
+          'Network error: Unable to connect to server. Please check your internet connection.');
     } on http.ClientException {
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+      throw Exception(
+          'Network error: Unable to connect to server. Please check your internet connection.');
     } on HttpException {
       throw Exception('Network error: Unable to connect to server.');
     } on FormatException {
@@ -106,23 +112,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<AllProjectsModel> _fetchAllProjectsData() async {
     try {
       final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/projects');
+      final response =
+          await authService.authenticatedRequest('GET', '/api/projects');
 
       if (response.statusCode == 200) {
         return AllProjectsModel.fromJson(jsonDecode(response.body));
       } else if (response.statusCode == 401) {
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (BuildContext context) => const SignInScreen()));
         }
         throw Exception('Session expired. Please sign in again.');
       } else {
         throw Exception('Failed to load projects. Please try again.');
       }
     } on SocketException {
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+      throw Exception(
+          'Network error: Unable to connect to server. Please check your internet connection.');
     } on http.ClientException {
-      throw Exception('Network error: Unable to connect to server. Please check your internet connection.');
+      throw Exception(
+          'Network error: Unable to connect to server. Please check your internet connection.');
     } on HttpException {
       throw Exception('Network error: Unable to connect to server.');
     } on FormatException {
@@ -132,30 +141,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<AllArticlesModel?> _fetchAllArticlesData() async{
+  Future<AllArticlesModel?> _fetchAllArticlesData() async {
     try {
       final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/discussions');
+      final response =
+          await authService.authenticatedRequest('GET', '/api/discussions');
 
       print('===== DISCUSSIONS API RESPONSE =====');
       print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 200 ? response.body.length : 200)}...');
+      print(
+          'Response Body: ${response.body.substring(0, response.body.length < 200 ? response.body.length : 200)}...');
       print('====================================');
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        
+
         if (jsonData['discussions'] != null) {
           final discussionsList = jsonData['discussions'] as List;
-          
+
           final articlesJson = {
             'news': {
               'data': discussionsList.map((discussion) {
                 final content = discussion['content']?.toString() ?? '';
-                final summary = content.isNotEmpty 
-                  ? content.substring(0, content.length > 100 ? 100 : content.length)
-                  : '';
-                
+                final summary = content.isNotEmpty
+                    ? content.substring(
+                        0, content.length > 100 ? 100 : content.length)
+                    : '';
+
                 return {
                   'id': 0,
                   'title': discussion['title'] ?? '',
@@ -175,14 +187,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               }).toList()
             }
           };
-          
+
           return AllArticlesModel.fromJson(articlesJson);
         }
         return null;
       } else if (response.statusCode == 401) {
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (BuildContext context) => const SignInScreen()));
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (BuildContext context) => const SignInScreen()));
         }
         return null;
       } else {
@@ -198,7 +210,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<Map<String, dynamic>?> _fetchStats() async {
     try {
       final authService = AuthService();
-      final response = await authService.authenticatedRequest('GET', '/api/stats');
+      final response =
+          await authService.authenticatedRequest('GET', '/api/stats');
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -232,7 +245,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (dateString == null || dateString.isEmpty) {
         return _buildDateFallback();
       }
-      
+
       final dateInfo = extractDateInfo(dateString);
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -240,7 +253,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(
             dateInfo['day'].toString(),
             style: const TextStyle(
-              fontSize: 32, 
+              fontSize: 32,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -253,7 +266,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 dateInfo['month'].toString(),
                 style: const TextStyle(
-                  fontSize: 11, 
+                  fontSize: 11,
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
@@ -261,7 +274,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 dateInfo['year'].toString(),
                 style: const TextStyle(
-                  fontSize: 11, 
+                  fontSize: 11,
                   color: Colors.white70,
                   fontWeight: FontWeight.w500,
                 ),
@@ -285,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Text(
           'TBA',
           style: TextStyle(
-            fontSize: 12, 
+            fontSize: 12,
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
@@ -336,7 +349,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       SizedBox(height: 20),
                       Text(
                         'Error loading dashboard',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 10),
                       Text(
@@ -366,6 +380,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
 
+              print("===== STATS DATA =====");
+              print(statsData);
+              print("======================");
+
               // Check if critical data is null (users, events, projects are required)
               if (userData == null ||
                   eventsData == null ||
@@ -389,8 +407,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               final int usersCount = userData.users?.data?.length ?? 0;
               final int eventsCount = eventsData.events?.data?.length ?? 0;
-              final int projectsCount = projectsData.projects?.data?.length ?? 0;
-              final int discussionsCount = articlesData?.news?.data?.length ?? 0;
+              final int projectsCount =
+                  projectsData.projects?.data?.length ?? 0;
+              final int discussionsCount =
+                  articlesData?.news?.data?.length ?? 0;
 
               return SafeArea(
                 bottom: false,
@@ -433,7 +453,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 15.0),
                               child: GridView.count(
                                 crossAxisCount: 2,
                                 shrinkWrap: true,
@@ -450,7 +471,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (context) => AllRegisteredUsers(),
+                                          builder: (context) =>
+                                              AllRegisteredUsers(),
                                         ),
                                       );
                                     },
@@ -476,14 +498,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (context) => ProjectsScreen(),
+                                          builder: (context) =>
+                                              ProjectsScreen(),
                                         ),
                                       );
                                     },
                                   ),
                                   StatCard(
                                     title: 'Contributions',
-                                    value: 'GH¢ 0',
+                                    value: statsData != null
+                                        ? 'GH¢ ${statsData['contributions'] ?? statsData['total_contributions'] ?? statsData['amount'] ?? statsData['total_amount'] ?? statsData['total_donations'] ?? 0}'
+                                        : 'GH¢ 0',
                                     icon: Icons.payments,
                                     subtitle: 'Total raised',
                                     onTap: () {
@@ -507,11 +532,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        user_year_group != null && user_year_group!.length >= 2
+                                        user_year_group != null &&
+                                                user_year_group!.length >= 2
                                             ? "${user_year_group!.substring(user_year_group!.length - 2)} year group"
                                             : "Year group",
                                         style: const TextStyle(
-                                            fontSize: 20, 
+                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: odaSecondary),
                                       ),
@@ -539,7 +565,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       padding: EdgeInsets.all(40),
                                       child: Column(
                                         children: [
-                                          Icon(Icons.people_outline, size: 60, color: Colors.grey[400]),
+                                          Icon(Icons.people_outline,
+                                              size: 60,
+                                              color: Colors.grey[400]),
                                           SizedBox(height: 16),
                                           Text(
                                             'No members yet',
@@ -558,8 +586,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       width: MediaQuery.of(context).size.width,
                                       child: ListView.builder(
                                           scrollDirection: Axis.horizontal,
-                                          itemCount:
-                                              userData.users.data.length,
+                                          itemCount: userData.users.data.length,
                                           itemBuilder: (context, index) {
                                             return InkWell(
                                               onTap: () {
@@ -573,9 +600,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                         .data[
                                                                     index])));
                                               },
-                                              borderRadius: BorderRadius.circular(15),
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
                                               child: Container(
-                                                margin: EdgeInsets.symmetric(horizontal: 8),
+                                                margin: EdgeInsets.symmetric(
+                                                    horizontal: 8),
                                                 child: Column(
                                                   children: [
                                                     if (userData
@@ -586,21 +615,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       Container(
                                                         height: 80,
                                                         width: 80,
-                                                        decoration: BoxDecoration(
-                                                          shape: BoxShape.circle,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
                                                           image: DecorationImage(
-                                                              image: NetworkImage(userData
-                                                                  .users
-                                                                  .data[
-                                                                      index]
-                                                                  .image),
-                                                              fit: BoxFit
-                                                                  .cover),
+                                                              image: NetworkImage(
+                                                                  userData
+                                                                      .users
+                                                                      .data[
+                                                                          index]
+                                                                      .image),
+                                                              fit:
+                                                                  BoxFit.cover),
                                                           boxShadow: [
                                                             BoxShadow(
-                                                              color: odaPrimary.withOpacity(0.3),
+                                                              color: odaPrimary
+                                                                  .withOpacity(
+                                                                      0.3),
                                                               blurRadius: 10,
-                                                              offset: Offset(0, 4),
+                                                              offset:
+                                                                  Offset(0, 4),
                                                             ),
                                                           ],
                                                         ),
@@ -609,37 +644,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       Container(
                                                         height: 80,
                                                         width: 80,
-                                                        decoration: BoxDecoration(
-                                                          shape: BoxShape.circle,
-                                                          color: Color(0xFF334155),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color:
+                                                              Color(0xFF334155),
                                                           border: Border.all(
-                                                            color: Color(0xFF475569),
+                                                            color: Color(
+                                                                0xFF475569),
                                                             width: 2,
                                                           ),
                                                         ),
                                                         child: Center(
                                                           child: Text(
-                                                            ((userData.users.data[index].firstName?.isNotEmpty ?? false)
-                                                                ? userData.users.data[index].firstName!.substring(0, 1)
-                                                                : '') +
-                                                            ((userData.users.data[index].lastName?.isNotEmpty ?? false)
-                                                                ? userData.users.data[index].lastName!.substring(0, 1)
-                                                                : ''),
+                                                            ((userData
+                                                                            .users
+                                                                            .data[
+                                                                                index]
+                                                                            .firstName
+                                                                            ?.isNotEmpty ??
+                                                                        false)
+                                                                    ? userData
+                                                                        .users
+                                                                        .data[
+                                                                            index]
+                                                                        .firstName!
+                                                                        .substring(
+                                                                            0,
+                                                                            1)
+                                                                    : '') +
+                                                                ((userData
+                                                                            .users
+                                                                            .data[
+                                                                                index]
+                                                                            .lastName
+                                                                            ?.isNotEmpty ??
+                                                                        false)
+                                                                    ? userData
+                                                                        .users
+                                                                        .data[
+                                                                            index]
+                                                                        .lastName!
+                                                                        .substring(
+                                                                            0,
+                                                                            1)
+                                                                    : ''),
                                                             style: TextStyle(
                                                                 fontSize: 24,
-                                                                fontWeight: FontWeight.w600,
-                                                                color: Colors.white),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: Colors
+                                                                    .white),
                                                           ),
                                                         ),
                                                       ),
                                                     ],
                                                     SizedBox(height: 8),
                                                     Text(
-                                                      userData.users.data[index].firstName ?? '',
+                                                      userData.users.data[index]
+                                                              .firstName ??
+                                                          '',
                                                       style: TextStyle(
                                                           fontSize: 14,
-                                                          fontWeight: FontWeight.w600,
-                                                          color: Colors.grey[800]),
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color:
+                                                              Colors.grey[800]),
                                                     ),
                                                   ],
                                                 ),
@@ -693,10 +765,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           padding: EdgeInsets.all(40),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(15),
+                                            borderRadius:
+                                                BorderRadius.circular(15),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.grey.withOpacity(0.1),
+                                                color: Colors.grey
+                                                    .withOpacity(0.1),
                                                 blurRadius: 5,
                                                 offset: Offset(0, 2),
                                               ),
@@ -704,7 +778,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           ),
                                           child: Column(
                                             children: [
-                                              Icon(Icons.event_busy, size: 60, color: Colors.grey[400]),
+                                              Icon(Icons.event_busy,
+                                                  size: 60,
+                                                  color: Colors.grey[400]),
                                               SizedBox(height: 16),
                                               Text(
                                                 'No upcoming events',
@@ -719,17 +795,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 onPressed: () {
                                                   Navigator.of(context).push(
                                                     MaterialPageRoute(
-                                                      builder: (context) => EventsScreen(),
+                                                      builder: (context) =>
+                                                          EventsScreen(),
                                                     ),
                                                   );
                                                 },
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor: odaPrimary,
                                                   shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
                                                   ),
                                                 ),
-                                                child: Text('Browse Events', style: TextStyle(color: Colors.white)),
+                                                child: Text('Browse Events',
+                                                    style: TextStyle(
+                                                        color: Colors.white)),
                                               ),
                                             ],
                                           ),
@@ -756,18 +837,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                             .data[
                                                                         index])));
                                                   },
-                                                  borderRadius: BorderRadius.circular(15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(15),
                                                   child: Material(
                                                     elevation: 4,
-                                                    borderRadius: BorderRadius.circular(15),
-                                                    shadowColor: odaPrimary.withOpacity(0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    shadowColor: odaPrimary
+                                                        .withOpacity(0.2),
                                                     child: Container(
-                                                      margin: EdgeInsets.only(right: 12),
-                                                      padding: EdgeInsets.all(12),
+                                                      margin: EdgeInsets.only(
+                                                          right: 12),
+                                                      padding:
+                                                          EdgeInsets.all(12),
                                                       width: 160,
                                                       decoration: BoxDecoration(
                                                         color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(15),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
                                                       ),
                                                       child: Column(
                                                         crossAxisAlignment:
@@ -776,19 +865,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         children: [
                                                           Container(
                                                             padding:
-                                                                EdgeInsets.all(12),
-                                                            decoration: BoxDecoration(
-                                                              color: Color(0xFF334155),
+                                                                EdgeInsets.all(
+                                                                    12),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: Color(
+                                                                  0xFF334155),
                                                               borderRadius:
                                                                   BorderRadius
                                                                       .circular(
                                                                           10),
-                                                              border: Border.all(
-                                                                color: Color(0xFF475569),
+                                                              border:
+                                                                  Border.all(
+                                                                color: Color(
+                                                                    0xFF475569),
                                                                 width: 1,
                                                               ),
                                                             ),
-                                                            child: _buildEventDate(eventsData.events.data[index].startDate),
+                                                            child: _buildEventDate(
+                                                                eventsData
+                                                                    .events
+                                                                    .data[index]
+                                                                    .startDate),
                                                           ),
                                                           SizedBox(
                                                             height: 10,
@@ -805,7 +903,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       .ellipsis,
                                                               style: TextStyle(
                                                                   fontSize: 15,
-                                                                  fontWeight: FontWeight.w600,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
                                                                   color: Colors
                                                                       .black87),
                                                             ),
@@ -864,10 +964,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           padding: EdgeInsets.all(40),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(15),
+                                            borderRadius:
+                                                BorderRadius.circular(15),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.grey.withOpacity(0.1),
+                                                color: Colors.grey
+                                                    .withOpacity(0.1),
                                                 blurRadius: 5,
                                                 offset: Offset(0, 2),
                                               ),
@@ -875,7 +977,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           ),
                                           child: Column(
                                             children: [
-                                              Icon(Icons.work_off, size: 60, color: Colors.grey[400]),
+                                              Icon(Icons.work_off,
+                                                  size: 60,
+                                                  color: Colors.grey[400]),
                                               SizedBox(height: 16),
                                               Text(
                                                 'No active projects',
@@ -898,12 +1002,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               itemCount: projectsData
                                                   .projects.data.length,
                                               itemBuilder: (context, index) {
-                                                final project = projectsData.projects.data[index];
-                                                final currentFunding = double.tryParse(project.currentFunding ?? '0') ?? 0;
-                                                final targetFunding = double.tryParse(project.fundingTarget ?? '1') ?? 1;
-                                                final fundingProgress = targetFunding > 0 ? (currentFunding / targetFunding).clamp(0.0, 1.0) : 0.0;
-                                                final fundingPercentage = (fundingProgress * 100).toInt();
-                                                
+                                                final project = projectsData
+                                                    .projects.data[index];
+                                                final currentFunding =
+                                                    double.tryParse(project
+                                                                .currentFunding ??
+                                                            '0') ??
+                                                        0;
+                                                final targetFunding =
+                                                    double.tryParse(project
+                                                                .fundingTarget ??
+                                                            '1') ??
+                                                        1;
+                                                final fundingProgress =
+                                                    targetFunding > 0
+                                                        ? (currentFunding /
+                                                                targetFunding)
+                                                            .clamp(0.0, 1.0)
+                                                        : 0.0;
+                                                final fundingPercentage =
+                                                    (fundingProgress * 100)
+                                                        .toInt();
+
                                                 return InkWell(
                                                   onTap: () {
                                                     Navigator.of(context).push(
@@ -911,19 +1031,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                             builder: (BuildContext
                                                                     context) =>
                                                                 ProjectDetailsScreen(
-                                                                    data: project)));
+                                                                    data:
+                                                                        project)));
                                                   },
-                                                  borderRadius: BorderRadius.circular(15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(15),
                                                   child: Material(
                                                     elevation: 6,
-                                                    borderRadius: BorderRadius.circular(15),
-                                                    shadowColor: odaPrimary.withOpacity(0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    shadowColor: odaPrimary
+                                                        .withOpacity(0.2),
                                                     child: Container(
-                                                      margin: EdgeInsets.only(right: 15),
+                                                      margin: EdgeInsets.only(
+                                                          right: 15),
                                                       width: 280,
                                                       decoration: BoxDecoration(
                                                         color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(15),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
                                                       ),
                                                       child: Column(
                                                         crossAxisAlignment:
@@ -932,106 +1060,181 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         children: [
                                                           Container(
                                                             height: 160,
-                                                            decoration: BoxDecoration(
+                                                            decoration:
+                                                                BoxDecoration(
                                                               borderRadius:
-                                                                  BorderRadius.only(
-                                                                    topLeft: Radius.circular(15),
-                                                                    topRight: Radius.circular(15),
-                                                                  ),
-                                                              color: (project.image?.isNotEmpty ?? false)
-                                                                ? null
-                                                                : Color(0xFF1e293b),
-                                                              image: (project.image?.isNotEmpty ?? false)
+                                                                  BorderRadius
+                                                                      .only(
+                                                                topLeft: Radius
+                                                                    .circular(
+                                                                        15),
+                                                                topRight: Radius
+                                                                    .circular(
+                                                                        15),
+                                                              ),
+                                                              color: (project
+                                                                          .image
+                                                                          ?.isNotEmpty ??
+                                                                      false)
+                                                                  ? null
+                                                                  : Color(
+                                                                      0xFF1e293b),
+                                                              image: (project
+                                                                          .image
+                                                                          ?.isNotEmpty ??
+                                                                      false)
                                                                   ? DecorationImage(
-                                                                      image: NetworkImage(project.image!),
-                                                                      fit: BoxFit.cover)
+                                                                      image: NetworkImage(
+                                                                          project
+                                                                              .image!),
+                                                                      fit: BoxFit
+                                                                          .cover)
                                                                   : null,
                                                             ),
-                                                            child: (project.image?.isNotEmpty ?? false)
+                                                            child: (project
+                                                                        .image
+                                                                        ?.isNotEmpty ??
+                                                                    false)
                                                                 ? null
                                                                 : Center(
                                                                     child: Icon(
-                                                                      Icons.card_giftcard_outlined,
+                                                                      Icons
+                                                                          .card_giftcard_outlined,
                                                                       size: 50,
-                                                                      color: Color(0xFF64748b),
+                                                                      color: Color(
+                                                                          0xFF64748b),
                                                                     ),
                                                                   ),
                                                           ),
                                                           Padding(
-                                                            padding: EdgeInsets.all(12),
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    12),
                                                             child: Column(
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
                                                               children: [
                                                                 Text(
-                                                                  project.title ?? 'Untitled Project',
+                                                                  project.title ??
+                                                                      'Untitled Project',
                                                                   maxLines: 1,
-                                                                  overflow: TextOverflow.ellipsis,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
                                                                   style: TextStyle(
-                                                                      fontSize: 16,
-                                                                      fontWeight: FontWeight.bold,
-                                                                      color: Colors.black87),
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: Colors
+                                                                          .black87),
                                                                 ),
-                                                                SizedBox(height: 4),
+                                                                SizedBox(
+                                                                    height: 4),
                                                                 Text(
-                                                                  project.content ?? '',
+                                                                  project.content ??
+                                                                      '',
                                                                   maxLines: 2,
-                                                                  overflow: TextOverflow.ellipsis,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
                                                                   style: TextStyle(
-                                                                      fontSize: 12,
-                                                                      color: Colors.grey[600]),
+                                                                      fontSize:
+                                                                          12,
+                                                                      color: Colors
+                                                                              .grey[
+                                                                          600]),
                                                                 ),
-                                                                SizedBox(height: 10),
+                                                                SizedBox(
+                                                                    height: 10),
                                                                 Column(
-                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
                                                                   children: [
                                                                     Row(
-                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .spaceBetween,
                                                                       children: [
                                                                         Text(
                                                                           'Funding Progress',
-                                                                          style: TextStyle(
-                                                                            fontSize: 11,
-                                                                            color: Colors.grey[600],
-                                                                            fontWeight: FontWeight.w500,
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                11,
+                                                                            color:
+                                                                                Colors.grey[600],
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
                                                                           ),
                                                                         ),
                                                                         Text(
                                                                           '$fundingPercentage%',
-                                                                          style: TextStyle(
-                                                                            fontSize: 12,
-                                                                            color: odaPrimary,
-                                                                            fontWeight: FontWeight.bold,
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontSize:
+                                                                                12,
+                                                                            color:
+                                                                                odaPrimary,
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
                                                                           ),
                                                                         ),
                                                                       ],
                                                                     ),
-                                                                    SizedBox(height: 6),
+                                                                    SizedBox(
+                                                                        height:
+                                                                            6),
                                                                     ClipRRect(
-                                                                      borderRadius: BorderRadius.circular(10),
-                                                                      child: LinearProgressIndicator(
-                                                                        value: fundingProgress,
-                                                                        backgroundColor: Colors.grey[200],
-                                                                        valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
-                                                                        minHeight: 8,
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              10),
+                                                                      child:
+                                                                          LinearProgressIndicator(
+                                                                        value:
+                                                                            fundingProgress,
+                                                                        backgroundColor:
+                                                                            Colors.grey[200],
+                                                                        valueColor:
+                                                                            AlwaysStoppedAnimation<Color>(odaPrimary),
+                                                                        minHeight:
+                                                                            8,
                                                                       ),
                                                                     ),
                                                                   ],
                                                                 ),
-                                                                SizedBox(height: 12),
+                                                                SizedBox(
+                                                                    height: 12),
                                                                 Row(
-                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
                                                                   children: [
                                                                     Expanded(
-                                                                      child: Container(
-                                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                                                        decoration: BoxDecoration(
-                                                                          color: odaPrimary,
-                                                                          borderRadius: BorderRadius.circular(10),
+                                                                      child:
+                                                                          Container(
+                                                                        padding: EdgeInsets.symmetric(
+                                                                            vertical:
+                                                                                10,
+                                                                            horizontal:
+                                                                                12),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color:
+                                                                              odaPrimary,
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(10),
                                                                         ),
-                                                                        child: Center(
-                                                                          child: Text(
+                                                                        child:
+                                                                            Center(
+                                                                          child:
+                                                                              Text(
                                                                             "View Project",
-                                                                            style: TextStyle(
+                                                                            style:
+                                                                                TextStyle(
                                                                               color: Colors.white,
                                                                               fontWeight: FontWeight.bold,
                                                                               fontSize: 13,
@@ -1040,13 +1243,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                         ),
                                                                       ),
                                                                     ),
-                                                                    SizedBox(width: 10),
+                                                                    SizedBox(
+                                                                        width:
+                                                                            10),
                                                                     Text(
                                                                       "\$${project.fundingTargetDollar ?? '0'}",
-                                                                      style: TextStyle(
-                                                                        color: odaSecondary,
-                                                                        fontWeight: FontWeight.w900,
-                                                                        fontSize: 18,
+                                                                      style:
+                                                                          TextStyle(
+                                                                        color:
+                                                                            odaSecondary,
+                                                                        fontWeight:
+                                                                            FontWeight.w900,
+                                                                        fontSize:
+                                                                            18,
                                                                       ),
                                                                     ),
                                                                   ],
@@ -1067,7 +1276,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             SizedBox(height: 15),
-                            if (articlesData != null && articlesData.news != null && articlesData.news!.data != null && articlesData.news!.data!.isNotEmpty)
+                            if (articlesData != null &&
+                                articlesData.news != null &&
+                                articlesData.news!.data != null &&
+                                articlesData.news!.data!.isNotEmpty)
                               Container(
                                 // color: odaSecondary.withOpacity(0.2),
                                 child: Padding(
@@ -1081,117 +1293,130 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           children: [
                                             Text(
                                               "Latest Discussions",
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                color: odaSecondary),
-                                          ),
-                                          InkWell(
-                                            onTap: () {
-                                              Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                      builder: (BuildContext
-                                                              context) =>
-                                                          AllNewsScreen()));
-                                            },
-                                            child: Text('View All',
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: odaPrimary)),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Container(
-                                        height: 270,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        //color: Colors.red,
-                                        child: ListView.builder(
-                                            scrollDirection: Axis.horizontal,
-                                            itemCount:
-                                                articlesData!.news!.data!.length,
-                                            itemBuilder: (context, index) {
-                                              return InkWell(
-                                                onTap: () {
-                                                  Navigator.of(context).push(
-                                                      MaterialPageRoute(
-                                                          builder: (BuildContext
-                                                                  context) =>
-                                                              NewsDetailsScreen(
-                                                                  data: articlesData!
-                                                                          .news!
-                                                                          .data![
-                                                                      index])));
-                                                },
-                                                child: Container(
-                                                  margin: EdgeInsets.all(5),
-                                                  width: 296,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Container(
-                                                        height: 169,
-                                                        decoration: BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius.circular(15),
-                                                          color: odaPrimary.withOpacity(0.1),
-                                                        ),
-                                                        child: Center(
-                                                          child: Icon(
-                                                            Icons.article_outlined,
-                                                            size: 50,
-                                                            color: odaPrimary,
+                                              style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: odaSecondary),
+                                            ),
+                                            InkWell(
+                                              onTap: () {
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (BuildContext
+                                                                context) =>
+                                                            AllNewsScreen()));
+                                              },
+                                              child: Text('View All',
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: odaPrimary)),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Container(
+                                          height: 270,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          //color: Colors.red,
+                                          child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount: articlesData!
+                                                  .news!.data!.length,
+                                              itemBuilder: (context, index) {
+                                                return InkWell(
+                                                  onTap: () {
+                                                    Navigator.of(context).push(
+                                                        MaterialPageRoute(
+                                                            builder: (BuildContext
+                                                                    context) =>
+                                                                NewsDetailsScreen(
+                                                                    data: articlesData!
+                                                                            .news!
+                                                                            .data![
+                                                                        index])));
+                                                  },
+                                                  child: Container(
+                                                    margin: EdgeInsets.all(5),
+                                                    width: 296,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Container(
+                                                          height: 169,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        15),
+                                                            color: odaPrimary
+                                                                .withOpacity(
+                                                                    0.1),
+                                                          ),
+                                                          child: Center(
+                                                            child: Icon(
+                                                              Icons
+                                                                  .article_outlined,
+                                                              size: 50,
+                                                              color: odaPrimary,
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                      SizedBox(
-                                                        height: 8,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Expanded(
-                                                              child: Text(
-                                                            articlesData!
-                                                                .news!
-                                                                .data![index]
-                                                                .title ?? '',
-                                                            style: TextStyle(
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .black),
-                                                            maxLines: 2,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          )),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Text(
-                                                        articlesData!
-                                                            .news!
-                                                            .data![index]
-                                                            .createdTime ?? '',
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.grey),
-                                                      ),
-                                                    ],
+                                                        SizedBox(
+                                                          height: 8,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                                child: Text(
+                                                              articlesData!
+                                                                      .news!
+                                                                      .data![
+                                                                          index]
+                                                                      .title ??
+                                                                  '',
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  color: Colors
+                                                                      .black),
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            )),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Text(
+                                                          articlesData!
+                                                                  .news!
+                                                                  .data![index]
+                                                                  .createdTime ??
+                                                              '',
+                                                          style: TextStyle(
+                                                              fontSize: 12,
+                                                              color:
+                                                                  Colors.grey),
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ),
-                                                ),
-                                              );
-                                            }),
-                                      ),
-                                    ],
+                                                );
+                                              }),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
                             SizedBox(
                               height: 80,
                             )

@@ -1,0 +1,12 @@
+{
+    "username": "testuser1",
+    "yearGroup": "2010",
+    "firstName": "Test",
+    "middleName": "User",
+    "lastName": "One",
+    "country": "Ghana",
+    "email": "testuser1@example.com",
+    "password": "Password123!",
+    "device_token": "fcm_token",
+    "logged_from": "Web"
+}

@@ -1,0 +1,12 @@
+{
+    "email": "superadmin@presec.edu.gh",
+    "password": "password",
+    "deviceInfo": {
+        "deviceId": "test-device",
+        "deviceName": "Test Device",
+        "deviceType": "mobile",
+        "osName": "Windows",
+        "osVersion": "10",
+        "appVersion": "1.0.0"
+    }
+}

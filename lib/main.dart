@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/Screens/SplashScreen/splash_screen.dart';
+import 'package:odadee/Screens/Authentication/magic_link_callback.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/migration_helper.dart';
 import 'package:odadee/services/auth_service.dart';
@@ -62,11 +63,46 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool? _isLoggedIn;
   bool _isLoading = true;
+  bool _hasMagicLinkToken = false;
+  String? _token;
 
   @override
   void initState() {
     super.initState();
+    _checkForMagicLink();
     _checkAuthStatus();
+  }
+
+  void _checkForMagicLink() {
+    if (kIsWeb) {
+      // Check if the URL contains magic link token
+      final uri = Uri.base;
+      print('Checking URL: ${uri.toString()}');
+
+      String? token;
+
+      // Pattern 1: /auth/magic-link/:token (production)
+      if (uri.path.contains('/auth/magic-link/')) {
+        final segments = uri.pathSegments;
+        final index = segments.indexOf('magic-link');
+        if (index >= 0 && index + 1 < segments.length) {
+          token = segments[index + 1];
+          print('Found magic link token (path): $token');
+        }
+      }
+      // Pattern 2: /auth/verify?token=xyz (local testing)
+      else if (uri.path.contains('/auth/verify')) {
+        token = uri.queryParameters['token'];
+        print('Found magic link token (query): $token');
+      }
+
+      if (token != null && token.isNotEmpty) {
+        setState(() {
+          _hasMagicLinkToken = true;
+          _token = token;
+        });
+      }
+    }
   }
 
   Future<void> _checkAuthStatus() async {
@@ -95,6 +131,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // If magic link token detected, show callback screen
+    if (_hasMagicLinkToken && _token != null) {
+      print('Routing to MagicLinkCallbackScreen with token');
+      return MagicLinkCallbackScreen(token: _token!);
+    }
+
     if (_isLoading) {
       return Scaffold(
         backgroundColor: odaBackground,
@@ -105,8 +147,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }
-    
-    return (_isLoggedIn == true) 
+
+    return (_isLoggedIn == true)
         ? const DashboardScreen()
         : const SplashScreen();
   }

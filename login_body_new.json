@@ -1,0 +1,12 @@
+{
+    "email": "testuser1@example.com",
+    "password": "Password123!",
+    "deviceInfo": {
+        "deviceId": "test-device",
+        "deviceName": "Test Device",
+        "deviceType": "mobile",
+        "osName": "Windows",
+        "osVersion": "10",
+        "appVersion": "1.0.0"
+    }
+}

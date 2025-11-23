@@ -17,7 +17,7 @@ class LoginResult {
   final bool success;
   final String? error;
   final Map<String, dynamic>? user;
-  
+
   LoginResult({required this.success, this.error, this.user});
 }
 
@@ -25,16 +25,16 @@ Future<LoginResult> signInUser(String email, String password) async {
   try {
     final authService = AuthService();
     final result = await authService.login(email, password);
-    
+
     final user = result['user'];
     await saveUserData(user);
-    
+
     try {
       await fetchDataFromServer();
     } catch (e) {
       debugPrint('Settings fetch error (non-critical): $e');
     }
-    
+
     return LoginResult(success: true, user: user);
   } catch (e) {
     debugPrint('Login error: $e');
@@ -46,7 +46,8 @@ Future<LoginResult> signInUser(String email, String password) async {
 Future<void> fetchDataFromServer() async {
   try {
     final authService = AuthService();
-    final response = await authService.authenticatedRequest('GET', '/api/settings');
+    final response =
+        await authService.authenticatedRequest('GET', '/api/settings');
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
@@ -66,7 +67,7 @@ Future<bool> saveSettings(int notification) async {
 
 Future<bool> saveUserData(Map<String, dynamic> userData) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  
+
   prefs.setString("YearGroup", userData['yearGroupId']?.toString() ?? '');
   prefs.setString("image", userData['profilePicture']?.toString() ?? '');
   prefs.setString("email", userData['email']?.toString() ?? '');
@@ -76,7 +77,7 @@ Future<bool> saveUserData(Map<String, dynamic> userData) async {
   prefs.setString("lastName", userData['lastName']?.toString() ?? '');
   prefs.setString("USER_ID", userData['id']?.toString() ?? '');
   prefs.setString("role", userData['role']?.toString() ?? '');
-  
+
   return prefs.commit();
 }
 
@@ -169,7 +170,6 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                             inputFormatters: [
                               LengthLimitingTextInputFormatter(225),
-                              PasteTextInputFormatter(),
                             ],
                             validator: (value) {
                               if (value!.isEmpty) {
@@ -240,7 +240,6 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                             inputFormatters: [
                               LengthLimitingTextInputFormatter(225),
-                              PasteTextInputFormatter(),
                             ],
                             validator: (value) {
                               if (value!.isEmpty) {
@@ -399,13 +398,14 @@ class _SignInScreenState extends State<SignInScreen> {
   void _handleNavigationAndDialogs(BuildContext context, LoginResult data) {
     if (data.success && data.user != null) {
       final user = data.user!;
-      final hasProfilePicture = user['profilePicture'] != null && user['profilePicture'].toString().isNotEmpty;
+      final hasProfilePicture = user['profilePicture'] != null &&
+          user['profilePicture'].toString().isNotEmpty;
       final hasBio = user['bio'] != null && user['bio'].toString().isNotEmpty;
-      
+
       if (!user['isActive']) {
         _navigateToSignIn(context);
-        _showDialog(context, "Error", "Your profile is not active", 
-            Icons.close, Colors.red);
+        _showDialog(context, "Error", "Your profile is not active", Icons.close,
+            Colors.red);
       } else if (!hasProfilePicture || !hasBio) {
         _showDialog(
             context,
@@ -426,8 +426,11 @@ class _SignInScreenState extends State<SignInScreen> {
     } else {
       _navigateToSignIn(context);
       _showDialog(
-          context, "Error", data.error ?? "Login failed. Please try again.", 
-          Icons.close, Colors.red);
+          context,
+          "Error",
+          data.error ?? "Login failed. Please try again.",
+          Icons.close,
+          Colors.red);
     }
   }
 
@@ -480,7 +483,6 @@ class _SignInScreenState extends State<SignInScreen> {
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (_) => SignInScreen()));
   }
-
 
   void _navigateToDashboard(BuildContext context) {
     Navigator.pushReplacement(
