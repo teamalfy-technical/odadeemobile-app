@@ -109,17 +109,6 @@ class _PayDuesScreenState extends State<PayDuesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            image: DecorationImage(
-                              image: AssetImage("assets/images/paydues.png"),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 30),
                         // Year Group Impact Stats Card
                         isLoading
                             ? Center(child: CircularProgressIndicator(color: odaSecondary))
