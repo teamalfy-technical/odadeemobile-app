@@ -42,6 +42,12 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - Responsive grid layout (2 columns on mobile, 3 on larger screens)
 - Loading states, error handling, and empty state messages
 - Integrated with dashboard "Total Members" card for seamless navigation
+- **UserDetailScreen null safety**: Comprehensive null handling throughout user profile details:
+  - Strongly-typed Data model with null-aware field access (`??` operators) and sensible fallbacks
+  - Element-level null guards for UserStatus items preventing crashes on missing status data
+  - Multi-format date parser (`_safeConvertDate`) supporting RFC, ISO, and custom date formats with graceful fallbacks
+  - AuthenticatedImage component with base URL normalization for all profile and status attachment images
+  - All profile fields (name, bio, location, work info, etc.) use null-coalescing with 'N/A' defaults
 
 **Settings & App Store Compliance:** Comprehensive settings page meeting all App Store/Play Store requirements:
 - **Account Deletion**: Double confirmation with DELETE `/api/auth/delete-account` integration
