@@ -196,6 +196,88 @@ class _MembersScreenState extends State<MembersScreen> {
     );
   }
 
+  Data _mapMemberToData(dynamic member) {
+    String? normalizeImagePath(String? imagePath) {
+      if (imagePath == null || imagePath.isEmpty) return null;
+      if (imagePath.startsWith('//')) return 'https:$imagePath';
+      if (imagePath.startsWith('http')) return imagePath;
+      return imagePath.startsWith('/') ? imagePath : '/$imagePath';
+    }
+    
+    List<Map<String, dynamic>>? convertUserStatus(dynamic statusList) {
+      if (statusList == null) return null;
+      if (statusList is! List) return null;
+      
+      try {
+        return statusList.map((item) {
+          if (item is Map<String, dynamic>) {
+            return item;
+          } else if (item is Map) {
+            return Map<String, dynamic>.from(item);
+          }
+          return null;
+        }).where((item) => item != null).cast<Map<String, dynamic>>().toList();
+      } catch (e) {
+        print('Error converting userStatus: $e');
+        return null;
+      }
+    }
+    
+    Map<String, dynamic> mappedData = {
+      'id': member['id'],
+      'username': member['username'],
+      'odadeeId': member['odadeeId'],
+      'firstName': member['firstName'],
+      'middleName': member['middleName'],
+      'lastName': member['lastName'],
+      'nickName': member['nickName'],
+      'email': member['email'],
+      'mailSubscribed': member['mailSubscribed'],
+      'birthDate': member['birthDate'],
+      'birthMonth': member['birthMonth'],
+      'token': member['token'],
+      'status': member['status'],
+      'phone': member['phone'],
+      'pin': member['pin'],
+      'gender': member['gender'],
+      'image': normalizeImagePath(member['profileImage'] ?? member['image']),
+      'city': member['city'],
+      'house': member['house'],
+      'latitude': member['latitude'],
+      'longitude': member['longitude'],
+      'zip': member['zip'],
+      'website': member['website'],
+      'workPlace': member['company'] ?? member['workPlace'],
+      'position': member['currentRole'] ?? member['position'],
+      'jobTitle': member['currentRole'] ?? member['jobTitle'],
+      'yearGroup': member['graduationYear']?.toString() ?? member['yearGroup']?.toString(),
+      'about': member['bio'] ?? member['about'],
+      'userRole': member['userRole'],
+      'country': member['country'],
+      'googleId': member['googleId'],
+      'linkedinId': member['linkedinId'],
+      'facebookId': member['facebookId'],
+      'twitterUrl': member['twitterUrl'],
+      'facebookUrl': member['facebookUrl'],
+      'googleUrl': member['googleUrl'],
+      'githubUrl': member['githubUrl'],
+      'linkedinUrl': member['linkedinUrl'],
+      'skypeUrl': member['skypeUrl'],
+      'homePage': member['homePage'],
+      'isGlobalSecretariat': member['isGlobalSecretariat'],
+      'loginAttempts': member['loginAttempts'],
+      'secondLastLoginIp': member['secondLastLoginIp'],
+      'secondLastLogin': member['secondLastLogin'],
+      'lastLogin': member['lastLogin'],
+      'lastLoginIp': member['lastLoginIp'],
+      'createdTime': member['createdTime'] ?? member['createdAt'],
+      'userInterests': member['userInterests'],
+      'userStatus': convertUserStatus(member['userStatus']),
+    };
+    
+    return Data.fromJson(mappedData);
+  }
+
   Widget _buildMemberCard(dynamic member) {
     final firstName = member['firstName'] ?? '';
     final lastName = member['lastName'] ?? '';
@@ -216,11 +298,11 @@ class _MembersScreenState extends State<MembersScreen> {
 
     return GestureDetector(
       onTap: () {
-        final memberData = Data.fromJson(member);
+        final mappedMemberData = _mapMemberToData(member);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => MemberDetailPage(data: memberData),
+            builder: (context) => MemberDetailPage(data: mappedMemberData),
           ),
         );
       },
