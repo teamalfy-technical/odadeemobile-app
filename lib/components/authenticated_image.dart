@@ -73,10 +73,11 @@ class _AuthenticatedImageState extends State<AuthenticatedImage> {
           Container(
             width: widget.width,
             height: widget.height,
-            color: Colors.grey[800],
+            color: Color(0xFF1e293b),
             child: Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFf4d03f)),
+                strokeWidth: 2,
               ),
             ),
           );
@@ -87,8 +88,16 @@ class _AuthenticatedImageState extends State<AuthenticatedImage> {
           Container(
             width: widget.width,
             height: widget.height,
-            color: Color(0xFF0f172a),
-            child: Icon(Icons.person, size: 60, color: Colors.white54),
+            decoration: BoxDecoration(
+              color: Color(0xFF1e293b),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(widget.width != null ? widget.width! * 0.25 : 20),
+              child: Image.asset(
+                'assets/images/oda_logo.png',
+                fit: BoxFit.contain,
+              ),
+            ),
           );
     }
 

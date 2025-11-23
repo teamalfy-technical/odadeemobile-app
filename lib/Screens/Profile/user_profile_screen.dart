@@ -320,13 +320,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       height: 120,
                       fit: BoxFit.cover,
                       errorWidget: Container(
-                        color: Color(0xFF0f172a),
-                        child: Icon(Icons.person, size: 60, color: Colors.white54),
+                        color: Color(0xFF1e293b),
+                        padding: EdgeInsets.all(30),
+                        child: Image.asset(
+                          'assets/images/oda_logo.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     )
                   : Container(
-                      color: Color(0xFF0f172a),
-                      child: Icon(Icons.person, size: 60, color: Colors.white54),
+                      color: Color(0xFF1e293b),
+                      padding: EdgeInsets.all(30),
+                      child: Image.asset(
+                        'assets/images/oda_logo.png',
+                        fit: BoxFit.contain,
+                      ),
                     ),
             ),
           ),

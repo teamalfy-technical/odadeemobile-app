@@ -96,12 +96,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           width: 120,
           height: 120,
           fit: BoxFit.cover,
-          errorWidget: Icon(Icons.person, size: 60, color: Colors.white54),
+          errorWidget: Container(
+            color: Color(0xFF1e293b),
+            padding: EdgeInsets.all(30),
+            child: Image.asset(
+              'assets/images/oda_logo.png',
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
       );
     }
     
-    return Icon(Icons.person, size: 60, color: Colors.white54);
+    return Container(
+      color: Color(0xFF1e293b),
+      padding: EdgeInsets.all(30),
+      child: Image.asset(
+        'assets/images/oda_logo.png',
+        fit: BoxFit.contain,
+      ),
+    );
   }
 
   Future<void> _pickImage() async {
