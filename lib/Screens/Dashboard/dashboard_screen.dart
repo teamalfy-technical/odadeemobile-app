@@ -249,13 +249,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final authService = AuthService();
       final userData = await authService.getCurrentUser();
       
+      print('===== CURRENT USER DATA =====');
+      print('Full userData: $userData');
+      print('Keys in userData: ${userData.keys}');
+      print('firstName: ${userData['firstName']}');
+      print('email: ${userData['email']}');
+      print('yearGroup: ${userData['yearGroup']}');
+      print('==============================');
+      
       if (mounted) {
         setState(() {
-          final firstName = userData['firstName']?.toString() ?? '';
+          final firstName = userData['firstName']?.toString() ?? userData['first_name']?.toString() ?? '';
           userName = firstName.isNotEmpty ? firstName : 'User';
           userEmail = userData['email']?.toString() ?? '';
           
-          final yearGroup = userData['yearGroup']?.toString() ?? '';
+          final yearGroup = userData['yearGroup']?.toString() ?? userData['year_group']?.toString() ?? '';
           userClass = yearGroup.isNotEmpty ? 'Class of $yearGroup' : '';
         });
       }
@@ -453,41 +461,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              userName != null 
-                                                  ? "Welcome back, $userName!" 
-                                                  : "Welcome back!",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 24,
-                                                color: Colors.white,
+                                            Container(
+                                              width: 50,
+                                              height: 50,
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: odaPrimary,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  'P',
+                                                  style: TextStyle(
+                                                    fontSize: 28,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: odaPrimary,
+                                                  ),
+                                                ),
                                               ),
                                             ),
-                                            if (userEmail != null && userEmail!.isNotEmpty) ...[
-                                              SizedBox(height: 4),
-                                              Text(
-                                                userEmail!,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Color(0xFF94a3b8),
-                                                  fontWeight: FontWeight.w400,
-                                                ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    userName != null && userName!.isNotEmpty
+                                                        ? "Welcome back, $userName!" 
+                                                        : "Welcome back!",
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w900,
+                                                      fontSize: 20,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  if (userEmail != null && userEmail!.isNotEmpty) ...[
+                                                    SizedBox(height: 2),
+                                                    Text(
+                                                      userEmail!,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Color(0xFF94a3b8),
+                                                        fontWeight: FontWeight.w400,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                  if (userClass != null && userClass!.isNotEmpty) ...[
+                                                    SizedBox(height: 2),
+                                                    Text(
+                                                      userClass!,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Color(0xFF94a3b8),
+                                                        fontWeight: FontWeight.w400,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
                                               ),
-                                            ],
-                                            if (userClass != null && userClass!.isNotEmpty) ...[
-                                              SizedBox(height: 2),
-                                              Text(
-                                                userClass!,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Color(0xFF94a3b8),
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                              ),
-                                            ],
+                                            ),
                                           ],
                                         ),
                                       ),
