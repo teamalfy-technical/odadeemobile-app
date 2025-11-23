@@ -36,6 +36,7 @@ Odadee is a Flutter mobile application, configured for web deployment, serving a
   - Saves refreshed data back to storage to prevent repeated API calls
   - Validates all required fields before payment request
   - Throws clear error message if user data is incomplete
+- **Fixed "User information incomplete" error:** Updated PaymentService to correctly extract user data from nested API response structure ({user: {...}}) instead of reading from top level, resolving issue where firstName, lastName, and email were coming through as empty strings
 - Added comprehensive error handling for non-JSON responses (HTML/text gateway errors) with fallback to raw response body
 - Production-ready implementation verified by architect review (November 23, 2025)
 
