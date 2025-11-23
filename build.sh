@@ -15,13 +15,9 @@ flutter clean
 echo "Installing dependencies..."
 flutter pub get
 
-# Build for web production with optimizations
-echo "Building for web (release mode with optimizations)..."
-flutter build web \
-  --release \
-  --web-renderer canvaskit \
-  --no-tree-shake-icons \
-  --dart-define=FLUTTER_WEB_CANVASKIT_URL=/canvaskit/
+# Build for web production
+echo "Building for web (release mode)..."
+flutter build web --release
 
 # Verify build output
 if [ -d "build/web" ]; then

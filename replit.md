@@ -35,7 +35,7 @@ Error handling, null safety, and data transformation are implemented throughout.
 -   **Deployment:** Automated build process (`build.sh`) for optimized production web builds.
 
 ### System Design Choices
-The application uses a responsive design approach with `device_preview` for development. Deployment is on Replit as an autoscale stateless web app, using a custom build script. The architecture prioritizes secure API communication with comprehensive error handling and debug logging, routing all API calls through an `AuthService`. The production build uses the canvaskit renderer for performance.
+The application uses a responsive design approach with `device_preview` for development. Deployment is on Replit as a **static web app**, using a custom build script (`build.sh`) to generate production-ready static files. The architecture prioritizes secure API communication with comprehensive error handling and debug logging, routing all API calls through an `AuthService`.
 
 ## External Dependencies
 
@@ -60,3 +60,64 @@ The application uses a responsive design approach with `device_preview` for deve
 
 ### Cloud Services
 -   **Replit**: Hosting and deployment platform.
+
+## Production Deployment
+
+### Current Version
+- **Version**: 1.1.0+2
+- **Release Date**: November 23, 2025
+- **API Integration**: Live production API at odadee.net
+
+### Deployment Configuration
+The app is configured for **static web deployment** on Replit:
+- **Deployment Type**: Static (serves pre-built files)
+- **Build Command**: `bash build.sh`
+- **Public Directory**: `build/web`
+- **Workflow**: `python3 -m http.server 5000 --directory build/web` (serves pre-built static files for local preview)
+
+### Development vs Production
+- **Local Preview Workflow**: Serves pre-built static files from `build/web` using `python3 -m http.server 5000`
+  - Run `bash build.sh` first to generate the build files
+  - This workflow is for previewing the built app locally, not for production deployment
+- **Interactive Development**: For live reload during development, manually run `flutter run -d web-server --web-port=5000 --web-hostname=0.0.0.0` in the shell
+- **Production Deployment**: Static hosting using pre-built files from `build/web` directory served directly by Replit
+
+### Build Process
+The production build script (`build.sh`) performs:
+1. Clean Flutter pub cache to prevent dependency issues
+2. Clean previous build artifacts
+3. Install fresh dependencies
+4. Build for web in release mode: `flutter build web --release`
+5. Verify build output before completion
+
+**Note:** Flutter automatically selects the optimal web renderer based on the browser. Deprecated flags have been removed for compatibility with modern Flutter versions.
+
+### Production Features (v1.1.0)
+- ✅ Live API integration with odadee.net
+- ✅ Event detail pages with banner images
+- ✅ Project detail pages with funding progress visualization
+- ✅ Null-safe data handling throughout
+- ✅ Image URL normalization for absolute and relative paths
+- ✅ Clean navigation architecture
+- ✅ Production-ready error handling
+
+### Deployment Steps
+1. Ensure all code changes are committed
+2. Click the **Deploy** button in Replit
+3. Verify deployment configuration:
+   - Deployment type: Static
+   - Build command: `bash build.sh`
+   - Publish directory: `build/web`
+4. Click **Deploy** - Replit will build and publish automatically
+5. Test the deployed app at the production URL
+
+### Post-Deployment Verification
+After deployment, verify:
+1. App loads correctly on production URL
+2. Authentication flow works with live API
+3. Dashboard displays live events and projects
+4. Event detail pages show banner images
+5. Project detail pages show funding progress
+6. Navigation between screens works smoothly
+7. Image loading from odadee.net works correctly
+8. Responsive design works on mobile and desktop
