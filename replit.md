@@ -16,6 +16,7 @@ Odadee is a Flutter mobile application, configured for web deployment, serving a
 - Payment flow: User selects year group → selects dues item → proceeds to PayAngel WebView → receives success/failure confirmation
 - PaymentService maps 'dues' to 'YEAR_GROUP_DUES' product code as expected by backend
 - PaymentScreen detects transactionStatus=SUCCESS|FAILED|CANCELLED in callback URLs with comprehensive fallback checks
+- **Fixed dues amount parsing:** Updated PayDuesModal to handle string amounts (e.g., "50.00") from backend API using double.parse(), resolving TypeError that prevented dues from loading for year groups like Class of 1995
 - Production-ready implementation verified by architect review
 
 **November 23, 2025 - Bug Fixes and Logo Addition**
