@@ -4,6 +4,13 @@
 Odadee is a Flutter mobile application, configured for web deployment, serving as a community platform. It integrates features such as user authentication, community discussions, event management, live radio streaming, and functionalities for project funding and dues payment. The platform also supports user profiles and settings, aiming to foster community engagement and streamline administrative tasks.
 
 ## Recent Changes
+**November 23, 2025 - Bug Fixes and Logo Addition**
+- Added PRESEC logo to dashboard header (50x50px with rounded corners, replaces placeholder "P")
+- Fixed event date parsing to handle ISO 8601 format (2024-12-20T18:00:00.000Z) and legacy formats
+- Enhanced getCurrentUser() with comprehensive debug logging and null safety checks
+- Fixed discussions transformation to properly handle field types (string/int conversions)
+- Improved error handling throughout dashboard data loading
+
 **November 23, 2025 - Footer Navigation Enhancement**
 - Added 2px yellow border (odaSecondary #f4d03f) around footer navigation container for enhanced visual definition
 - Created reusable FooterNav component (components/footer_nav.dart) that now persists across all app pages

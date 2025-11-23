@@ -78,20 +78,45 @@ Map<int, String> monthNames = {
 
 
 Map<String, dynamic> extractDateInfo(String dateString) {
-  List<String> parts = dateString.split(' ');
-  String datePart = parts[0];
-  List<String> dateComponents = datePart.split('-');
-
-  int year = int.parse(dateComponents[0]);
-  int month = int.parse(dateComponents[1]);
-  int day = int.parse(dateComponents[2]);
-  String? monthInWords = monthNames[month];
-
-  return {
-    'day': day,
-    'month': monthInWords,
-    'year': year,
-  };
+  try {
+    // Handle various date formats
+    DateTime dateTime;
+    
+    // Try parsing as ISO 8601 first
+    try {
+      dateTime = DateTime.parse(dateString);
+    } catch (e) {
+      // If that fails, try the old space-separated format
+      List<String> parts = dateString.split(' ');
+      String datePart = parts[0];
+      List<String> dateComponents = datePart.split('-');
+      
+      if (dateComponents.length < 3) {
+        throw FormatException('Invalid date format: $dateString');
+      }
+      
+      int year = int.parse(dateComponents[0]);
+      int month = int.parse(dateComponents[1]);
+      int day = int.parse(dateComponents[2]);
+      dateTime = DateTime(year, month, day);
+    }
+    
+    String? monthInWords = monthNames[dateTime.month];
+    
+    return {
+      'day': dateTime.day,
+      'month': monthInWords ?? 'Unknown',
+      'year': dateTime.year,
+    };
+  } catch (e) {
+    // Return default values if parsing fails - keep types consistent
+    print('Date parsing error for "$dateString": $e');
+    return {
+      'day': 1,
+      'month': 'TBA',
+      'year': 2024,
+    };
+  }
 }
 
 

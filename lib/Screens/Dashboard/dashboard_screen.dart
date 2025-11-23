@@ -169,15 +169,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     : '';
 
                 return {
-                  'id': 0,
+                  'id': discussion['id']?.toString() ?? '0',
                   'title': discussion['title'] ?? '',
-                  'slug': '',
+                  'slug': discussion['slug']?.toString() ?? '',
                   'content': content,
                   'summary': summary,
                   'video': '',
                   'image': '',
-                  'userId': 0,
-                  'yeargroup': 0,
+                  'userId': discussion['userId']?.toString() ?? '0',
+                  'yeargroup': discussion['categoryId'] ?? 0,
                   'yearmonth': '',
                   'admin': '',
                   'sticky': '',
@@ -247,28 +247,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _fetchCurrentUser() async {
     try {
       final authService = AuthService();
+      
+      print('===== FETCHING CURRENT USER =====');
       final userData = await authService.getCurrentUser();
+      
+      if (userData == null) {
+        print('ERROR: getCurrentUser returned null');
+        return;
+      }
       
       print('===== CURRENT USER DATA =====');
       print('Full userData: $userData');
-      print('Keys in userData: ${userData.keys}');
+      print('Keys in userData: ${userData.keys.toList()}');
       print('firstName: ${userData['firstName']}');
+      print('first_name: ${userData['first_name']}');
       print('email: ${userData['email']}');
       print('yearGroup: ${userData['yearGroup']}');
+      print('graduationYear: ${userData['graduationYear']}');
       print('==============================');
       
       if (mounted) {
         setState(() {
-          final firstName = userData['firstName']?.toString() ?? userData['first_name']?.toString() ?? '';
-          userName = firstName.isNotEmpty ? firstName : 'User';
+          final firstName = userData['firstName']?.toString() ?? 
+                          userData['first_name']?.toString() ?? '';
+          userName = firstName.isNotEmpty ? firstName : null;
           userEmail = userData['email']?.toString() ?? '';
           
-          final yearGroup = userData['yearGroup']?.toString() ?? userData['year_group']?.toString() ?? '';
+          final yearGroup = userData['yearGroup']?.toString() ?? 
+                          userData['year_group']?.toString() ?? 
+                          userData['graduationYear']?.toString() ?? '';
           userClass = yearGroup.isNotEmpty ? 'Class of $yearGroup' : '';
+          
+          print('===== SET STATE COMPLETE =====');
+          print('userName: $userName');
+          print('userEmail: $userEmail');
+          print('userClass: $userClass');
+          print('==============================');
         });
       }
-    } catch (e) {
-      print('Error fetching current user: $e');
+    } catch (e, stackTrace) {
+      print('===== ERROR FETCHING CURRENT USER =====');
+      print('Error type: ${e.runtimeType}');
+      print('Error message: $e');
+      print('Stack trace: $stackTrace');
+      print('========================================');
     }
   }
 
@@ -467,21 +489,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               width: 50,
                                               height: 50,
                                               decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
                                                 borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(
-                                                  color: odaPrimary,
-                                                  width: 2,
-                                                ),
                                               ),
-                                              child: Center(
-                                                child: Text(
-                                                  'P',
-                                                  style: TextStyle(
-                                                    fontSize: 28,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: odaPrimary,
-                                                  ),
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.asset(
+                                                  'assets/images/presec_logo.webp',
+                                                  fit: BoxFit.contain,
                                                 ),
                                               ),
                                             ),
