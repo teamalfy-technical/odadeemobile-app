@@ -12,7 +12,14 @@ None documented yet.
 The application features a dark theme designed to match the website branding, utilizing a color palette of dark navy (#0f172a) for backgrounds, slate (#1e293b) for card backgrounds, blue (#2563eb) as a primary accent, and yellow (#f4d03f) as a secondary accent. Text is primarily white (#ffffff) with light gray (#cbd5e1) for secondary text. The design incorporates styled cards with rounded corners and elevation, blue-accented buttons, and input fields that align with the dark theme. The dashboard features a clean, minimalist webapp-style aesthetic with personalized greetings, vertically stacked cards for information display (e.g., year group members, events, projects, discussions), and a persistent footer navigation with modern rounded icons and active tab indicators. The overall design emphasizes flat colors, subtle borders, and minimal shadows for a professional, business-focused look.
 
 ### Technical Implementations
-The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platform. It follows a modular project structure, organizing code into reusable `components`, feature-specific `Screens`, and utility files. A robust authentication system uses `flutter_secure_storage` for secure token management, `AuthService` for authentication flows (login, registration, token refresh, logout), and `ApiConfig` for managing API endpoints. Device tracking is integrated for enhanced security. Payment integration (e.g., PayAngel) is implemented with dedicated services and WebView components, handling transaction callbacks and ensuring user data validation. Error handling, null safety, and proper data transformation are implemented throughout the application.
+The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platform. It follows a modular project structure, organizing code into reusable `components`, feature-specific `Screens`, and utility files. A robust authentication system uses `flutter_secure_storage` for secure token management, `AuthService` for authentication flows (login, registration, token refresh, logout), and `ApiConfig` for managing API endpoints. Device tracking is integrated for enhanced security. 
+
+**Payment Integration:** PayAngel payment gateway with platform-specific handling:
+- **Web:** Uses `url_launcher` to open PayAngel in external browser tab with manual user confirmation ("Yes, Payment Complete" button) to prevent false-positive payment records.
+- **Mobile:** Uses `webview_flutter` with embedded WebView that auto-detects payment callback URLs for automatic success/failure handling.
+- **Implementation:** Platform detection via `kIsWeb` runtime guards, with separated build methods for web confirmation screen and mobile WebView screen. All payment data (user info, amount, year group) is properly validated and extracted from nested API responses.
+
+Error handling, null safety, and proper data transformation are implemented throughout the application.
 
 ### Feature Specifications
 - **User Authentication**: Secure sign-in/sign-up, password reset, and token refresh, fully integrated with website credentials.
