@@ -57,7 +57,6 @@ dependencies:
   url_launcher: ^6.2.0
   webview_flutter: ^4.4.0
   dio: ^5.4.0
-  video_player: ^2.8.0
   package_info_plus: ^8.0.0
 
 dev_dependencies:
