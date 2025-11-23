@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
+import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
+import 'package:odadee/components/authenticated_image.dart';
+import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Radio/playing_screen.dart';
 
 class UserDetailScreen extends StatefulWidget {
-  final data;
+  final Data data;
   const UserDetailScreen({Key? key, required this.data}) : super(key: key);
 
   @override
@@ -23,6 +27,46 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool is_info_page = true;
+
+  String _safeConvertDate(String? dateString) {
+    if (dateString == null || dateString.trim().isEmpty) {
+      return '';
+    }
+    try {
+      DateTime? parsedDate;
+      
+      try {
+        parsedDate = DateTime.parse(dateString);
+      } catch (e) {
+        final formats = [
+          DateFormat('EEE, dd MMM yyyy HH:mm:ss'),
+          DateFormat('yyyy-MM-dd HH:mm:ss'),
+          DateFormat('yyyy-MM-dd'),
+          DateFormat('dd/MM/yyyy'),
+          DateFormat('MM/dd/yyyy'),
+        ];
+        
+        for (var format in formats) {
+          try {
+            parsedDate = format.parse(dateString);
+            break;
+          } catch (_) {}
+        }
+      }
+      
+      if (parsedDate == null) {
+        return '';
+      }
+      
+      final month = DateFormat.MMM().format(parsedDate);
+      final day = DateFormat.d().format(parsedDate);
+      final year = DateFormat.y().format(parsedDate);
+      return "$month $day, $year";
+    } catch (e) {
+      print('Error converting date "$dateString": $e');
+      return '';
+    }
+  }
 
 
 
@@ -136,13 +180,47 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                               height: 180,
                                               width: 180,
                                               margin: EdgeInsets.only(left: 5, right: 5, top: 5),
-                                              decoration: BoxDecoration(
-                                                //color: Colors.black,
+                                              child: ClipRRect(
                                                 borderRadius: BorderRadius.circular(15),
-                                                image: DecorationImage(
-                                                  image: NetworkImage(widget.data.image.toString()),
-                                                  fit: BoxFit.cover
-                                                )
+                                                child: widget.data.image != null && widget.data.image!.trim().isNotEmpty
+                                                    ? AuthenticatedImage(
+                                                        imageUrl: widget.data.image!.startsWith('http')
+                                                            ? widget.data.image!
+                                                            : '${ApiConfig.baseUrl}${widget.data.image}',
+                                                        width: 180,
+                                                        height: 180,
+                                                        fit: BoxFit.cover,
+                                                        errorWidget: Container(
+                                                          width: 180,
+                                                          height: 180,
+                                                          decoration: BoxDecoration(
+                                                            color: odaPrimary.withOpacity(0.3),
+                                                            borderRadius: BorderRadius.circular(15),
+                                                          ),
+                                                          child: Center(
+                                                            child: Icon(
+                                                              Icons.person,
+                                                              size: 80,
+                                                              color: Colors.white.withOpacity(0.7),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : Container(
+                                                        width: 180,
+                                                        height: 180,
+                                                        decoration: BoxDecoration(
+                                                          color: odaPrimary.withOpacity(0.3),
+                                                          borderRadius: BorderRadius.circular(15),
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            Icons.person,
+                                                            size: 80,
+                                                            color: Colors.white.withOpacity(0.7),
+                                                          ),
+                                                        ),
+                                                      ),
                                               ),
                                             ),
                                           ),
@@ -157,7 +235,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                                 child: Row(
                                                   mainAxisAlignment: MainAxisAlignment.center,
                                                   children: [
-                                                    Text("Year Group: " + widget.data.yearGroup, style: TextStyle(color: Colors.white, fontSize: 14),),
+                                                    Text(
+                                                      "Year Group: ${widget.data.yearGroup ?? 'N/A'}", 
+                                                      style: TextStyle(color: Colors.white, fontSize: 14),
+                                                    ),
                                                   ],
                                                 ),
                                               )
@@ -173,7 +254,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                 Container(
                                   child: Column(
                                     children: [
-                                      Text(widget.data.firstName + " " + widget.data.lastName, style: TextStyle(fontSize: 24, color: Colors.black),),
+                                      Text(
+                                        "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim().isNotEmpty 
+                                            ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim()
+                                            : 'Unknown User', 
+                                        style: TextStyle(fontSize: 24, color: Colors.black),
+                                      ),
                                       SizedBox(
                                         height: 5,
                                       ),
@@ -408,7 +494,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 SizedBox(
                   height: 5,
                 ),
-                Text(widget.data.about, style: TextStyle(fontSize: 18),),
+                Text(widget.data.about ?? 'No bio available', style: TextStyle(fontSize: 18),),
 
               ],
             ),
@@ -438,7 +524,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("Nick Name:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Text(widget.data.nickName, style: TextStyle(fontSize: 18),),
+                    Text(widget.data.nickName ?? 'N/A', style: TextStyle(fontSize: 18),),
 
                   ],
                 ),
@@ -453,7 +539,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("url:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Text(widget.data.website, style: TextStyle(fontSize: 18, color: odaSecondary),),
+                    Text(widget.data.website ?? 'N/A', style: TextStyle(fontSize: 18, color: odaSecondary),),
 
                   ],
                 ),
@@ -469,7 +555,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("email:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.email, style: TextStyle(fontSize: 18, ),)),
+                    Expanded(child: Text(widget.data.email ?? 'N/A', style: TextStyle(fontSize: 18, ),)),
 
                   ],
                 ),
@@ -487,7 +573,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("PIN:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Text(widget.data.pin, style: TextStyle(fontSize: 18, ),),
+                    Text(widget.data.pin ?? 'N/A', style: TextStyle(fontSize: 18, ),),
 
                   ],
                 ),
@@ -503,7 +589,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("Skype ID:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Text(widget.data.skypeUrl, style: TextStyle(fontSize: 18,),),
+                    Text(widget.data.skypeUrl ?? 'N/A', style: TextStyle(fontSize: 18,),),
 
                   ],
                 ),
@@ -541,7 +627,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("Profession:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.position, style: TextStyle(fontSize: 18, ),)),
+                    Expanded(child: Text(widget.data.position ?? 'N/A', style: TextStyle(fontSize: 18, ),)),
 
                   ],
                 ),
@@ -557,7 +643,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("Job Title:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.jobTitle, style: TextStyle(fontSize: 18, ),)),
+                    Expanded(child: Text(widget.data.jobTitle ?? 'N/A', style: TextStyle(fontSize: 18, ),)),
 
                   ],
                 ),
@@ -574,7 +660,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("Place of work:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.workPlace, style: TextStyle(fontSize: 18, ),)),
+                    Expanded(child: Text(widget.data.workPlace ?? 'N/A', style: TextStyle(fontSize: 18, ),)),
 
                   ],
                 ),
@@ -590,7 +676,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("House:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.house, style: TextStyle(fontSize: 18, ),)),
+                    Expanded(child: Text(widget.data.house ?? 'N/A', style: TextStyle(fontSize: 18, ),)),
 
                   ],
                 ),
@@ -606,7 +692,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("City:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.city, style: TextStyle(fontSize: 18, ),)),
+                    Expanded(child: Text(widget.data.city ?? 'N/A', style: TextStyle(fontSize: 18, ),)),
 
                   ],
                 ),
@@ -623,7 +709,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         width: 150,
                         child: Text("Status:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
-                    Expanded(child: Text(widget.data.status, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black ),)),
+                    Expanded(child: Text(widget.data.status ?? 'N/A', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black ),)),
 
                   ],
                 ),
@@ -648,9 +734,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       children: [
         Container(
           height: MediaQuery.of(context).size.height,
-          child: ListView.builder(
-            itemCount: widget.data.userStatus.length,
+          child: widget.data.userStatus != null && widget.data.userStatus!.isNotEmpty
+              ? ListView.builder(
+            itemCount: widget.data.userStatus!.length,
               itemBuilder: (context, index){
+                final statusItem = widget.data.userStatus![index];
+                if (statusItem == null) return SizedBox.shrink();
+                
                 return Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Container(
@@ -695,23 +785,38 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                 mainAxisAlignment: MainAxisAlignment.start,
 
                                 children: [
-                                  Text(widget.data.userStatus[index].status, style: TextStyle(fontSize: 16),),
-                                  if(widget.data.userStatus[index].attachment != "")...[
-                                    Container(
-                                      height: 80,
-                                      width: 150,
-                                      decoration: BoxDecoration(
-                                          color: odaSecondary.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(10),
-                                          image: DecorationImage(
-                                              image: NetworkImage(widget.data.userStatus[index].attachment,),
-                                              fit: BoxFit.cover
-                                          )
-
+                                  Text(statusItem.status ?? '', style: TextStyle(fontSize: 16),),
+                                  if(statusItem.attachment != null && 
+                                     statusItem.attachment!.trim().isNotEmpty)...[
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: AuthenticatedImage(
+                                        imageUrl: statusItem.attachment!.startsWith('http')
+                                            ? statusItem.attachment!
+                                            : '${ApiConfig.baseUrl}${statusItem.attachment}',
+                                        width: 150,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorWidget: Container(
+                                          width: 150,
+                                          height: 80,
+                                          decoration: BoxDecoration(
+                                            color: odaSecondary.withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Icon(Icons.broken_image, color: Colors.grey),
+                                        ),
                                       ),
                                     ),
                                   ],
-                                  Text(convertToFormattedDate(widget.data.userStatus[index].createdTime), style: TextStyle(fontSize: 16,color: Colors.grey.withOpacity(0.9)),),
+                                  Builder(
+                                    builder: (context) {
+                                      final dateStr = _safeConvertDate(statusItem.createdTime);
+                                      return dateStr.isNotEmpty
+                                          ? Text(dateStr, style: TextStyle(fontSize: 16,color: Colors.grey.withOpacity(0.9)))
+                                          : SizedBox.shrink();
+                                    },
+                                  ),
 
                                 ],
                               ),
@@ -726,7 +831,23 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   ),
                 );
               }
-          ),
+          )
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.info_outline, size: 60, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No status updates',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
         ),
 
 
