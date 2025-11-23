@@ -34,6 +34,15 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - Provides branding without video loading complexity
 - Uses simple timer-based navigation for reliability
 
+**Members Directory:** Clean, modern members list screen for browsing all alumni:
+- Card grid layout displaying all registered members from `/api/search/members` endpoint
+- Search functionality with interactive search icon and clear button
+- Each member card shows: profile image (with AuthenticatedImage), name, graduation year, current role
+- Clickable cards navigate to individual member's full profile (UserDetailScreen)
+- Responsive grid layout (2 columns on mobile, 3 on larger screens)
+- Loading states, error handling, and empty state messages
+- Integrated with dashboard "Total Members" card for seamless navigation
+
 **Settings & App Store Compliance:** Comprehensive settings page meeting all App Store/Play Store requirements:
 - **Account Deletion**: Double confirmation with DELETE `/api/auth/delete-account` integration
 - **Data Export**: GDPR-compliant POST `/api/users/export-data` with email delivery confirmation
@@ -44,6 +53,12 @@ The project is built with Flutter 3.32.0 and Dart 3.8.0, targeting the web platf
 - **App Info**: Version and build number display using `package_info_plus`
 - **Navigation**: Logout, view/edit profile shortcuts
 - All features include proper error handling, confirmation dialogs, loading states, and user feedback
+
+**Dashboard Navigation:** All dashboard stat cards now route to valid functional pages:
+- **Total Members** → MembersScreen (card grid view of all alumni)
+- **Events** → EventsScreen (upcoming events list)
+- **Products** → ProjectsScreen (community projects and shop items)
+- **Contributions** → PayDuesScreen (payment functionality for dues)
 
 Error handling, null safety, and proper data transformation are implemented throughout the application.
 
@@ -60,6 +75,11 @@ Error handling, null safety, and proper data transformation are implemented thro
   - Empty string handling (treated as null for cleaner UI display)
   - Form validation and error handling
   - CORS-proof image loading via authenticated HTTP requests
+- **Members Directory**: Searchable member list with card grid layout:
+  - Browse all registered alumni from dashboard "Total Members" card
+  - Search members by name with interactive UI
+  - View individual member profiles by tapping cards
+  - Responsive grid layout with profile images, graduation years, and roles
 - **Settings & Compliance**: Full settings page for App Store/Play Store compliance:
   - Account deletion with double confirmation
   - GDPR-compliant data export via email
