@@ -239,6 +239,47 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> changePassword({
+    String? currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        'newPassword': newPassword,
+      };
+      
+      if (currentPassword != null && currentPassword.isNotEmpty) {
+        body['currentPassword'] = currentPassword;
+      }
+
+      final response = await authenticatedRequest(
+        'POST',
+        '/api/auth/change-password',
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Password changed successfully',
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to change password',
+        };
+      }
+    } catch (e) {
+      debugPrint('Change password error: $e');
+      return {
+        'success': false,
+        'message': e.toString().replaceAll('Exception: ', ''),
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> getCurrentUser() async {
     try {
       final response = await authenticatedRequest('GET', ApiConfig.meEndpoint);

@@ -6,6 +6,7 @@ import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/components/web_view_page.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';
 import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
+import 'package:odadee/Screens/Settings/change_password_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -510,6 +511,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => UserProfileScreen()),
+            );
+          },
+        ),
+        _buildSettingsItem(
+          icon: Icons.lock_outline,
+          title: 'Change Password',
+          subtitle: 'Update or set your password',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
             );
           },
         ),

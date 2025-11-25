@@ -20,6 +20,7 @@ Built with Flutter 3.32.0 and Dart 3.8.0, the project targets the web platform w
 -   **Splash Screen:** Displays `presec_logo.webp` for 4 seconds before navigation, providing branding without video complexity.
 -   **Members Directory:** A clean, modern, paginated member list with client-side semantic search across multiple fields. It features a responsive card grid layout and navigates to individual `MemberDetailPage` or the user's `UserProfileScreen`. Includes robust data mapping and error handling.
 -   **Settings & App Store Compliance:** A comprehensive settings page including account deletion, GDPR-compliant data export, privacy/legal links (via WebView), cache management (preserving auth tokens), notification settings, support features, and app info display.
+-   **Change Password:** Users can change their password or set a new one after logging in via magic link. Includes password validation (8+ characters, uppercase, lowercase, numbers), confirmation matching, and toggle for users without an existing password.
 -   **Dashboard Navigation:** All dashboard stat cards route to functional pages (Members, Events, Projects, PayDues) with consistent design and navigation.
 -   **Events & Projects Screens:** Redesigned to match the clean aesthetic of `MemberDetailPage`, featuring white app bars, dark backgrounds, blue CTAs, yellow accents, and flat designs with simple back navigation.
 Error handling, null safety, and data transformation are implemented throughout.
