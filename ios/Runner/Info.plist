@@ -15,6 +15,10 @@
     <string>your usage description here</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>your usage description here</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app requires Face ID access to authenticate using biometric login.</string>
+	<key>NSLocalAuthenticationUsageDescription</key>
+	<string>This app requires biometric authentication (Touch ID/Face ID) for secure login.</string>
 
 
 	<key>CADisableMinimumFrameDurationOnPhone</key>

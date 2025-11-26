@@ -12,6 +12,7 @@ import 'package:odadee/constants.dart';
 import 'package:odadee/services/event_service.dart';
 import 'package:odadee/models/event.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
+import 'package:odadee/components/event_image_widget.dart';
 
 import 'package:http/http.dart' as http;
 

@@ -11,6 +11,7 @@ import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/biometric_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginResult {
@@ -96,6 +97,57 @@ class _SignInScreenState extends State<SignInScreen> {
 
   String? user;
   String? password;
+  
+  bool _isBiometricAvailable = false;
+  bool _isBiometricLoginEnabled = false;
+  final BiometricService _biometricService = BiometricService();
+  
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
+  
+  Future<void> _checkBiometricAvailability() async {
+    final isAvailable = await _biometricService.isBiometricAvailable();
+    final isBiometricEnabled = await _biometricService.isBiometricLoginEnabled();
+    
+    setState(() {
+      _isBiometricAvailable = isAvailable;
+      _isBiometricLoginEnabled = isBiometricEnabled;
+    });
+  }
+  
+  Future<void> _performBiometricLogin() async {
+    try {
+      final isAuthenticated = await _biometricService.authenticate();
+      
+      if (isAuthenticated && mounted) {
+        final credentials = await _biometricService.getBiometricEmail();
+        
+        if (credentials != null) {
+          final authService = AuthService();
+          final biometricCredentials = await authService.getBiometricCredentials();
+          
+          if (biometricCredentials != null) {
+            setState(() {
+              _futureSignIn = signInUser(
+                biometricCredentials['email']!,
+                biometricCredentials['password']!,
+              );
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Biometric login error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Biometric authentication failed')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +324,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           height: 20,
                         ),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             InkWell(
                                 onTap: () {
@@ -287,6 +339,24 @@ class _SignInScreenState extends State<SignInScreen> {
                                     color: odaSecondary,
                                   ),
                                 )),
+                            if (_isBiometricAvailable)
+                              Tooltip(
+                                message: _isBiometricLoginEnabled 
+                                  ? 'Quick Biometric Login' 
+                                  : 'Enable Biometric Login after signing in',
+                                child: InkWell(
+                                  onTap: _isBiometricLoginEnabled 
+                                    ? _performBiometricLogin 
+                                    : null,
+                                  child: Icon(
+                                    Icons.fingerprint,
+                                    size: 32,
+                                    color: _isBiometricLoginEnabled 
+                                      ? odaSecondary 
+                                      : Colors.grey.withOpacity(0.5),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ],
@@ -295,6 +365,53 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 Column(
                   children: [
+                    if (_isBiometricAvailable)
+                      Container(
+                        margin: EdgeInsets.only(bottom: 15),
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: odaSecondary.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.fingerprint,
+                              color: odaSecondary,
+                              size: 24,
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Biometric Login',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    _isBiometricLoginEnabled
+                                      ? 'Enabled - Use fingerprint to login'
+                                      : 'Disabled - Enable after login',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     Align(
                       child: Container(
                         width: MediaQuery.of(context).size.width,
@@ -420,7 +537,12 @@ class _SignInScreenState extends State<SignInScreen> {
         _showDialog(context, "Success", "User logged in successfully.",
             Icons.check_circle, Colors.green);
         Future.delayed(Duration(milliseconds: 500), () {
-          _navigateToDashboard(context);
+          // Offer to enable biometric login if available and not already enabled
+          if (_isBiometricAvailable && !_isBiometricLoginEnabled) {
+            _showBiometricSetupDialog(context);
+          } else {
+            _navigateToDashboard(context);
+          }
         });
       }
     } else {
@@ -431,6 +553,77 @@ class _SignInScreenState extends State<SignInScreen> {
           data.error ?? "Login failed. Please try again.",
           Icons.close,
           Colors.red);
+    }
+  }
+
+  void _showBiometricSetupDialog(BuildContext context) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.fingerprint, color: odaSecondary),
+              SizedBox(width: 10),
+              Text("Enable Biometric Login?"),
+            ],
+          ),
+          content: Text(
+            "Would you like to enable biometric login for faster and more secure access?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToDashboard(context);
+              },
+              child: Text("Not Now"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _enableBiometricLogin();
+                if (mounted) {
+                  _navigateToDashboard(context);
+                }
+              },
+              child: Text("Enable", style: TextStyle(color: odaSecondary)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _enableBiometricLogin() async {
+    try {
+      final authService = AuthService();
+      if (user != null && password != null) {
+        await authService.storeBiometricCredentials(user!, password!);
+        setState(() {
+          _isBiometricLoginEnabled = true;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Biometric login enabled successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error enabling biometric login: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to enable biometric login'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

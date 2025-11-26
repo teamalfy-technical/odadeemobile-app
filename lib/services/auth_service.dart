@@ -493,4 +493,220 @@ class AuthService {
   Future<String?> getRefreshToken() async {
     return await storage.read(key: 'refresh_token');
   }
+
+  /// Store credentials for biometric login
+  Future<void> storeBiometricCredentials(String email, String password) async {
+    try {
+      await storage.write(key: 'biometric_email', value: email);
+      await storage.write(key: 'biometric_password', value: password);
+      await storage.write(key: 'biometric_enabled', value: 'true');
+      debugPrint('Biometric credentials stored');
+    } catch (e) {
+      debugPrint('Error storing biometric credentials: $e');
+      rethrow;
+    }
+  }
+
+  /// Retrieve stored credentials for biometric login
+  Future<Map<String, String>?> getBiometricCredentials() async {
+    try {
+      final email = await storage.read(key: 'biometric_email');
+      final password = await storage.read(key: 'biometric_password');
+      
+      if (email != null && password != null) {
+        return {'email': email, 'password': password};
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error retrieving biometric credentials: $e');
+      return null;
+    }
+  }
+
+  /// Check if biometric login is enabled
+  Future<bool> isBiometricLoginEnabled() async {
+    try {
+      final enabled = await storage.read(key: 'biometric_enabled');
+      return enabled == 'true';
+    } catch (e) {
+      debugPrint('Error checking biometric login status: $e');
+      return false;
+    }
+  }
+
+  /// Clear biometric login data
+  Future<void> clearBiometricLogin() async {
+    try {
+      await storage.delete(key: 'biometric_email');
+      await storage.delete(key: 'biometric_password');
+      await storage.delete(key: 'biometric_enabled');
+      debugPrint('Biometric login data cleared');
+    } catch (e) {
+      debugPrint('Error clearing biometric login: $e');
+      rethrow;
+    }
+  }
+
+  /// Request password reset via email
+  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/request-password-reset'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Password reset link sent to your email. Please check your inbox.',
+        };
+      } else if (response.statusCode == 404) {
+        return {
+          'success': false,
+          'message': 'Email not found. Please check and try again.',
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to send password reset link',
+        };
+      }
+    } catch (e) {
+      debugPrint('Password reset request error: $e');
+      return {
+        'success': false,
+        'message': 'Network error. Please check your connection and try again.',
+      };
+    }
+  }
+
+  /// Reset password using token
+  Future<Map<String, dynamic>> resetPasswordWithToken({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': token,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Password reset successfully. Please log in with your new password.',
+        };
+      } else if (response.statusCode == 400) {
+        return {
+          'success': false,
+          'message': 'Invalid or expired reset link. Please request a new one.',
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to reset password',
+        };
+      }
+    } catch (e) {
+      debugPrint('Password reset error: $e');
+      return {
+        'success': false,
+        'message': 'Network error. Please try again.',
+      };
+    }
+  }
+
+  /// Request magic link for passwordless login
+  Future<Map<String, dynamic>> requestMagicLinkLogin(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/request'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Magic link sent to your email. Click the link to log in.',
+        };
+      } else if (response.statusCode == 404) {
+        return {
+          'success': false,
+          'message': 'Email not found. Please check and try again.',
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to send magic link',
+        };
+      }
+    } catch (e) {
+      debugPrint('Magic link request error: $e');
+      return {
+        'success': false,
+        'message': 'Network error. Please try again.',
+      };
+    }
+  }
+
+  /// Verify magic link token and set password
+  Future<Map<String, dynamic>> setPasswordWithMagicLink({
+    required String token,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/set-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': token,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['accessToken'] != null && data['refreshToken'] != null) {
+          await _storeTokens(data['accessToken'], data['refreshToken']);
+          if (data['user'] != null) {
+            await _storeUser(data['user']);
+          }
+        }
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Password set successfully. You are now logged in.',
+          'user': data['user'],
+        };
+      } else if (response.statusCode == 400) {
+        return {
+          'success': false,
+          'message': 'Invalid or expired magic link. Please request a new one.',
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to set password',
+        };
+      }
+    } catch (e) {
+      debugPrint('Set password with magic link error: $e');
+      return {
+        'success': false,
+        'message': 'Network error. Please try again.',
+      };
+    }
+  }
 }

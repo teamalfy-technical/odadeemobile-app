@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/theme_service.dart';
 import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/components/web_view_page.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';
@@ -586,6 +588,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
+        ),
+        Consumer<ThemeService>(
+          builder: (context, themeService, _) {
+            return Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.white10, width: 1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    themeService.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                    color: Colors.white70,
+                    size: 24,
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dark Mode',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          themeService.isDarkMode ? 'Dark theme enabled' : 'Light theme enabled',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  CupertinoSwitch(
+                    value: themeService.isDarkMode,
+                    onChanged: (value) => themeService.setDarkMode(value),
+                    activeColor: odaSecondary,
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );

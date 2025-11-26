@@ -3,6 +3,7 @@ import 'package:odadee/models/event.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:odadee/components/event_image_widget.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   final dynamic data;
@@ -63,43 +64,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (event!.bannerUrl != null && event!.bannerUrl!.isNotEmpty)
-              Container(
-                width: double.infinity,
+              EventImageWidget(
+                imageUrl: event!.bannerUrl!.startsWith('http')
+                    ? event!.bannerUrl!
+                    : '${ApiConfig.baseUrl}/${event!.bannerUrl}',
                 height: 250,
-                decoration: BoxDecoration(
-                  color: Color(0xFF1e293b),
-                ),
-                child: Image.network(
-                  event!.bannerUrl!.startsWith('http')
-                      ? event!.bannerUrl!
-                      : '${ApiConfig.baseUrl}/${event!.bannerUrl}',
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Color(0xFF1e293b),
-                      child: Center(
-                        child: Icon(
-                          Icons.event,
-                          size: 80,
-                          color: Color(0xFF64748b),
-                        ),
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: Color(0xFF1e293b),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                width: double.infinity,
+                fit: BoxFit.cover,
               )
             else
               Container(

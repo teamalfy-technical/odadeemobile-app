@@ -7,35 +7,35 @@ import 'package:odadee/Screens/Authentication/ForgetPassword/reset_password.dart
 import 'package:odadee/Screens/Authentication/SignIn/model/sign_in_model.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/auth_service.dart';
 
-Future<SignInModel> forgotUser(String user) async {
-  final response = await http.post(
-    Uri.parse(hostName + "/api/forget-password"),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json'
-    },
-    body: jsonEncode({
-      "user": user,
-    }),
-  );
+class PasswordResetResult {
+  final bool success;
+  final String message;
+  final Map<String, dynamic>? data;
 
-  if (response.statusCode == 200) {
-    print(jsonDecode(response.body));
-    final result = json.decode(response.body);
-    if (result != null) {
-      //print(result['meta']['token'].toString());
-      //await saveIDApiKey(result['meta']['token'].toString());
-    }
-    return SignInModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 203) {
-    print(jsonDecode(response.body));
-    return SignInModel.fromJson(jsonDecode(response.body));
-  } else if (response.statusCode == 403) {
-    print(jsonDecode(response.body));
-    return SignInModel.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to Sign In');
+  PasswordResetResult({
+    required this.success,
+    required this.message,
+    this.data,
+  });
+}
+
+Future<PasswordResetResult> requestPasswordReset(String email) async {
+  try {
+    final authService = AuthService();
+    final result = await authService.requestPasswordReset(email);
+    
+    return PasswordResetResult(
+      success: result['success'] == true,
+      message: result['message'] ?? 'Request sent',
+      data: result,
+    );
+  } catch (e) {
+    return PasswordResetResult(
+      success: false,
+      message: e.toString().replaceAll('Exception: ', ''),
+    );
   }
 }
 
@@ -48,15 +48,16 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool show_password = false;
-  Future<SignInModel>? _futureSignIn;
+  Future<PasswordResetResult>? _futurePasswordReset;
 
   final _formKey = GlobalKey<FormState>();
 
-  String? user;
+  String? email;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return (_futureSignIn == null) ? buildColumn() : buildFutureBuilder();
+    return (_futurePasswordReset == null) ? buildColumn() : buildFutureBuilder();
   }
 
   buildColumn() {
@@ -153,7 +154,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             autofocus: false,
                             onSaved: (value) {
                               setState(() {
-                                user = value;
+                                email = value;
                               });
                             },
                           ),
@@ -182,9 +183,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 _formKey.currentState!.save();
                                 KeyboardUtil.hideKeyboard(context);
 
-                                _futureSignIn = forgotUser(user!);
-                                print("####################");
-                                print(user);
+                                setState(() {
+                                  _futurePasswordReset = requestPasswordReset(email!);
+                                });
                               }
                             },
                             child: Align(
@@ -213,109 +214,95 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  FutureBuilder<SignInModel> buildFutureBuilder() {
-    return FutureBuilder<SignInModel>(
-        future: _futureSignIn,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Scaffold(
-              body: Container(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text("Please Wait...")
-                  ],
-                ),
-              ),
-            );
-          } else if (snapshot.hasData) {
-            var data = snapshot.data!;
-
-            print("#########################");
-            print(data.message);
-
-            if (data.message == "Password send to your email successfully") {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => ResetPassword()));
-
-                showDialog(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Success"),
-                          ],
-                        ),
-                        content: Text(data.message.toString()),
-                      );
-                    });
-              });
-            } else if (data.error == "Please enter a valid Username or Email") {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ForgotPasswordScreen()));
-
-                showDialog(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Error"),
-                          ],
-                        ),
-                        content: Text(data.error.toString()),
-                      );
-                    });
-              });
-            }
-          }
-
+  FutureBuilder<PasswordResetResult> buildFutureBuilder() {
+    return FutureBuilder<PasswordResetResult>(
+      future: _futurePasswordReset,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            body: Container(
-              width: MediaQuery.of(context).size.width,
+            body: Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text("Please Wait...")
+                  SizedBox(height: 16),
+                  Text("Sending password reset link...")
                 ],
               ),
             ),
           );
-        });
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
+            final result = snapshot.data!;
+            
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (result.success) {
+                showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green),
+                        SizedBox(width: 10),
+                        Text("Success"),
+                      ],
+                    ),
+                    content: Text(result.message),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                        child: Text("Back to Login"),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red),
+                        SizedBox(width: 10),
+                        Text("Error"),
+                      ],
+                    ),
+                    content: Text(result.message),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() => _futurePasswordReset = null);
+                        },
+                        child: Text("Try Again"),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            });
+
+            return Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+        }
+
+        return buildColumn();
+      },
+    );
   }
 
+  @override
   void dispose() {
     super.dispose();
   }

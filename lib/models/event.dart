@@ -34,11 +34,17 @@ class Event {
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
+    // Support multiple possible image URL field names from API
+    final String? imageUrl = json['bannerUrl'] ?? 
+                             json['imageUrl'] ?? 
+                             json['image'] ?? 
+                             json['banner'];
+    
     return Event(
       id: json['id'] ?? '',
       title: json['title'] ?? 'Untitled Event',
       description: json['description'] ?? '',
-      bannerUrl: json['bannerUrl'],
+      bannerUrl: imageUrl,
       startDate: json['startDate'] != null 
           ? DateTime.parse(json['startDate']) 
           : DateTime.now(),

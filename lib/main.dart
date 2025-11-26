@@ -3,12 +3,14 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/Screens/SplashScreen/splash_screen.dart';
 import 'package:odadee/Screens/Authentication/magic_link_callback.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/migration_helper.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/theme_service.dart';
 
 import 'components/theme.dart';
 
@@ -16,6 +18,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await MigrationHelper.migrateAuthStorage();
+  
+  // Initialize ThemeService
+  final themeService = ThemeService();
+  await themeService.initialize();
 
   /*await Firebase.initializeApp();
   final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -43,11 +49,20 @@ class MyApp extends StatelessWidget {
         // Hide the keyboard when tapping outside the text field
         FocusScope.of(context).requestFocus(FocusNode());
       },
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Odade3',
-        theme: theme(),
-        home: MyHomePage(),
+      child: ChangeNotifierProvider<ThemeService>(
+        create: (_) => ThemeService(),
+        child: Consumer<ThemeService>(
+          builder: (context, themeService, _) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'Odade3',
+              theme: themeService.isDarkMode 
+                  ? themeService.getDarkTheme() 
+                  : themeService.getLightTheme(),
+              home: MyHomePage(),
+            );
+          },
+        ),
       ),
     );
   }
