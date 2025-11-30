@@ -1,0 +1,903 @@
+flutter_bootstrap.js:31  Exception while loading service worker: Error: prepareServiceWorker took more than 4000ms to resolve. Moving on.
+    at flutter_bootstrap.js:1:2980
+(anonymous) @ flutter_bootstrap.js:31
+Promise.catch
+load @ flutter_bootstrap.js:31
+(anonymous) @ flutter_bootstrap.js:40
+main.dart.js:30654 Checking URL: https://321d9a72-4ec2-430a-a887-b6fc5e4b6225-00-blr68l3annws.spock.replit.dev/
+main.dart.js:30654 ===== CHECKING AUTH STATUS =====
+main.dart.js:30654 Auth check result: true
+main.dart.js:30654 Navigation target: Dashboard
+main.dart.js:30654 ===== FETCHING CURRENT USER =====
+main.dart.js:30654 ===== PUBLIC PROJECTS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"projects":[{"id":"59e8703a-559d-4838-9f93-98981c34540b","title":"World Robot Olympiad Team PRESEC","description":"Supporting the PRESEC Robotics Team as they compete at the 2025 World Robot Olympiad (23rd-30th November 2025). The team needs funding for flight and accommodation costs to represent Ghana at this prestigious international competition. Your contribution will help these talented students showcase their robotics skills on the world stage.","category":"Education","targetAmount":"18000
+main.dart.js:30654 ========================================
+main.dart.js:30654 Fetched 7 public projects from odadee.net
+main.dart.js:30654 ===== PUBLIC EVENTS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"events":[{"id":"d4744e2d-b711-48f6-9828-037ede0bfb44","title":"87th Speech & Prize Giving Day Celebration","description":"Celebrating our heritage: Shaping future leaders through discipline and academic excellence.\n\nPRESEC-Legon celebrates 87 years of shaping disciplined, visionary leaders. Join us as we honour our heritage, celebrate excellence, and inspire the next generation of achievers.\n\nWitness the brilliance, the pride, and the legacy of the Odadee fraternity.\n\nIn thy light, we sh
+main.dart.js:30654 ======================================
+main.dart.js:30654 Fetched 2 public events from odadee.net
+main.dart.js:30654 ===== CURRENT USER DATA =====
+main.dart.js:30654 Full userData: {id: d617345c-c44d-4412-bf92-0aaa2c6cd2ca, email: alfyopare@gmail.com, firstName: Alfred, middleName: null, lastName: Opare Saforo, graduationYear: 1995, phoneNumber: 0557447933, location: London Bridge, profession: Business Manager, bio: I am a freelance web developer please check out my profile at www.alfyopare.com, profileImage: https://dashboard.odadee.net/uploads/2021/05/ta-119.jpg, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: www.teamalfy.com, currentRole: Web Developer, company: Tse-addo Accra, openToMentor: false, skills: null, role: super_admin, isActive: true, emailVerified: true, lastLoginAt: 2025-11-30T17:22:29.313Z, welcomeEmailSent: null, createdAt: 2023-07-24T10:09:22.000Z, updatedAt: 2025-11-30T17:22:29.313Z}
+main.dart.js:30654 Keys in userData: [id, email, firstName, middleName, lastName, graduationYear, phoneNumber, location, profession, bio, profileImage, coverImage, linkedinUrl, twitterUrl, facebookUrl, websiteUrl, currentRole, company, openToMentor, skills, role, isActive, emailVerified, lastLoginAt, welcomeEmailSent, createdAt, updatedAt]
+main.dart.js:30654 firstName: Alfred
+main.dart.js:30654 first_name: null
+main.dart.js:30654 email: alfyopare@gmail.com
+main.dart.js:30654 yearGroup: null
+main.dart.js:30654 graduationYear: 1995
+main.dart.js:30654 ==============================
+main.dart.js:30654 ===== SET STATE COMPLETE =====
+main.dart.js:30654 userName: Alfred
+main.dart.js:30654 userEmail: alfyopare@gmail.com
+main.dart.js:30654 userClass: Class of 1995
+main.dart.js:30654 ==============================
+main.dart.js:30654 ===== USERS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"users":[{"id":"8c52b24e-867b-46a1-9ee8-f483c7e3239a","email":"JKENA@ME.COM","firstName":"JOSHUA","middleName":null,"lastName":"KENA","graduationYear":2000,"phoneNumber":"14043885365","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-18T17:35:25.427Z","updatedAt":"2025-11-18T17:35:25.427Z"},{"id":"4828cacf-acec-4bed-b215-464d4404bb36","email":"cenanud@gmail.com","firstName":"Senanu","middleName":null,"lastName":"Dovoh","graduationYear":2002,"phoneNumber":"+233244972193","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-21T09:51:49.579Z","updatedAt":"2025-11-21T09:51:49.579Z"},{"id":"f496e900-97c5-47f7-bb62-7ea4c10cb5f4","email":"asiedu86@gmail.com","firstName":"Emmanuel","middleName":null,"lastName":"Obeng-Asiedu","graduationYear":2004,"phoneNumber":"","location":"Worcester","profession":"Sir Accountant","bio":"","profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":"Accountant / Auditor / Tax Advisor","company":"LGC Group","openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":true,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2021-02-20T04:14:44.000Z","updatedAt":"2025-11-25T22:55:16.078Z"},{"id":"a3513985-55c2-4896-b386-48189f9aeb83","email":"papxy@hotmail.com","firstName":"Papa Nii","middleName":null,"lastName":"Asare-Okai","graduationYear":1998,"phoneNumber":"3028986080","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-28T13:03:35.494Z","updatedAt":"2025-11-28T13:03:35.494Z"},{"id":"e3a15348-961f-4b15-a529-b065c8cb2490","email":"aldaja@optonline.net","firstName":"Samuel ","middleName":null,"lastName":"Dadzie","graduationYear":1979,"phoneNumber":"0539930944","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-29T13:01:21.093Z","updatedAt":"2025-11-29T13:01:21.093Z"},{"id":"bc36b9ee-75eb-41a4-9b44-ccb637c41852","email":"Samvaddo@gmail.com","firstName":"Sam","middleName":null,"lastName":"Addo","graduationYear":1976,"phoneNumber":"+233550913699","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-18T16:06:00.351Z","updatedAt":"2025-11-18T16:06:00.351Z"},{"id":"3651ce75-a009-4cc4-8272-3b3d8a3d2522","email":"playwright_test_1764502915184@example.com","firstName":"Playwright","middleName":null,"lastName":"Test","graduationYear":null,"phoneNumber":null,"location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-30T11:41:55.490Z","updatedAt":"2025-11-30T11:41:55.490Z"},{"id":"79e1da40-94bf-40f8-b927-b8011028aa36","email":"testuser1@example.com","firstName":"Test","middleName":"User","lastName":"One","graduationYear":null,"phoneNumber":null,"location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-23T08:37:08.582Z","updatedAt":"2025-11-23T08:37:08.582Z"},{"id":"19c7c084-36e5-44cb-b2f3-89e6913c7567","email":"testuser1764510457338@presec.alumni","firstName":"Test","middleName":null,"lastName":"User","graduationYear":2023,"phoneNumber":"+233 24 123 4567","location":null,"profession":null,"bio":
+main.dart.js:30654 ==============================
+main.dart.js:30654 Decoded JSON: {users: [{id: 8c52b24e-867b-46a1-9ee8-f483c7e3239a, email: JKENA@ME.COM, firstName: JOSHUA, middleName: null, lastName: KENA, graduationYear: 2000, phoneNumber: 14043885365, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-18T17:35:25.427Z, updatedAt: 2025-11-18T17:35:25.427Z}, {id: 4828cacf-acec-4bed-b215-464d4404bb36, email: cenanud@gmail.com, firstName: Senanu, middleName: null, lastName: Dovoh, graduationYear: 2002, phoneNumber: +233244972193, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-21T09:51:49.579Z, updatedAt: 2025-11-21T09:51:49.579Z}, {id: f496e900-97c5-47f7-bb62-7ea4c10cb5f4, email: asiedu86@gmail.com, firstName: Emmanuel, middleName: null, lastName: Obeng-Asiedu, graduationYear: 2004, phoneNumber: , location: Worcester, profession: Sir Accountant, bio: , profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Accountant / Auditor / Tax Advisor, company: LGC Group, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2021-02-20T04:14:44.000Z, updatedAt: 2025-11-25T22:55:16.078Z}, {id: a3513985-55c2-4896-b386-48189f9aeb83, email: papxy@hotmail.com, firstName: Papa Nii, middleName: null, lastName: Asare-Okai, graduationYear: 1998, phoneNumber: 3028986080, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-28T13:03:35.494Z, updatedAt: 2025-11-28T13:03:35.494Z}, {id: e3a15348-961f-4b15-a529-b065c8cb2490, email: aldaja@optonline.net, firstName: Samuel , middleName: null, lastName: Dadzie, graduationYear: 1979, phoneNumber: 0539930944, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-29T13:01:21.093Z, updatedAt: 2025-11-29T13:01:21.093Z}, {id: bc36b9ee-75eb-41a4-9b44-ccb637c41852, email: Samvaddo@gmail.com, firstName: Sam, middleName: null, lastName: Addo, graduationYear: 1976, phoneNumber: +233550913699, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-18T16:06:00.351Z, updatedAt: 2025-11-18T16:06:00.351Z}, {id: 3651ce75-a009-4cc4-8272-3b3d8a3d2522, email: playwright_test_1764502915184@example.com, firstName: Playwright, middleName: null, lastName: Test, graduationYear: null, phoneNumber: null, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-30T11:41:55.490Z, updatedAt: 2025-11-30T11:41:55.490Z}, {id: 79e1da40-94bf-40f8-b927-b8011028aa36, email: testuser1@example.com, firstName: Test, middleName: User, lastName: One, graduationYear: null, phoneNumber: null, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-23T08:37:08.582Z, updatedAt: 2025-11-23T08:37:08.582Z}, {id: 19c7c084-36e5-44cb-b2f3-89e6913c7567, email: testuser1764510457338@presec.alumni, firstName: Test, middleName: null, lastName: User, graduationYear: 2023, phoneNumber: +233 24 123 4567, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: nul
+main.dart.js:30654 ===== DISCUSSIONS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"discussions":[{"id":"839c217a-e93e-40d8-9703-544fb87243da","title":"Networking Event Ideas for 2025","content":"Hey everyone! I'm part of the events committee and we're planning networking events fo...
+main.dart.js:30654 ====================================
+main.dart.js:30654 ===== PUBLIC PROJECTS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"projects":[{"id":"59e8703a-559d-4838-9f93-98981c34540b","title":"World Robot Olympiad Team PRESEC","description":"Supporting the PRESEC Robotics Team as they compete at the 2025 World Robot Olympiad (23rd-30th November 2025). The team needs funding for flight and accommodation costs to represent Ghana at this prestigious international competition. Your contribution will help these talented students showcase their robotics skills on the world stage.","category":"Education","targetAmount":"18000
+main.dart.js:30654 ========================================
+main.dart.js:30654 Fetched 7 public projects from odadee.net
+main.dart.js:30654 ===== PUBLIC EVENTS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"events":[{"id":"d4744e2d-b711-48f6-9828-037ede0bfb44","title":"87th Speech & Prize Giving Day Celebration","description":"Celebrating our heritage: Shaping future leaders through discipline and academic excellence.\n\nPRESEC-Legon celebrates 87 years of shaping disciplined, visionary leaders. Join us as we honour our heritage, celebrate excellence, and inspire the next generation of achievers.\n\nWitness the brilliance, the pride, and the legacy of the Odadee fraternity.\n\nIn thy light, we sh
+main.dart.js:30654 ======================================
+main.dart.js:30654 Fetched 2 public events from odadee.net
+main.dart.js:30654 ===== PUBLIC PROJECTS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"projects":[{"id":"59e8703a-559d-4838-9f93-98981c34540b","title":"World Robot Olympiad Team PRESEC","description":"Supporting the PRESEC Robotics Team as they compete at the 2025 World Robot Olympiad (23rd-30th November 2025). The team needs funding for flight and accommodation costs to represent Ghana at this prestigious international competition. Your contribution will help these talented students showcase their robotics skills on the world stage.","category":"Education","targetAmount":"18000
+main.dart.js:30654 ========================================
+main.dart.js:30654 Fetched 7 public projects from odadee.net
+main.dart.js:30654 ===== PUBLIC EVENTS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"events":[{"id":"d4744e2d-b711-48f6-9828-037ede0bfb44","title":"87th Speech & Prize Giving Day Celebration","description":"Celebrating our heritage: Shaping future leaders through discipline and academic excellence.\n\nPRESEC-Legon celebrates 87 years of shaping disciplined, visionary leaders. Join us as we honour our heritage, celebrate excellence, and inspire the next generation of achievers.\n\nWitness the brilliance, the pride, and the legacy of the Odadee fraternity.\n\nIn thy light, we sh
+main.dart.js:30654 ======================================
+main.dart.js:30654 Fetched 2 public events from odadee.net
+main.dart.js:30654 ===== DISCUSSIONS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"discussions":[{"id":"839c217a-e93e-40d8-9703-544fb87243da","title":"Networking Event Ideas for 2025","content":"Hey everyone! I'm part of the events committee and we're planning networking events fo...
+main.dart.js:30654 ====================================
+main.dart.js:30654 ===== USERS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"users":[{"id":"8c52b24e-867b-46a1-9ee8-f483c7e3239a","email":"JKENA@ME.COM","firstName":"JOSHUA","middleName":null,"lastName":"KENA","graduationYear":2000,"phoneNumber":"14043885365","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-18T17:35:25.427Z","updatedAt":"2025-11-18T17:35:25.427Z"},{"id":"4828cacf-acec-4bed-b215-464d4404bb36","email":"cenanud@gmail.com","firstName":"Senanu","middleName":null,"lastName":"Dovoh","graduationYear":2002,"phoneNumber":"+233244972193","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-21T09:51:49.579Z","updatedAt":"2025-11-21T09:51:49.579Z"},{"id":"f496e900-97c5-47f7-bb62-7ea4c10cb5f4","email":"asiedu86@gmail.com","firstName":"Emmanuel","middleName":null,"lastName":"Obeng-Asiedu","graduationYear":2004,"phoneNumber":"","location":"Worcester","profession":"Sir Accountant","bio":"","profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":"Accountant / Auditor / Tax Advisor","company":"LGC Group","openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":true,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2021-02-20T04:14:44.000Z","updatedAt":"2025-11-25T22:55:16.078Z"},{"id":"a3513985-55c2-4896-b386-48189f9aeb83","email":"papxy@hotmail.com","firstName":"Papa Nii","middleName":null,"lastName":"Asare-Okai","graduationYear":1998,"phoneNumber":"3028986080","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-28T13:03:35.494Z","updatedAt":"2025-11-28T13:03:35.494Z"},{"id":"e3a15348-961f-4b15-a529-b065c8cb2490","email":"aldaja@optonline.net","firstName":"Samuel ","middleName":null,"lastName":"Dadzie","graduationYear":1979,"phoneNumber":"0539930944","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-29T13:01:21.093Z","updatedAt":"2025-11-29T13:01:21.093Z"},{"id":"bc36b9ee-75eb-41a4-9b44-ccb637c41852","email":"Samvaddo@gmail.com","firstName":"Sam","middleName":null,"lastName":"Addo","graduationYear":1976,"phoneNumber":"+233550913699","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-18T16:06:00.351Z","updatedAt":"2025-11-18T16:06:00.351Z"},{"id":"3651ce75-a009-4cc4-8272-3b3d8a3d2522","email":"playwright_test_1764502915184@example.com","firstName":"Playwright","middleName":null,"lastName":"Test","graduationYear":null,"phoneNumber":null,"location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-30T11:41:55.490Z","updatedAt":"2025-11-30T11:41:55.490Z"},{"id":"79e1da40-94bf-40f8-b927-b8011028aa36","email":"testuser1@example.com","firstName":"Test","middleName":"User","lastName":"One","graduationYear":null,"phoneNumber":null,"location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-23T08:37:08.582Z","updatedAt":"2025-11-23T08:37:08.582Z"},{"id":"19c7c084-36e5-44cb-b2f3-89e6913c7567","email":"testuser1764510457338@presec.alumni","firstName":"Test","middleName":null,"lastName":"User","graduationYear":2023,"phoneNumber":"+233 24 123 4567","location":null,"profession":null,"bio":
+main.dart.js:30654 ==============================
+main.dart.js:30654 Decoded JSON: {users: [{id: 8c52b24e-867b-46a1-9ee8-f483c7e3239a, email: JKENA@ME.COM, firstName: JOSHUA, middleName: null, lastName: KENA, graduationYear: 2000, phoneNumber: 14043885365, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-18T17:35:25.427Z, updatedAt: 2025-11-18T17:35:25.427Z}, {id: 4828cacf-acec-4bed-b215-464d4404bb36, email: cenanud@gmail.com, firstName: Senanu, middleName: null, lastName: Dovoh, graduationYear: 2002, phoneNumber: +233244972193, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-21T09:51:49.579Z, updatedAt: 2025-11-21T09:51:49.579Z}, {id: f496e900-97c5-47f7-bb62-7ea4c10cb5f4, email: asiedu86@gmail.com, firstName: Emmanuel, middleName: null, lastName: Obeng-Asiedu, graduationYear: 2004, phoneNumber: , location: Worcester, profession: Sir Accountant, bio: , profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Accountant / Auditor / Tax Advisor, company: LGC Group, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2021-02-20T04:14:44.000Z, updatedAt: 2025-11-25T22:55:16.078Z}, {id: a3513985-55c2-4896-b386-48189f9aeb83, email: papxy@hotmail.com, firstName: Papa Nii, middleName: null, lastName: Asare-Okai, graduationYear: 1998, phoneNumber: 3028986080, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-28T13:03:35.494Z, updatedAt: 2025-11-28T13:03:35.494Z}, {id: e3a15348-961f-4b15-a529-b065c8cb2490, email: aldaja@optonline.net, firstName: Samuel , middleName: null, lastName: Dadzie, graduationYear: 1979, phoneNumber: 0539930944, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-29T13:01:21.093Z, updatedAt: 2025-11-29T13:01:21.093Z}, {id: bc36b9ee-75eb-41a4-9b44-ccb637c41852, email: Samvaddo@gmail.com, firstName: Sam, middleName: null, lastName: Addo, graduationYear: 1976, phoneNumber: +233550913699, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-18T16:06:00.351Z, updatedAt: 2025-11-18T16:06:00.351Z}, {id: 3651ce75-a009-4cc4-8272-3b3d8a3d2522, email: playwright_test_1764502915184@example.com, firstName: Playwright, middleName: null, lastName: Test, graduationYear: null, phoneNumber: null, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-30T11:41:55.490Z, updatedAt: 2025-11-30T11:41:55.490Z}, {id: 79e1da40-94bf-40f8-b927-b8011028aa36, email: testuser1@example.com, firstName: Test, middleName: User, lastName: One, graduationYear: null, phoneNumber: null, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-23T08:37:08.582Z, updatedAt: 2025-11-23T08:37:08.582Z}, {id: 19c7c084-36e5-44cb-b2f3-89e6913c7567, email: testuser1764510457338@presec.alumni, firstName: Test, middleName: null, lastName: User, graduationYear: 2023, phoneNumber: +233 24 123 4567, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: nul
+main.dart.js:30654 ===== DISCUSSIONS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"discussions":[{"id":"839c217a-e93e-40d8-9703-544fb87243da","title":"Networking Event Ideas for 2025","content":"Hey everyone! I'm part of the events committee and we're planning networking events fo...
+main.dart.js:30654 ====================================
+main.dart.js:30654 ===== USERS API RESPONSE =====
+main.dart.js:30654 Status Code: 200
+main.dart.js:30654 Response Body: {"users":[{"id":"8c52b24e-867b-46a1-9ee8-f483c7e3239a","email":"JKENA@ME.COM","firstName":"JOSHUA","middleName":null,"lastName":"KENA","graduationYear":2000,"phoneNumber":"14043885365","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-18T17:35:25.427Z","updatedAt":"2025-11-18T17:35:25.427Z"},{"id":"4828cacf-acec-4bed-b215-464d4404bb36","email":"cenanud@gmail.com","firstName":"Senanu","middleName":null,"lastName":"Dovoh","graduationYear":2002,"phoneNumber":"+233244972193","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-21T09:51:49.579Z","updatedAt":"2025-11-21T09:51:49.579Z"},{"id":"f496e900-97c5-47f7-bb62-7ea4c10cb5f4","email":"asiedu86@gmail.com","firstName":"Emmanuel","middleName":null,"lastName":"Obeng-Asiedu","graduationYear":2004,"phoneNumber":"","location":"Worcester","profession":"Sir Accountant","bio":"","profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":"Accountant / Auditor / Tax Advisor","company":"LGC Group","openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":true,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2021-02-20T04:14:44.000Z","updatedAt":"2025-11-25T22:55:16.078Z"},{"id":"a3513985-55c2-4896-b386-48189f9aeb83","email":"papxy@hotmail.com","firstName":"Papa Nii","middleName":null,"lastName":"Asare-Okai","graduationYear":1998,"phoneNumber":"3028986080","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-28T13:03:35.494Z","updatedAt":"2025-11-28T13:03:35.494Z"},{"id":"e3a15348-961f-4b15-a529-b065c8cb2490","email":"aldaja@optonline.net","firstName":"Samuel ","middleName":null,"lastName":"Dadzie","graduationYear":1979,"phoneNumber":"0539930944","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-29T13:01:21.093Z","updatedAt":"2025-11-29T13:01:21.093Z"},{"id":"bc36b9ee-75eb-41a4-9b44-ccb637c41852","email":"Samvaddo@gmail.com","firstName":"Sam","middleName":null,"lastName":"Addo","graduationYear":1976,"phoneNumber":"+233550913699","location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-18T16:06:00.351Z","updatedAt":"2025-11-18T16:06:00.351Z"},{"id":"3651ce75-a009-4cc4-8272-3b3d8a3d2522","email":"playwright_test_1764502915184@example.com","firstName":"Playwright","middleName":null,"lastName":"Test","graduationYear":null,"phoneNumber":null,"location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-30T11:41:55.490Z","updatedAt":"2025-11-30T11:41:55.490Z"},{"id":"79e1da40-94bf-40f8-b927-b8011028aa36","email":"testuser1@example.com","firstName":"Test","middleName":"User","lastName":"One","graduationYear":null,"phoneNumber":null,"location":null,"profession":null,"bio":null,"profileImage":null,"coverImage":null,"linkedinUrl":null,"twitterUrl":null,"facebookUrl":null,"websiteUrl":null,"currentRole":null,"company":null,"openToMentor":false,"skills":null,"role":"member","isActive":true,"emailVerified":false,"lastLoginAt":null,"welcomeEmailSent":null,"createdAt":"2025-11-23T08:37:08.582Z","updatedAt":"2025-11-23T08:37:08.582Z"},{"id":"19c7c084-36e5-44cb-b2f3-89e6913c7567","email":"testuser1764510457338@presec.alumni","firstName":"Test","middleName":null,"lastName":"User","graduationYear":2023,"phoneNumber":"+233 24 123 4567","location":null,"profession":null,"bio":
+main.dart.js:30654 ==============================
+main.dart.js:30654 Decoded JSON: {users: [{id: 8c52b24e-867b-46a1-9ee8-f483c7e3239a, email: JKENA@ME.COM, firstName: JOSHUA, middleName: null, lastName: KENA, graduationYear: 2000, phoneNumber: 14043885365, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-18T17:35:25.427Z, updatedAt: 2025-11-18T17:35:25.427Z}, {id: 4828cacf-acec-4bed-b215-464d4404bb36, email: cenanud@gmail.com, firstName: Senanu, middleName: null, lastName: Dovoh, graduationYear: 2002, phoneNumber: +233244972193, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-21T09:51:49.579Z, updatedAt: 2025-11-21T09:51:49.579Z}, {id: f496e900-97c5-47f7-bb62-7ea4c10cb5f4, email: asiedu86@gmail.com, firstName: Emmanuel, middleName: null, lastName: Obeng-Asiedu, graduationYear: 2004, phoneNumber: , location: Worcester, profession: Sir Accountant, bio: , profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Accountant / Auditor / Tax Advisor, company: LGC Group, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2021-02-20T04:14:44.000Z, updatedAt: 2025-11-25T22:55:16.078Z}, {id: a3513985-55c2-4896-b386-48189f9aeb83, email: papxy@hotmail.com, firstName: Papa Nii, middleName: null, lastName: Asare-Okai, graduationYear: 1998, phoneNumber: 3028986080, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-28T13:03:35.494Z, updatedAt: 2025-11-28T13:03:35.494Z}, {id: e3a15348-961f-4b15-a529-b065c8cb2490, email: aldaja@optonline.net, firstName: Samuel , middleName: null, lastName: Dadzie, graduationYear: 1979, phoneNumber: 0539930944, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-29T13:01:21.093Z, updatedAt: 2025-11-29T13:01:21.093Z}, {id: bc36b9ee-75eb-41a4-9b44-ccb637c41852, email: Samvaddo@gmail.com, firstName: Sam, middleName: null, lastName: Addo, graduationYear: 1976, phoneNumber: +233550913699, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-18T16:06:00.351Z, updatedAt: 2025-11-18T16:06:00.351Z}, {id: 3651ce75-a009-4cc4-8272-3b3d8a3d2522, email: playwright_test_1764502915184@example.com, firstName: Playwright, middleName: null, lastName: Test, graduationYear: null, phoneNumber: null, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-30T11:41:55.490Z, updatedAt: 2025-11-30T11:41:55.490Z}, {id: 79e1da40-94bf-40f8-b927-b8011028aa36, email: testuser1@example.com, firstName: Test, middleName: User, lastName: One, graduationYear: null, phoneNumber: null, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: null, openToMentor: false, skills: null, role: member, isActive: true, emailVerified: false, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-11-23T08:37:08.582Z, updatedAt: 2025-11-23T08:37:08.582Z}, {id: 19c7c084-36e5-44cb-b2f3-89e6913c7567, email: testuser1764510457338@presec.alumni, firstName: Test, middleName: null, lastName: User, graduationYear: 2023, phoneNumber: +233 24 123 4567, location: null, profession: null, bio: null, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: null, company: nul
+main.dart.js:30654 ===== STATS DATA =====
+main.dart.js:30654 {totalMembers: 1759, totalYearGroups: 54, totalExecutives: 8, activeExecutives: 8, superAdmins: 13, yearGroupAdmins: 41, members: 1705, upcomingEvents: 1, availableProducts: 0}
+main.dart.js:30654 ======================
+(index):1  Access to XMLHttpRequest at 'https://odadee.net/api/images/WhatsApp%20Image%202025-10-28%20at%2022.14.35_dc9eaa4a_1761897118330.jpg' from origin 'https://321d9a72-4ec2-430a-a887-b6fc5e4b6225-00-blr68l3annws.spock.replit.dev' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+main.dart.js:64915   GET https://odadee.net/api/images/WhatsApp%20Image%202025-10-28%20at%2022.14.35_dc9eaa4a_1761897118330.jpg net::ERR_FAILED
+(anonymous) @ main.dart.js:64915
+(anonymous) @ main.dart.js:4903
+$2 @ main.dart.js:40741
+w @ main.dart.js:4889
+afS @ main.dart.js:64929
+vR @ main.dart.js:64900
+(anonymous) @ main.dart.js:64944
+(anonymous) @ main.dart.js:4903
+$2 @ main.dart.js:40741
+w @ main.dart.js:4889
+$0 @ main.dart.js:64949
+(anonymous) @ main.dart.js:64859
+(anonymous) @ main.dart.js:4903
+$2 @ main.dart.js:40741
+w @ main.dart.js:4889
+alu @ main.dart.js:64899
+vr @ main.dart.js:64852
+uf @ main.dart.js:64851
+$0 @ main.dart.js:66265
+a3m @ main.dart.js:66091
+zc @ main.dart.js:66218
+zc @ main.dart.js:90407
+$2 @ main.dart.js:66224
+$1 @ main.dart.js:66255
+fH @ main.dart.js:49929
+bD @ main.dart.js:49934
+b1O @ main.dart.js:245
+aeq @ main.dart.js:66211
+Y @ main.dart.js:66201
+X4 @ main.dart.js:85843
+aJ @ main.dart.js:85825
+cH @ main.dart.js:84955
+dZ @ main.dart.js:84673
+cH @ main.dart.js:85068
+dZ @ main.dart.js:84673
+cH @ main.dart.js:85068
+dZ @ main.dart.js:84673
+cH @ main.dart.js:85068
+dZ @ main.dart.js:84673
+cH @ main.dart.js:85068
+dZ @ main.dart.js:84673
+j1 @ main.dart.js:84918
+FC @ main.dart.js:84863
+cH @ main.dart.js:84938
+dZ @ main.dart.js:84673
+j1 @ main.dart.js:84918
+j1 @ main.dart.js:84946
+FC @ main.dart.js:84863
+a3r @ main.dart.js:84864
+as_ @ main.dart.js:84592
+ag7 @ main.dart.js:84599
+tl @ main.dart.js:84627
+au6 @ main.dart.js:84628
+MS @ main.dart.js:80836
+aj_ @ main.dart.js:68012
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+VC @ main.dart.js:76365
+a1w @ main.dart.js:76349
+ai_ @ main.dart.js:76321
+(anonymous) @ main.dart.js:3739
+nY @ main.dart.js:1069
+$1 @ main.dart.js:34028
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+requestAnimationFrame
+lF @ main.dart.js:34011
+lF @ main.dart.js:76298
+v0 @ main.dart.js:76271
+arI @ main.dart.js:76441
+(anonymous) @ main.dart.js:3740
+VD @ main.dart.js:76360
+$2 @ main.dart.js:76402
+an @ main.dart.js:40217
+eN @ main.dart.js:199
+a1t @ main.dart.js:76331
+ahq @ main.dart.js:76317
+(anonymous) @ main.dart.js:3740
+nZ @ main.dart.js:1072
+$1 @ main.dart.js:34025
+aCM @ main.dart.js:41591
+FP @ main.dart.js:41595
+$1 @ main.dart.js:41606
+baF @ main.dart.js:7043
+(anonymous) @ main.dart.js:7034
+main.dart.js:30654 === DISCUSSIONS SCREEN: INIT STATE ===
+main.dart.js:30654 === DISCUSSIONS SCREEN: LOADING POSTS ===
+main.dart.js:30654 === DISCUSSION SERVICE: GET REQUEST ===
+main.dart.js:30654 Endpoint: /api/discussions
+main.dart.js:30654 === DISCUSSIONS SCREEN: BUILD METHOD v2 ===
+main.dart.js:30654 === DISCUSSION SERVICE: GET RESPONSE ===
+main.dart.js:30654 Status Code: 200
+ ================================
+ === DISCUSSION SERVICE: Parsing 7 discussions ===
+ === FIRST DISCUSSION RAW DATA ===
+ All keys: [id, title, content, category, userId, createdAt, updatedAt, author]
+ id: 839c217a-e93e-40d8-9703-544fb87243da
+ title: Networking Event Ideas for 2025
+ content: Hey everyone! I'm part of the events committee and we're planning networking events for 2025. What types of events would you like to see? Industry-specific meetups? Regional gatherings? Virtual or in-person? Drop your ideas below!
+ category: networking
+ userId: e16f4dc5-908a-494f-a34f-ef195ea742a9
+ createdAt: 2024-10-01T00:00:00.000Z
+ updatedAt: 2025-10-30T22:37:12.090Z
+ author: {Map with keys: [id, email, firstName, middleName, lastName, graduationYear, phoneNumber, location, profession, bio, profileImage, coverImage, linkedinUrl, twitterUrl, facebookUrl, websiteUrl, currentRole, company, openToMentor, skills, role, isActive, emailVerified, lastLoginAt, welcomeEmailSent, createdAt, updatedAt]}
+ =================================
+ === DISCUSSION POST PARSING ===
+ ID: 839c217a-e93e-40d8-9703-544fb87243da
+ Title: Networking Event Ideas for 2025
+ author field: {id: e16f4dc5-908a-494f-a34f-ef195ea742a9, email: jane.smith@email.com, firstName: Jane, middleName: null, lastName: Smith, graduationYear: 2018, phoneNumber: +233248901234, location: Tema, Ghana, profession: Marketing, bio: Digital marketing specialist helping brands grow, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Marketing Manager, company: Brand Agency, openToMentor: true, skills: [Digital Marketing, SEO, Content Strategy, Social Media], role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-10-30T22:37:11.808Z, updatedAt: 2025-10-30T22:37:11.808Z}
+ user field: null
+ Parsed author: Jane Smith
+ commentsCount field: null
+ commentCount field: null
+ _count field: null
+ comments field: null
+ Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION POST PARSING ===
+main.dart.js:30654 ID: 32abbfce-a239-482a-a9c0-7a984b14fb4e
+main.dart.js:30654 Title: Looking for Mentors in Software Engineering
+main.dart.js:30654 author field: {id: b6c03c8f-d1f0-4c56-8cf3-d66f04b62f78, email: david.brown@email.com, firstName: David, middleName: null, lastName: Brown, graduationYear: 2020, phoneNumber: +233251234567, location: Accra, Ghana, profession: Data Science, bio: Data scientist working on AI solutions, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Data Scientist, company: AI Innovations, openToMentor: false, skills: [Python, Machine Learning, Data Analysis, TensorFlow], role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-10-30T22:37:11.808Z, updatedAt: 2025-10-30T22:37:11.808Z}
+main.dart.js:30654 user field: null
+main.dart.js:30654 Parsed author: David Brown
+main.dart.js:30654 commentsCount field: null
+main.dart.js:30654 commentCount field: null
+main.dart.js:30654 _count field: null
+main.dart.js:30654 comments field: null
+main.dart.js:30654 Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION POST PARSING ===
+main.dart.js:30654 ID: ee487a76-e01a-4141-b111-fcdc77b61917
+main.dart.js:30654 Title: Career Transition: Finance to Tech
+main.dart.js:30654 author field: {id: f11688fa-2395-4735-b3dd-64994828aba2, email: john.doe@email.com, firstName: John, middleName: null, lastName: Doe, graduationYear: 2015, phoneNumber: +233247890123, location: Accra, Ghana, profession: Software Engineering, bio: Full-stack developer passionate about mobile apps, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Mobile Developer, company: Mobile Innovations, openToMentor: false, skills: [Flutter, React Native, Kotlin, Swift], role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-10-30T22:37:11.808Z, updatedAt: 2025-10-30T22:37:11.808Z}
+main.dart.js:30654 user field: null
+main.dart.js:30654 Parsed author: John Doe
+main.dart.js:30654 commentsCount field: null
+main.dart.js:30654 commentCount field: null
+main.dart.js:30654 _count field: null
+main.dart.js:30654 comments field: null
+main.dart.js:30654 Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION POST PARSING ===
+main.dart.js:30654 ID: a9c88c1d-bbf6-455a-8ab2-3ede9a029486
+main.dart.js:30654 Title: Job Opening: Marketing Manager
+main.dart.js:30654 author field: {id: e16f4dc5-908a-494f-a34f-ef195ea742a9, email: jane.smith@email.com, firstName: Jane, middleName: null, lastName: Smith, graduationYear: 2018, phoneNumber: +233248901234, location: Tema, Ghana, profession: Marketing, bio: Digital marketing specialist helping brands grow, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Marketing Manager, company: Brand Agency, openToMentor: true, skills: [Digital Marketing, SEO, Content Strategy, Social Media], role: member, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-10-30T22:37:11.808Z, updatedAt: 2025-10-30T22:37:11.808Z}
+main.dart.js:30654 user field: null
+main.dart.js:30654 Parsed author: Jane Smith
+main.dart.js:30654 commentsCount field: null
+main.dart.js:30654 commentCount field: null
+main.dart.js:30654 _count field: null
+main.dart.js:30654 comments field: null
+main.dart.js:30654 Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION POST PARSING ===
+main.dart.js:30654 ID: 913a96b6-ab71-4fbd-ba3f-f5c1401fae23
+main.dart.js:30654 Title: Celebrating 100 Years of PRESEC Excellence
+main.dart.js:30654 author field: {id: 5589151f-40b0-4c97-9674-134c3636b628, email: superadmin@presec.edu.gh, firstName: Emmanuel, middleName: null, lastName: Mensah, graduationYear: 2005, phoneNumber: +233244567890, location: Accra, Ghana, profession: Education Administration, bio: Passionate about connecting PRESEC alumni globally, profileImage: null, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: null, currentRole: Alumni Network Coordinator, company: PRESEC, openToMentor: true, skills: [Leadership, Event Planning, Communication], role: super_admin, isActive: true, emailVerified: true, lastLoginAt: null, welcomeEmailSent: null, createdAt: 2025-10-30T22:37:11.808Z, updatedAt: 2025-10-30T22:37:11.808Z}
+main.dart.js:30654 user field: null
+main.dart.js:30654 Parsed author: Emmanuel Mensah
+main.dart.js:30654 commentsCount field: null
+main.dart.js:30654 commentCount field: null
+main.dart.js:30654 _count field: null
+main.dart.js:30654 comments field: null
+main.dart.js:30654 Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION POST PARSING ===
+main.dart.js:30654 ID: a0ca88df-f9e4-4e87-bf16-e34f402acbad
+main.dart.js:30654 Title: We did it !
+main.dart.js:30654 author field: {id: d617345c-c44d-4412-bf92-0aaa2c6cd2ca, email: alfyopare@gmail.com, firstName: Alfred, middleName: null, lastName: Opare Saforo, graduationYear: 1995, phoneNumber: 0557447933, location: London Bridge, profession: Business Manager, bio: I am a freelance web developer please check out my profile at www.alfyopare.com, profileImage: https://dashboard.odadee.net/uploads/2021/05/ta-119.jpg, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: www.teamalfy.com, currentRole: Web Developer, company: Tse-addo Accra, openToMentor: false, skills: null, role: super_admin, isActive: true, emailVerified: true, lastLoginAt: 2025-11-30T17:22:29.313Z, welcomeEmailSent: null, createdAt: 2023-07-24T10:09:22.000Z, updatedAt: 2025-11-30T17:22:29.313Z}
+main.dart.js:30654 user field: null
+main.dart.js:30654 Parsed author: Alfred Opare Saforo
+main.dart.js:30654 commentsCount field: null
+main.dart.js:30654 commentCount field: null
+main.dart.js:30654 _count field: null
+main.dart.js:30654 comments field: null
+main.dart.js:30654 Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION POST PARSING ===
+main.dart.js:30654 ID: 8e2d4ffd-ff06-41d1-9eb9-08abb31cdd08
+main.dart.js:30654 Title: Christmas at Zuludesk!
+main.dart.js:30654 author field: {id: d617345c-c44d-4412-bf92-0aaa2c6cd2ca, email: alfyopare@gmail.com, firstName: Alfred, middleName: null, lastName: Opare Saforo, graduationYear: 1995, phoneNumber: 0557447933, location: London Bridge, profession: Business Manager, bio: I am a freelance web developer please check out my profile at www.alfyopare.com, profileImage: https://dashboard.odadee.net/uploads/2021/05/ta-119.jpg, coverImage: null, linkedinUrl: null, twitterUrl: null, facebookUrl: null, websiteUrl: www.teamalfy.com, currentRole: Web Developer, company: Tse-addo Accra, openToMentor: false, skills: null, role: super_admin, isActive: true, emailVerified: true, lastLoginAt: 2025-11-30T17:22:29.313Z, welcomeEmailSent: null, createdAt: 2023-07-24T10:09:22.000Z, updatedAt: 2025-11-30T17:22:29.313Z}
+main.dart.js:30654 user field: null
+main.dart.js:30654 Parsed author: Alfred Opare Saforo
+main.dart.js:30654 commentsCount field: null
+main.dart.js:30654 commentCount field: null
+main.dart.js:30654 _count field: null
+main.dart.js:30654 comments field: null
+main.dart.js:30654 Calculated commentCount: 0
+main.dart.js:30654 ===============================
+main.dart.js:30654 === DISCUSSION SERVICE: Successfully parsed 7 discussions ===
+main.dart.js:30654 === DISCUSSIONS SCREEN: Loaded 7 posts ===
+main.dart.js:30654 === DISCUSSIONS SCREEN: UI updated, isLoading=false ===
+main.dart.js:30654 === DISCUSSIONS SCREEN: BUILD METHOD v2 ===
