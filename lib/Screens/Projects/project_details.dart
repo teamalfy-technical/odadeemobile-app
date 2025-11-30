@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:odadee/services/payment_service.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/theme_service.dart';
+import 'package:odadee/services/year_group_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
@@ -208,38 +209,36 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                         
                         String yearGroupId = project!.yearGroupId ?? '';
                         if (yearGroupId.isEmpty) {
-                          print('Project has no yearGroupId, fetching from user...');
-                          final authService = AuthService();
+                          print('Project has no yearGroupId, fetching user year group...');
                           
-                          // Try cached data first, then API
-                          Map<String, dynamic>? userData;
-                          userData = await authService.getCachedUser();
-                          print('Cached user data: $userData');
-                          
-                          if (userData == null) {
-                            try {
-                              userData = await authService.getCurrentUser();
-                              print('User data from API: $userData');
-                            } catch (e) {
-                              print('API fetch failed: $e');
-                              throw Exception('Your session has expired. Please log out and log in again.');
+                          // Get the actual year group UUID from YearGroupService
+                          final yearGroupService = YearGroupService();
+                          try {
+                            final yearGroup = await yearGroupService.getUserYearGroup();
+                            if (yearGroup != null) {
+                              yearGroupId = yearGroup.id;
+                              print('Got year group from service: id=${yearGroup.id}, name=${yearGroup.name}');
+                            }
+                          } catch (e) {
+                            print('Failed to get year group from service: $e');
+                            // Fallback: try to get from user data
+                            final authService = AuthService();
+                            Map<String, dynamic>? userData = await authService.getCachedUser();
+                            if (userData == null) {
+                              try {
+                                userData = await authService.getCurrentUser();
+                              } catch (e) {
+                                print('API fetch also failed: $e');
+                              }
+                            }
+                            
+                            // Check if user data has a yearGroupId (UUID)
+                            yearGroupId = userData?['yearGroupId']?.toString() ?? '';
+                            if (yearGroupId.isEmpty && userData?['yearGroup'] is Map) {
+                              yearGroupId = (userData!['yearGroup'] as Map)['id']?.toString() ?? '';
                             }
                           }
-                          
-                          print('User data keys: ${userData?.keys.toList()}');
-                          
-                          yearGroupId = userData?['yearGroupId']?.toString() ?? '';
-                          if (yearGroupId.isEmpty) {
-                            yearGroupId = userData?['yearGroup']?.toString() ?? '';
-                          }
-                          if (yearGroupId.isEmpty) {
-                            yearGroupId = userData?['graduationYear']?.toString() ?? '';
-                          }
-                          if (yearGroupId.isEmpty && userData?['yearGroup'] is Map) {
-                            yearGroupId = (userData!['yearGroup'] as Map)['id']?.toString() ?? 
-                                         (userData['yearGroup'] as Map)['_id']?.toString() ?? '';
-                          }
-                          print('Resolved yearGroupId from user: "$yearGroupId"');
+                          print('Resolved yearGroupId: "$yearGroupId"');
                         }
                         
                         if (yearGroupId.isEmpty) {

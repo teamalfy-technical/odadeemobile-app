@@ -13,7 +13,7 @@ class EventImageWidget extends StatefulWidget {
   const EventImageWidget({
     Key? key,
     required this.imageUrl,
-    this.placeholderImage = 'assets/images/event_placeholder.png',
+    this.placeholderImage = 'assets/images/oda_logo.png',
     this.height = 200,
     this.width = double.infinity,
     this.fit = BoxFit.cover,
