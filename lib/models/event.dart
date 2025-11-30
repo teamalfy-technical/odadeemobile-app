@@ -45,17 +45,19 @@ class Event {
     print('Raw image URL: $imageUrl');
 
     // If imageUrl is not null and doesn't start with http/https, prepend base URL
+    // Per API docs: images are served via /api/images/ endpoint
     if (imageUrl != null && imageUrl.isNotEmpty) {
       if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
         // Remove leading slash if present
         if (imageUrl.startsWith('/')) {
           imageUrl = imageUrl.substring(1);
         }
-        // Check if the URL already contains 'uploads/' to avoid doubling
+        // Images are served through /api/images/ endpoint per API docs
+        // Format: https://odadee.net/api/images/uploads/uuid
         if (imageUrl.startsWith('uploads/')) {
-          imageUrl = 'https://odadee.net/$imageUrl';
+          imageUrl = 'https://odadee.net/api/images/$imageUrl';
         } else {
-          imageUrl = 'https://odadee.net/uploads/$imageUrl';
+          imageUrl = 'https://odadee.net/api/images/uploads/$imageUrl';
         }
         print('Prepended base URL: $imageUrl');
       } else {

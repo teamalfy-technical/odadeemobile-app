@@ -53,11 +53,12 @@ class _EventImageWidgetState extends State<EventImageWidget> {
       normalizedUrl = normalizedUrl.substring(1);
     }
     
-    // Check if the URL already contains 'uploads/' to avoid doubling
+    // Images are served through /api/images/ endpoint per API docs
+    // Format: https://odadee.net/api/images/uploads/uuid
     if (normalizedUrl.startsWith('uploads/')) {
-      return 'https://odadee.net/$normalizedUrl';
+      return 'https://odadee.net/api/images/$normalizedUrl';
     } else {
-      return 'https://odadee.net/uploads/$normalizedUrl';
+      return 'https://odadee.net/api/images/uploads/$normalizedUrl';
     }
   }
 
