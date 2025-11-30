@@ -84,6 +84,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final eventService = EventService();
       final events = await eventService.getPublicEvents();
+      // Sort events by start date descending (latest at top)
+      events.sort((a, b) => b.startDate.compareTo(a.startDate));
       print('Fetched ${events.length} public events from odadee.net');
       return events;
     } catch (e) {
@@ -210,15 +212,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _fetchCurrentUser() async {
     try {
       final authService = AuthService();
-      
+
       print('===== FETCHING CURRENT USER =====');
       final userData = await authService.getCurrentUser();
-      
+
       if (userData == null) {
         print('ERROR: getCurrentUser returned null');
         return;
       }
-      
+
       print('===== CURRENT USER DATA =====');
       print('Full userData: $userData');
       print('Keys in userData: ${userData.keys.toList()}');
@@ -228,19 +230,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       print('yearGroup: ${userData['yearGroup']}');
       print('graduationYear: ${userData['graduationYear']}');
       print('==============================');
-      
+
       if (mounted) {
         setState(() {
-          final firstName = userData['firstName']?.toString() ?? 
-                          userData['first_name']?.toString() ?? '';
+          final firstName = userData['firstName']?.toString() ??
+              userData['first_name']?.toString() ??
+              '';
           userName = firstName.isNotEmpty ? firstName : null;
           userEmail = userData['email']?.toString() ?? '';
-          
-          final yearGroup = userData['yearGroup']?.toString() ?? 
-                          userData['year_group']?.toString() ?? 
-                          userData['graduationYear']?.toString() ?? '';
+
+          final yearGroup = userData['yearGroup']?.toString() ??
+              userData['year_group']?.toString() ??
+              userData['graduationYear']?.toString() ??
+              '';
           userClass = yearGroup.isNotEmpty ? 'Class of $yearGroup' : '';
-          
+
           print('===== SET STATE COMPLETE =====');
           print('userName: $userName');
           print('userEmail: $userEmail');
@@ -333,7 +337,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Map<String, dynamic> _extractDateInfoFromDateTime(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return {
       'day': date.day.toString().padLeft(2, '0'),
       'month': months[date.month - 1],
@@ -459,7 +476,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Row(
@@ -468,10 +486,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               width: 50,
                                               height: 50,
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(8),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               child: ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                                 child: Image.asset(
                                                   'assets/images/presec_logo.webp',
                                                   fit: BoxFit.contain,
@@ -481,39 +501,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             SizedBox(width: 12),
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    userName != null && userName!.isNotEmpty
-                                                        ? "Welcome back, $userName!" 
+                                                    userName != null &&
+                                                            userName!.isNotEmpty
+                                                        ? "Welcome back, $userName!"
                                                         : "Welcome back!",
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.w900,
+                                                      fontWeight:
+                                                          FontWeight.w900,
                                                       fontSize: 20,
                                                       color: Colors.white,
                                                     ),
                                                   ),
-                                                  if (userEmail != null && userEmail!.isNotEmpty) ...[
+                                                  if (userEmail != null &&
+                                                      userEmail!
+                                                          .isNotEmpty) ...[
                                                     SizedBox(height: 2),
                                                     Text(
                                                       userEmail!,
                                                       style: TextStyle(
                                                         fontSize: 12,
-                                                        color: Color(0xFF94a3b8),
-                                                        fontWeight: FontWeight.w400,
+                                                        color:
+                                                            Color(0xFF94a3b8),
+                                                        fontWeight:
+                                                            FontWeight.w400,
                                                       ),
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ],
-                                                  if (userClass != null && userClass!.isNotEmpty) ...[
+                                                  if (userClass != null &&
+                                                      userClass!
+                                                          .isNotEmpty) ...[
                                                     SizedBox(height: 2),
                                                     Text(
                                                       userClass!,
                                                       style: TextStyle(
                                                         fontSize: 12,
-                                                        color: Color(0xFF94a3b8),
-                                                        fontWeight: FontWeight.w400,
+                                                        color:
+                                                            Color(0xFF94a3b8),
+                                                        fontWeight:
+                                                            FontWeight.w400,
                                                       ),
                                                     ),
                                                   ],
@@ -546,260 +578,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Column(
-                                children: [
-                                  StatCard(
-                                    title: 'Total Members',
-                                    value: '$usersCount',
-                                    icon: Icons.people,
-                                    subtitle: 'Registered alumni',
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              MembersScreen(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(height: 15),
-                                  StatCard(
-                                    title: 'Events',
-                                    value: '$eventsCount',
-                                    icon: Icons.event,
-                                    subtitle: 'Upcoming events',
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => EventsScreen(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(height: 15),
-                                  StatCard(
-                                    title: 'Products',
-                                    value: '$projectsCount',
-                                    icon: Icons.card_giftcard,
-                                    subtitle: 'In shop',
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProjectsScreen(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(height: 15),
-                                  StatCard(
-                                    title: 'Contributions',
-                                    value: statsData != null
-                                        ? 'GH¢ ${statsData['contributions'] ?? statsData['total_contributions'] ?? statsData['amount'] ?? statsData['total_amount'] ?? statsData['total_donations'] ?? 0}'
-                                        : 'GH¢ 0',
-                                    icon: Icons.payments,
-                                    subtitle: 'Total raised',
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => PayDuesScreen(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 30),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        user_year_group != null &&
-                                                user_year_group!.length >= 2
-                                            ? "${user_year_group!.substring(user_year_group!.length - 2)} year group"
-                                            : "Year group",
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                  builder: (BuildContext
-                                                          context) =>
-                                                      MembersScreen()));
-                                        },
-                                        child: Container(
-                                          child: Text('View All',
-                                              style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: odaPrimary)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 15),
-                                  if (userData.users?.data?.isEmpty ?? true)
-                                    Container(
-                                      padding: EdgeInsets.all(40),
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFF1e293b),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Color(0xFF334155),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(Icons.people_outline,
-                                              size: 60,
-                                              color: Color(0xFF64748b)),
-                                          SizedBox(height: 16),
-                                          Text(
-                                            'No members yet',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Color(0xFF94a3b8),
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  else
-                                    Column(
-                                      children: userData.users!.data!.take(6).map((user) {
-                                        return Container(
-                                          margin: EdgeInsets.only(bottom: 15),
-                                          child: InkWell(
-                                            onTap: () {
-                                              Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                      builder: (BuildContext
-                                                              context) =>
-                                                          MemberDetailPage(
-                                                              data: user)));
-                                            },
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            child: Container(
-                                              padding: EdgeInsets.all(20),
-                                              decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
-                                                borderRadius: BorderRadius.circular(12),
-                                                border: Border.all(
-                                                  color: Color(0xFF334155),
-                                                  width: 1,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  if (user.image != null && user.image!.isNotEmpty) ...[
-                                                    Container(
-                                                      height: 60,
-                                                      width: 60,
-                                                      decoration:
-                                                          BoxDecoration(
-                                                        shape:
-                                                            BoxShape.circle,
-                                                        image: DecorationImage(
-                                                            image: NetworkImage(
-                                                                user.image!),
-                                                            fit:
-                                                                BoxFit.cover),
-                                                      ),
-                                                    ),
-                                                  ] else ...[
-                                                    Container(
-                                                      height: 60,
-                                                      width: 60,
-                                                      decoration:
-                                                          BoxDecoration(
-                                                        shape:
-                                                            BoxShape.circle,
-                                                        color:
-                                                            Color(0xFF334155),
-                                                        border: Border.all(
-                                                          color: Color(
-                                                              0xFF475569),
-                                                          width: 2,
-                                                        ),
-                                                      ),
-                                                      child: Center(
-                                                        child: Text(
-                                                          ((user.firstName?.isNotEmpty ?? false)
-                                                                  ? user.firstName!.substring(0, 1)
-                                                                  : '') +
-                                                              ((user.lastName?.isNotEmpty ?? false)
-                                                                  ? user.lastName!.substring(0, 1)
-                                                                  : ''),
-                                                          style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color: Colors
-                                                                  .white),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                  SizedBox(width: 15),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight.w600,
-                                                              color: Colors.white),
-                                                        ),
-                                                        if (user.email != null && user.email!.isNotEmpty) ...[
-                                                          SizedBox(height: 4),
-                                                          Text(
-                                                            user.email!,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Color(0xFF94a3b8)),
-                                                            maxLines: 1,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ],
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Icon(
-                                                    Icons.arrow_forward_ios,
-                                                    size: 16,
-                                                    color: Color(0xFF64748b),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 30),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Column(
                                 children: [
                                   Row(
@@ -817,9 +597,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         onTap: () {
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                  builder: (BuildContext
-                                                          context) =>
-                                                      EventsScreen()));
+                                                  builder:
+                                                      (BuildContext context) =>
+                                                          EventsScreen()));
                                         },
                                         child: Text('View All',
                                             style: const TextStyle(
@@ -878,7 +658,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
                                                 color: Color(0xFF1e293b),
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                                 border: Border.all(
                                                   color: Color(0xFF334155),
                                                   width: 1,
@@ -887,32 +668,99 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               child: Row(
                                                 children: [
                                                   Container(
-                                                    padding: EdgeInsets.all(12),
+                                                    height: 60,
+                                                    width: 60,
                                                     decoration: BoxDecoration(
                                                       color: Color(0xFF334155),
                                                       borderRadius:
-                                                          BorderRadius.circular(10),
+                                                          BorderRadius.circular(
+                                                              10),
                                                       border: Border.all(
-                                                        color: Color(0xFF475569),
+                                                        color:
+                                                            Color(0xFF475569),
                                                         width: 1,
                                                       ),
                                                     ),
-                                                    child: _buildEventDate(event.startDate),
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                      child: (event.bannerUrl !=
+                                                                  null &&
+                                                              event.bannerUrl!
+                                                                  .isNotEmpty)
+                                                          ? Image.network(
+                                                              event.bannerUrl!,
+                                                              fit: BoxFit.cover,
+                                                              loadingBuilder:
+                                                                  (context,
+                                                                      child,
+                                                                      loadingProgress) {
+                                                                if (loadingProgress ==
+                                                                    null) {
+                                                                  return child;
+                                                                }
+                                                                return Center(
+                                                                  child:
+                                                                      CircularProgressIndicator(
+                                                                    strokeWidth:
+                                                                        2,
+                                                                    valueColor:
+                                                                        AlwaysStoppedAnimation<
+                                                                            Color>(
+                                                                      Color(
+                                                                          0xFF64748b),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              errorBuilder:
+                                                                  (context,
+                                                                      error,
+                                                                      stackTrace) {
+                                                                print(
+                                                                    'Error loading image ${event.bannerUrl}: $error');
+                                                                return Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(
+                                                                          8.0),
+                                                                  child: _buildEventDate(
+                                                                      event
+                                                                          .startDate),
+                                                                );
+                                                              },
+                                                            )
+                                                          : Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(8.0),
+                                                              child: _buildEventDate(
+                                                                  event
+                                                                      .startDate),
+                                                            ),
+                                                    ),
                                                   ),
                                                   SizedBox(width: 15),
                                                   Expanded(
                                                     child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
-                                                          event.title ?? 'Untitled Event',
+                                                          event.title ??
+                                                              'Untitled Event',
                                                           style: TextStyle(
                                                               fontSize: 16,
                                                               fontWeight:
-                                                                  FontWeight.w600,
-                                                              color: Colors.white),
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white),
                                                           maxLines: 2,
-                                                          overflow: TextOverflow.ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                         ),
                                                       ],
                                                     ),
@@ -934,7 +782,281 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             SizedBox(height: 30),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
+                                children: [
+                                  StatCard(
+                                    title: 'Total Members',
+                                    value: '$usersCount',
+                                    icon: Icons.people,
+                                    subtitle: 'Registered alumni',
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => MembersScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  SizedBox(height: 15),
+                                  StatCard(
+                                    title: 'Events',
+                                    value: '$eventsCount',
+                                    icon: Icons.event,
+                                    subtitle: 'Upcoming events',
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => EventsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  SizedBox(height: 15),
+                                  StatCard(
+                                    title: 'Products',
+                                    value: '$projectsCount',
+                                    icon: Icons.card_giftcard,
+                                    subtitle: 'In shop',
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ProjectsScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  SizedBox(height: 15),
+                                  StatCard(
+                                    title: 'Contributions',
+                                    value: statsData != null
+                                        ? 'GH¢ ${statsData['contributions'] ?? statsData['total_contributions'] ?? statsData['amount'] ?? statsData['total_amount'] ?? statsData['total_donations'] ?? 0}'
+                                        : 'GH¢ 0',
+                                    icon: Icons.payments,
+                                    subtitle: 'Total raised',
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => PayDuesScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 30),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        user_year_group != null &&
+                                                user_year_group!.length >= 2
+                                            ? "${user_year_group!.substring(user_year_group!.length - 2)} year group"
+                                            : "Year group",
+                                        style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder:
+                                                      (BuildContext context) =>
+                                                          MembersScreen()));
+                                        },
+                                        child: Container(
+                                          child: Text('View All',
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: odaPrimary)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 15),
+                                  if (userData.users?.data?.isEmpty ?? true)
+                                    Container(
+                                      padding: EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF1e293b),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFF334155),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.people_outline,
+                                              size: 60,
+                                              color: Color(0xFF64748b)),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            'No members yet',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFF94a3b8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Column(
+                                      children: userData.users!.data!
+                                          .take(6)
+                                          .map((user) {
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 15),
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          MemberDetailPage(
+                                                              data: user)));
+                                            },
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: EdgeInsets.all(20),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Color(0xFF334155),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  if (user.image != null &&
+                                                      user.image!
+                                                          .isNotEmpty) ...[
+                                                    Container(
+                                                      height: 60,
+                                                      width: 60,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        image: DecorationImage(
+                                                            image: NetworkImage(
+                                                                user.image!),
+                                                            fit: BoxFit.cover),
+                                                      ),
+                                                    ),
+                                                  ] else ...[
+                                                    Container(
+                                                      height: 60,
+                                                      width: 60,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color:
+                                                            Color(0xFF334155),
+                                                        border: Border.all(
+                                                          color:
+                                                              Color(0xFF475569),
+                                                          width: 2,
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          ((user.firstName?.isNotEmpty ??
+                                                                      false)
+                                                                  ? user
+                                                                      .firstName!
+                                                                      .substring(
+                                                                          0, 1)
+                                                                  : '') +
+                                                              ((user.lastName
+                                                                          ?.isNotEmpty ??
+                                                                      false)
+                                                                  ? user
+                                                                      .lastName!
+                                                                      .substring(
+                                                                          0, 1)
+                                                                  : ''),
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  SizedBox(width: 15),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          '${user.firstName ?? ''} ${user.lastName ?? ''}'
+                                                              .trim(),
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                        if (user.email !=
+                                                                null &&
+                                                            user.email!
+                                                                .isNotEmpty) ...[
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            user.email!,
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Color(
+                                                                    0xFF94a3b8)),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 16,
+                                                    color: Color(0xFF64748b),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Column(
                                 children: [
                                   Row(
@@ -952,9 +1074,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         onTap: () {
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                  builder: (BuildContext
-                                                          context) =>
-                                                      ProjectsScreen()));
+                                                  builder:
+                                                      (BuildContext context) =>
+                                                          ProjectsScreen()));
                                         },
                                         child: Text('View All',
                                             style: const TextStyle(
@@ -995,9 +1117,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     )
                                   else
                                     Column(
-                                      children: projectsData.take(3).map((project) {
-                                        final fundingProgress = project.fundingProgress;
-                                        final fundingPercentage = project.fundingPercentage;
+                                      children:
+                                          projectsData.take(3).map((project) {
+                                        final fundingProgress =
+                                            project.fundingProgress;
+                                        final fundingPercentage =
+                                            project.fundingPercentage;
 
                                         return Container(
                                           margin: EdgeInsets.only(bottom: 15),
@@ -1005,76 +1130,114 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             onTap: () {
                                               Navigator.of(context).push(
                                                   MaterialPageRoute(
-                                                      builder: (BuildContext context) =>
-                                                          ProjectDetailsScreen(data: project)));
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          ProjectDetailsScreen(
+                                                              data: project)));
                                             },
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                             child: Container(
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
                                                 color: Color(0xFF1e293b),
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                                 border: Border.all(
                                                   color: Color(0xFF334155),
                                                   width: 1,
                                                 ),
                                               ),
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
                                                     children: [
                                                       Container(
                                                         height: 60,
                                                         width: 60,
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(10),
-                                                          color: (project.imageUrl?.isNotEmpty ?? false)
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          color: (project
+                                                                      .imageUrl
+                                                                      ?.isNotEmpty ??
+                                                                  false)
                                                               ? null
-                                                              : Color(0xFF334155),
+                                                              : Color(
+                                                                  0xFF334155),
                                                           border: Border.all(
-                                                            color: Color(0xFF475569),
+                                                            color: Color(
+                                                                0xFF475569),
                                                             width: 1,
                                                           ),
-                                                          image: (project.imageUrl?.isNotEmpty ?? false)
+                                                          image: (project
+                                                                      .imageUrl
+                                                                      ?.isNotEmpty ??
+                                                                  false)
                                                               ? DecorationImage(
-                                                                  image: NetworkImage(project.imageUrl!),
-                                                                  fit: BoxFit.cover)
+                                                                  image: NetworkImage(
+                                                                      project
+                                                                          .imageUrl!),
+                                                                  fit: BoxFit
+                                                                      .cover)
                                                               : null,
                                                         ),
-                                                        child: (project.imageUrl?.isNotEmpty ?? false)
+                                                        child: (project.imageUrl
+                                                                    ?.isNotEmpty ??
+                                                                false)
                                                             ? null
                                                             : Center(
                                                                 child: Icon(
-                                                                  Icons.card_giftcard_outlined,
+                                                                  Icons
+                                                                      .card_giftcard_outlined,
                                                                   size: 30,
-                                                                  color: Color(0xFF64748b),
+                                                                  color: Color(
+                                                                      0xFF64748b),
                                                                 ),
                                                               ),
                                                       ),
                                                       SizedBox(width: 15),
                                                       Expanded(
                                                         child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           children: [
                                                             Text(
                                                               project.title,
                                                               style: TextStyle(
                                                                   fontSize: 16,
-                                                                  fontWeight: FontWeight.w600,
-                                                                  color: Colors.white),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: Colors
+                                                                      .white),
                                                               maxLines: 1,
-                                                              overflow: TextOverflow.ellipsis,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
-                                                            if (project.description.isNotEmpty) ...[
-                                                              SizedBox(height: 4),
+                                                            if (project
+                                                                .description
+                                                                .isNotEmpty) ...[
+                                                              SizedBox(
+                                                                  height: 4),
                                                               Text(
-                                                                project.description,
+                                                                project
+                                                                    .description,
                                                                 style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Color(0xFF94a3b8)),
+                                                                    fontSize:
+                                                                        13,
+                                                                    color: Color(
+                                                                        0xFF94a3b8)),
                                                                 maxLines: 2,
-                                                                overflow: TextOverflow.ellipsis,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
                                                               ),
                                                             ],
                                                           ],
@@ -1083,20 +1246,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       Icon(
                                                         Icons.arrow_forward_ios,
                                                         size: 16,
-                                                        color: Color(0xFF64748b),
+                                                        color:
+                                                            Color(0xFF64748b),
                                                       ),
                                                     ],
                                                   ),
                                                   SizedBox(height: 12),
                                                   Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
                                                     children: [
                                                       Text(
                                                         'Funding Progress',
                                                         style: TextStyle(
                                                           fontSize: 12,
-                                                          color: Color(0xFF94a3b8),
-                                                          fontWeight: FontWeight.w500,
+                                                          color:
+                                                              Color(0xFF94a3b8),
+                                                          fontWeight:
+                                                              FontWeight.w500,
                                                         ),
                                                       ),
                                                       Text(
@@ -1104,18 +1272,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         style: TextStyle(
                                                           fontSize: 13,
                                                           color: odaPrimary,
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                   SizedBox(height: 8),
                                                   ClipRRect(
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    child: LinearProgressIndicator(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    child:
+                                                        LinearProgressIndicator(
                                                       value: fundingProgress,
-                                                      backgroundColor: Color(0xFF334155),
-                                                      valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
+                                                      backgroundColor:
+                                                          Color(0xFF334155),
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                                  Color>(
+                                                              odaPrimary),
                                                       minHeight: 8,
                                                     ),
                                                   ),
@@ -1135,7 +1311,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 articlesData.news!.data != null &&
                                 articlesData.news!.data!.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
                                 child: Column(
                                   children: [
                                     Row(
@@ -1160,30 +1337,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           child: Text('View All',
                                               style: const TextStyle(
                                                   fontSize: 12,
-                                                  fontWeight:
-                                                      FontWeight.w600,
+                                                  fontWeight: FontWeight.w600,
                                                   color: odaPrimary)),
                                         ),
                                       ],
                                     ),
                                     SizedBox(height: 15),
                                     Column(
-                                      children: articlesData.news!.data!.take(3).map((article) {
+                                      children: articlesData.news!.data!
+                                          .take(3)
+                                          .map((article) {
                                         return Container(
                                           margin: EdgeInsets.only(bottom: 15),
                                           child: InkWell(
                                             onTap: () {
                                               Navigator.of(context).push(
                                                   MaterialPageRoute(
-                                                      builder: (BuildContext context) =>
-                                                          NewsDetailsScreen(data: article)));
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          NewsDetailsScreen(
+                                                              data: article)));
                                             },
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                             child: Container(
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
                                                 color: Color(0xFF1e293b),
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                                 border: Border.all(
                                                   color: Color(0xFF334155),
                                                   width: 1,
@@ -1195,10 +1377,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     height: 60,
                                                     width: 60,
                                                     decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(10),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
                                                       color: Color(0xFF334155),
                                                       border: Border.all(
-                                                        color: Color(0xFF475569),
+                                                        color:
+                                                            Color(0xFF475569),
                                                         width: 1,
                                                       ),
                                                     ),
@@ -1213,24 +1398,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   SizedBox(width: 15),
                                                   Expanded(
                                                     child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         Text(
-                                                          article.title ?? 'Untitled Discussion',
+                                                          article.title ??
+                                                              'Untitled Discussion',
                                                           style: TextStyle(
                                                               fontSize: 16,
-                                                              fontWeight: FontWeight.w600,
-                                                              color: Colors.white),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white),
                                                           maxLines: 2,
-                                                          overflow: TextOverflow.ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                         ),
-                                                        if (article.createdTime != null && article.createdTime!.isNotEmpty) ...[
+                                                        if (article.createdTime !=
+                                                                null &&
+                                                            article.createdTime!
+                                                                .isNotEmpty) ...[
                                                           SizedBox(height: 4),
                                                           Text(
-                                                            convertToFormattedDate(article.createdTime!),
+                                                            convertToFormattedDate(
+                                                                article
+                                                                    .createdTime!),
                                                             style: TextStyle(
                                                                 fontSize: 13,
-                                                                color: Color(0xFF94a3b8)),
+                                                                color: Color(
+                                                                    0xFF94a3b8)),
                                                           ),
                                                         ],
                                                       ],

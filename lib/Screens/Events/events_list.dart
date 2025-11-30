@@ -16,8 +16,6 @@ import 'package:odadee/components/event_image_widget.dart';
 
 import 'package:http/http.dart' as http;
 
-
-
 class EventsScreen extends StatefulWidget {
   @override
   _EventsScreenState createState() => _EventsScreenState();
@@ -46,6 +44,8 @@ class _EventsScreenState extends State<EventsScreen> {
 
       setState(() {
         eventsList = events;
+        // Sort events by start date (latest/future first)
+        eventsList.sort((a, b) => b.startDate.compareTo(a.startDate));
         isLoading = false;
       });
       print('Events loaded successfully: ${events.length} items');
@@ -93,7 +93,8 @@ class _EventsScreenState extends State<EventsScreen> {
             padding: EdgeInsets.only(right: 15),
             child: Stack(
               children: [
-                Icon(Icons.notifications_none_outlined, color: Color(0xFFf4d03f), size: 30),
+                Icon(Icons.notifications_none_outlined,
+                    color: Color(0xFFf4d03f), size: 30),
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -124,7 +125,8 @@ class _EventsScreenState extends State<EventsScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.event_busy, size: 60, color: Color(0xFF64748b)),
+                      Icon(Icons.event_busy,
+                          size: 60, color: Color(0xFF64748b)),
                       SizedBox(height: 16),
                       Text(
                         'No upcoming events',
@@ -144,7 +146,7 @@ class _EventsScreenState extends State<EventsScreen> {
                 itemBuilder: (context, index) {
                   final eventItem = eventsList[index];
                   final dateInfo = _extractDateInfo(eventItem.startDate);
-                  
+
                   return Container(
                     margin: EdgeInsets.only(bottom: 15),
                     child: InkWell(
@@ -168,36 +170,11 @@ class _EventsScreenState extends State<EventsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF334155),
+                              child: EventImageWidget(
+                                imageUrl: eventItem.bannerUrl,
+                                height: 80,
+                                width: 80,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: Color(0xFFf4d03f),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    dateInfo['day'].toString(),
-                                    style: TextStyle(
-                                        fontSize: 32,
-                                        color: Color(0xFF2563eb),
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    dateInfo['month'].toString(),
-                                    style: TextStyle(
-                                        fontSize: 12, color: Color(0xFF94a3b8)),
-                                  ),
-                                  Text(
-                                    dateInfo['year'].toString(),
-                                    style: TextStyle(
-                                        fontSize: 10, color: Color(0xFF64748b)),
-                                  ),
-                                ],
                               ),
                             ),
                             SizedBox(width: 15),
@@ -242,7 +219,20 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Map<String, dynamic> _extractDateInfo(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return {
       'day': date.day.toString().padLeft(2, '0'),
       'month': months[date.month - 1],

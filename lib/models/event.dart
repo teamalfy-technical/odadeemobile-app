@@ -35,22 +35,42 @@ class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     // Support multiple possible image URL field names from API
-    final String? imageUrl = json['bannerUrl'] ?? 
-                             json['imageUrl'] ?? 
-                             json['image'] ?? 
-                             json['banner'];
-    
+    String? imageUrl = json['bannerUrl'] ??
+        json['imageUrl'] ??
+        json['image'] ??
+        json['banner'];
+
+    print('===== EVENT IMAGE DEBUG =====');
+    print('Event title: ${json['title']}');
+    print('Raw image URL: $imageUrl');
+
+    // If imageUrl is not null and doesn't start with http/https, prepend base URL
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+        // Remove leading slash if present to avoid double slashes
+        if (imageUrl.startsWith('/')) {
+          imageUrl = imageUrl.substring(1);
+        }
+        imageUrl = 'https://odadee.net/uploads/$imageUrl';
+        print('Prepended base URL: $imageUrl');
+      } else {
+        print('URL already has protocol: $imageUrl');
+      }
+    } else {
+      print('No image URL found in API response');
+    }
+    print('Final image URL: $imageUrl');
+    print('=============================');
+
     return Event(
       id: json['id'] ?? '',
       title: json['title'] ?? 'Untitled Event',
       description: json['description'] ?? '',
       bannerUrl: imageUrl,
-      startDate: json['startDate'] != null 
-          ? DateTime.parse(json['startDate']) 
+      startDate: json['startDate'] != null
+          ? DateTime.parse(json['startDate'])
           : DateTime.now(),
-      endDate: json['endDate'] != null 
-          ? DateTime.parse(json['endDate']) 
-          : null,
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       location: json['location'] ?? '',
       type: json['type'] ?? 'global',
       yearGroupId: json['yearGroupId'],
