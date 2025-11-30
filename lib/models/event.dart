@@ -47,11 +47,16 @@ class Event {
     // If imageUrl is not null and doesn't start with http/https, prepend base URL
     if (imageUrl != null && imageUrl.isNotEmpty) {
       if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-        // Remove leading slash if present to avoid double slashes
+        // Remove leading slash if present
         if (imageUrl.startsWith('/')) {
           imageUrl = imageUrl.substring(1);
         }
-        imageUrl = 'https://odadee.net/uploads/$imageUrl';
+        // Check if the URL already contains 'uploads/' to avoid doubling
+        if (imageUrl.startsWith('uploads/')) {
+          imageUrl = 'https://odadee.net/$imageUrl';
+        } else {
+          imageUrl = 'https://odadee.net/uploads/$imageUrl';
+        }
         print('Prepended base URL: $imageUrl');
       } else {
         print('URL already has protocol: $imageUrl');

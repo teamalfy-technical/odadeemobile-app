@@ -41,6 +41,26 @@ class _EventImageWidgetState extends State<EventImageWidget> {
     };
   }
 
+  String _normalizeImageUrl(String url) {
+    // If URL already has protocol, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Remove leading slash if present
+    String normalizedUrl = url;
+    if (normalizedUrl.startsWith('/')) {
+      normalizedUrl = normalizedUrl.substring(1);
+    }
+    
+    // Check if the URL already contains 'uploads/' to avoid doubling
+    if (normalizedUrl.startsWith('uploads/')) {
+      return 'https://odadee.net/$normalizedUrl';
+    } else {
+      return 'https://odadee.net/uploads/$normalizedUrl';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // If no image URL is provided, show placeholder
@@ -48,10 +68,8 @@ class _EventImageWidgetState extends State<EventImageWidget> {
       return _buildPlaceholder();
     }
 
-    // Check if URL is a valid HTTP/HTTPS URL
-    if (!widget.imageUrl!.startsWith('http://') && !widget.imageUrl!.startsWith('https://')) {
-      return _buildPlaceholder();
-    }
+    // Normalize the URL to ensure it has the full domain
+    final String normalizedUrl = _normalizeImageUrl(widget.imageUrl!);
 
     return FutureBuilder<Map<String, String>>(
       future: _headersFuture,
@@ -77,7 +95,7 @@ class _EventImageWidgetState extends State<EventImageWidget> {
             borderRadius: widget.borderRadius ?? BorderRadius.zero,
             child: Image(
               image: NetworkImage(
-                widget.imageUrl!,
+                normalizedUrl,
                 headers: headers,
               ),
               fit: widget.fit,
