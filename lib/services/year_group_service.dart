@@ -134,6 +134,86 @@ class YearGroupService {
       return null;
     }
   }
+
+  Future<YearGroupStats?> getYearGroupStats(String yearGroupId) async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups/$yearGroupId/stats',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return YearGroupStats.fromJson(data);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<double> getYearGroupContributions(String yearGroupId) async {
+    try {
+      final stats = await getYearGroupStats(yearGroupId);
+      if (stats != null) {
+        return stats.totalAmount;
+      }
+      
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups/$yearGroupId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final yearGroup = data['yearGroup'] ?? data;
+        
+        final totalDues = (yearGroup['totalDues'] ?? 0).toDouble();
+        final membershipFees = (yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees'] ?? 0).toDouble();
+        final collections = (yearGroup['totalCollections'] ?? yearGroup['collections'] ?? 0).toDouble();
+        
+        if (totalDues > 0 || membershipFees > 0 || collections > 0) {
+          return totalDues + membershipFees + collections;
+        }
+        
+        return (yearGroup['totalAmount'] ?? yearGroup['totalContributions'] ?? 0).toDouble();
+      }
+      return 0.0;
+    } catch (e) {
+      return 0.0;
+    }
+  }
+}
+
+class YearGroupStats {
+  final double totalContributions;
+  final double totalDues;
+  final double totalMembershipFees;
+  final double totalCollections;
+  final int membersCount;
+  final int projectsCount;
+
+  YearGroupStats({
+    required this.totalContributions,
+    required this.totalDues,
+    required this.totalMembershipFees,
+    required this.totalCollections,
+    required this.membersCount,
+    required this.projectsCount,
+  });
+
+  factory YearGroupStats.fromJson(Map<String, dynamic> json) {
+    return YearGroupStats(
+      totalContributions: (json['totalContributions'] ?? json['total_contributions'] ?? 0).toDouble(),
+      totalDues: (json['totalDues'] ?? json['total_dues'] ?? 0).toDouble(),
+      totalMembershipFees: (json['totalMembershipFees'] ?? json['membership_fees'] ?? 0).toDouble(),
+      totalCollections: (json['totalCollections'] ?? json['collections'] ?? 0).toDouble(),
+      membersCount: json['membersCount'] ?? json['members_count'] ?? 0,
+      projectsCount: json['projectsCount'] ?? json['projects_count'] ?? 0,
+    );
+  }
+
+  double get totalAmount => totalContributions + totalDues + totalMembershipFees + totalCollections;
 }
 
 class YearGroup {

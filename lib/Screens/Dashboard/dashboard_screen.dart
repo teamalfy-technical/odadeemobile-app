@@ -188,6 +188,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<double> _fetchYearGroupContributions() async {
+    try {
+      final yearGroupService = YearGroupService();
+      final yearGroup = await yearGroupService.getUserYearGroup();
+      if (yearGroup == null) {
+        return 0.0;
+      }
+      final contributions = await yearGroupService.getYearGroupContributions(yearGroup.id);
+      return contributions;
+    } catch (e) {
+      return 0.0;
+    }
+  }
+
   String? user_year_group;
   String? userName;
   String? userEmail;
@@ -370,6 +384,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _fetchAllArticlesData(),
             _fetchStats(),
             _fetchYearGroupMembers(),
+            _fetchYearGroupContributions(),
           ]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -432,6 +447,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
 
               final yearGroupMembers = snapshot.data![5] as List<YearGroupMember>;
+
+              final yearGroupContributions = snapshot.data![6] as double;
 
               // Check if critical data is null (users, events, projects are required)
               if (userData == null ||
@@ -1022,12 +1039,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   SizedBox(height: 15),
                                   StatCard(
-                                    title: 'Contributions',
-                                    value: statsData != null
-                                        ? 'GH¢ ${statsData['contributions'] ?? statsData['total_contributions'] ?? statsData['amount'] ?? statsData['total_amount'] ?? statsData['total_donations'] ?? 0}'
-                                        : 'GH¢ 0',
+                                    title: 'Year Group Dues',
+                                    value: 'GH¢ ${yearGroupContributions.toStringAsFixed(2)}',
                                     icon: Icons.payments,
-                                    subtitle: 'Total raised',
+                                    subtitle: 'Dues & contributions',
                                     onTap: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
