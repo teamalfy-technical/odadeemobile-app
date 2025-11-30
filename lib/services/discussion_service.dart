@@ -30,6 +30,23 @@ class DiscussionService {
         final List<dynamic> postsJson = data['discussions'] ?? data['posts'] ?? [];
         print('=== DISCUSSION SERVICE: Parsing ${postsJson.length} discussions ===');
         
+        // Print full structure of first discussion for debugging
+        if (postsJson.isNotEmpty) {
+          final firstPost = postsJson[0] as Map<String, dynamic>;
+          print('=== FIRST DISCUSSION RAW DATA ===');
+          print('All keys: ${firstPost.keys.toList()}');
+          firstPost.forEach((key, value) {
+            if (value is Map) {
+              print('$key: {Map with keys: ${(value as Map).keys.toList()}}');
+            } else if (value is List) {
+              print('$key: [List with ${(value as List).length} items]');
+            } else {
+              print('$key: $value');
+            }
+          });
+          print('=================================');
+        }
+        
         final List<DiscussionPost> posts = [];
         for (int i = 0; i < postsJson.length; i++) {
           try {
