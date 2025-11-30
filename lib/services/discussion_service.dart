@@ -58,7 +58,21 @@ class DiscussionService {
           }
         }
         print('=== DISCUSSION SERVICE: Successfully parsed ${posts.length} discussions ===');
-        return posts;
+        
+        // Fetch comment counts for each post
+        final List<DiscussionPost> postsWithCounts = [];
+        for (final post in posts) {
+          try {
+            final comments = await getComments(post.id);
+            postsWithCounts.add(post.copyWith(commentsCount: comments.length));
+            print('=== Post ${post.id}: ${comments.length} comments ===');
+          } catch (e) {
+            print('=== Error fetching comments for post ${post.id}: $e ===');
+            postsWithCounts.add(post);
+          }
+        }
+        
+        return postsWithCounts;
       }
       
       String errorMessage = 'Failed to load discussions';
