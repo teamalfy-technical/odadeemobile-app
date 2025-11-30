@@ -1,3 +1,5 @@
+import '../utils/image_url_helper.dart';
+
 class Project {
   final String id;
   final String title;
@@ -51,7 +53,7 @@ class Project {
       currentAmount: json['currentAmount'] != null
           ? double.tryParse(json['currentAmount'].toString())
           : null,
-      imageUrl: json['imageUrl'],
+      imageUrl: ImageUrlHelper.normalizeImageUrl(json['imageUrl']),
       status: json['status'] ?? 'active',
       contributionId: json['contributionId'],
       yearGroupId: json['yearGroupId'],
