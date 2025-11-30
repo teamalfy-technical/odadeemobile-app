@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/models/project.dart';
 import 'package:odadee/models/event.dart';
@@ -26,7 +25,6 @@ class YearGroupService {
       }
       throw Exception('Failed to load year groups');
     } catch (e) {
-      debugPrint('Error fetching year groups: $e');
       rethrow;
     }
   }
@@ -44,7 +42,6 @@ class YearGroupService {
       }
       throw Exception('Year group not found');
     } catch (e) {
-      debugPrint('Error fetching year group details: $e');
       rethrow;
     }
   }
@@ -63,7 +60,6 @@ class YearGroupService {
       }
       throw Exception('Failed to load members');
     } catch (e) {
-      debugPrint('Error fetching year group members: $e');
       rethrow;
     }
   }
@@ -82,7 +78,6 @@ class YearGroupService {
       }
       throw Exception('Failed to load year group projects');
     } catch (e) {
-      debugPrint('Error fetching year group projects: $e');
       rethrow;
     }
   }
@@ -109,7 +104,6 @@ class YearGroupService {
         };
       }
     } catch (e) {
-      debugPrint('Error joining year group: $e');
       return {
         'success': false,
         'message': e.toString(),
@@ -119,30 +113,24 @@ class YearGroupService {
 
   Future<YearGroup?> getUserYearGroup() async {
     try {
-      // Try cached user data first to avoid session expiration issues
       Map<String, dynamic>? userData = await _authService.getCachedUser();
       if (userData == null) {
-        debugPrint('No cached user, trying API...');
         userData = await _authService.getCurrentUser();
       }
       
       final graduationYear = userData['graduationYear'];
-      debugPrint('getUserYearGroup: graduationYear = $graduationYear');
       
       if (graduationYear == null) return null;
       
       final yearGroups = await getAllYearGroups();
-      debugPrint('getUserYearGroup: fetched ${yearGroups.length} year groups');
       
       final matchingGroup = yearGroups.firstWhere(
         (g) => g.year == graduationYear,
         orElse: () => throw Exception('Year group not found for year $graduationYear'),
       );
       
-      debugPrint('getUserYearGroup: found matching group id=${matchingGroup.id}, name=${matchingGroup.name}');
       return matchingGroup;
     } catch (e) {
-      debugPrint('Error getting user year group: $e');
       return null;
     }
   }

@@ -28,6 +28,7 @@ import 'package:odadee/services/event_service.dart';
 import 'package:odadee/services/project_service.dart';
 import 'package:odadee/models/event.dart';
 import 'package:odadee/models/project.dart';
+import 'package:odadee/services/year_group_service.dart';
 
 import '../Authentication/SignIn/sgin_in_screen.dart';
 
@@ -170,6 +171,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<List<YearGroupMember>> _fetchYearGroupMembers() async {
+    try {
+      final yearGroupService = YearGroupService();
+      final yearGroup = await yearGroupService.getUserYearGroup();
+      if (yearGroup == null) {
+        return [];
+      }
+      final members = await yearGroupService.getYearGroupMembers(yearGroup.id);
+      return members;
+    } catch (e) {
+      return [];
     }
   }
 
@@ -354,6 +369,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _fetchAllProjectsData(),
             _fetchAllArticlesData(),
             _fetchStats(),
+            _fetchYearGroupMembers(),
           ]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -414,6 +430,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final articlesData = snapshot.data![3] as AllArticlesModel?;
 
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
+
+              final yearGroupMembers = snapshot.data![5] as List<YearGroupMember>;
 
               // Check if critical data is null (users, events, projects are required)
               if (userData == null ||
@@ -1060,7 +1078,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ],
                                   ),
                                   SizedBox(height: 15),
-                                  if (userData.users?.data?.isEmpty ?? true)
+                                  if (yearGroupMembers.isEmpty)
                                     Container(
                                       padding: EdgeInsets.all(40),
                                       decoration: BoxDecoration(
@@ -1078,21 +1096,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               color: Color(0xFF64748b)),
                                           SizedBox(height: 16),
                                           Text(
-                                            'No members yet',
+                                            'No classmates found',
                                             style: TextStyle(
                                               fontSize: 16,
                                               color: Color(0xFF94a3b8),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            'Update your graduation year in your profile',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF64748b),
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ],
                                       ),
                                     )
                                   else
                                     Column(
-                                      children: userData.users!.data!
+                                      children: yearGroupMembers
                                           .take(6)
-                                          .map((user) {
+                                          .map((member) {
+                                        final user = member.user;
+                                        final firstName = user?.firstName ?? '';
+                                        final lastName = user?.lastName ?? '';
+                                        final fullName = '$firstName $lastName'.trim();
+                                        final email = user?.email ?? '';
+                                        final profileImage = user?.profileImage;
+                                        
                                         return Container(
                                           margin: EdgeInsets.only(bottom: 15),
                                           child: InkWell(
@@ -1101,8 +1135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   MaterialPageRoute(
                                                       builder: (BuildContext
                                                               context) =>
-                                                          MemberDetailPage(
-                                                              data: user)));
+                                                          YearGroupScreen()));
                                             },
                                             borderRadius:
                                                 BorderRadius.circular(12),
@@ -1119,8 +1152,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               ),
                                               child: Row(
                                                 children: [
-                                                  if (user.image != null &&
-                                                      user.image!
+                                                  if (profileImage != null &&
+                                                      profileImage
                                                           .isNotEmpty) ...[
                                                     Container(
                                                       height: 60,
@@ -1129,7 +1162,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         shape: BoxShape.circle,
                                                         image: DecorationImage(
                                                             image: NetworkImage(
-                                                                user.image!),
+                                                                profileImage),
                                                             fit: BoxFit.cover),
                                                       ),
                                                     ),
@@ -1149,18 +1182,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       ),
                                                       child: Center(
                                                         child: Text(
-                                                          ((user.firstName?.isNotEmpty ??
-                                                                      false)
-                                                                  ? user
-                                                                      .firstName!
+                                                          (firstName.isNotEmpty
+                                                                  ? firstName
                                                                       .substring(
                                                                           0, 1)
                                                                   : '') +
-                                                              ((user.lastName
-                                                                          ?.isNotEmpty ??
-                                                                      false)
-                                                                  ? user
-                                                                      .lastName!
+                                                              (lastName.isNotEmpty
+                                                                  ? lastName
                                                                       .substring(
                                                                           0, 1)
                                                                   : ''),
@@ -1183,8 +1211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          '${user.firstName ?? ''} ${user.lastName ?? ''}'
-                                                              .trim(),
+                                                          fullName.isNotEmpty ? fullName : 'Anonymous',
                                                           style: TextStyle(
                                                               fontSize: 16,
                                                               fontWeight:
@@ -1193,13 +1220,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               color:
                                                                   Colors.white),
                                                         ),
-                                                        if (user.email !=
-                                                                null &&
-                                                            user.email!
+                                                        if (email
                                                                 .isNotEmpty) ...[
                                                           SizedBox(height: 4),
                                                           Text(
-                                                            user.email!,
+                                                            email,
                                                             style: TextStyle(
                                                                 fontSize: 13,
                                                                 color: Color(

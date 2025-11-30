@@ -188,7 +188,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
               Expanded(
                 child: _buildStatCard(
                   icon: Icons.people,
-                  value: '${_yearGroup!.memberCount}',
+                  value: _loadingMembers ? '...' : '${_members.length}',
                   label: 'Members',
                   color: odaPrimary,
                   cardColor: cardColor,
@@ -201,7 +201,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
               Expanded(
                 child: _buildStatCard(
                   icon: Icons.work,
-                  value: '${_projects.length}',
+                  value: _loadingProjects ? '...' : '${_projects.length}',
                   label: 'Projects',
                   color: odaSecondary,
                   cardColor: cardColor,
