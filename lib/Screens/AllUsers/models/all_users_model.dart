@@ -1,4 +1,5 @@
 import '../../../utils/image_url_helper.dart';
+import '../../../services/year_group_service.dart';
 
 class AllUsersModel {
   Users? users;
@@ -319,6 +320,25 @@ class Data {
       data['user_status'] = this.userStatus!.map((v) => v.toJson()).toList();
     }
     return data;
+  }
+
+  static Data fromYearGroupMember(YearGroupMember member) {
+    final user = member.user;
+    final rawImage = user?.profileImage;
+    final normalizedImage = ImageUrlHelper.normalizeImageUrl(rawImage);
+    
+    return Data(
+      id: user?.id ?? member.id,
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
+      email: user?.email ?? '',
+      phone: user?.phoneNumber ?? '',
+      image: normalizedImage ?? '',
+      jobTitle: user?.profession ?? '',
+      city: user?.location ?? '',
+      status: member.verificationStatus,
+      createdTime: member.joinedAt.toIso8601String(),
+    );
   }
 }
 

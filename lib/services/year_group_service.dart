@@ -126,7 +126,13 @@ class YearGroupService {
         userData = await _authService.getCurrentUser();
       }
       
-      final graduationYear = userData['graduationYear'];
+      final graduationYearRaw = userData['graduationYear'];
+      
+      if (graduationYearRaw == null) return null;
+      
+      final int? graduationYear = graduationYearRaw is int 
+          ? graduationYearRaw 
+          : int.tryParse(graduationYearRaw.toString());
       
       if (graduationYear == null) return null;
       
@@ -351,10 +357,13 @@ class YearGroup {
   });
 
   factory YearGroup.fromJson(Map<String, dynamic> json) {
+    final yearRaw = json['year'];
+    final int year = yearRaw is int ? yearRaw : int.tryParse(yearRaw?.toString() ?? '') ?? 0;
+    
     return YearGroup(
       id: json['id'] ?? '',
-      name: json['name'] ?? 'Class of ${json['year'] ?? 'Unknown'}',
-      year: json['year'] ?? 0,
+      name: json['name'] ?? 'Class of $year',
+      year: year,
       description: json['description'],
       memberCount: json['memberCount'] ?? 0,
       createdAt: json['createdAt'] != null

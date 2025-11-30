@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/AllUsers/all_users_screen.dart';
-import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
+import 'package:odadee/Screens/AllUsers/models/all_users_model.dart' as users_model;
 import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
 import 'package:odadee/Screens/Articles/all_news_screen.dart';
 import 'package:odadee/Screens/Members/members_screen.dart';
-import 'package:odadee/Screens/Articles/models/all_articles_model.dart';
+import 'package:odadee/Screens/Articles/models/all_articles_model.dart' as articles_model;
 import 'package:odadee/Screens/Articles/news_details.dart';
 import 'package:odadee/Screens/Events/event_details.dart';
 import 'package:odadee/Screens/Events/events_list.dart';
@@ -40,7 +40,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  Future<AllUsersModel> _fetchAllUsersData() async {
+  Future<users_model.AllUsersModel> _fetchAllUsersData() async {
     try {
       final authService = AuthService();
       final response =
@@ -48,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        return AllUsersModel.fromJson(jsonData);
+        return users_model.AllUsersModel.fromJson(jsonData);
       } else if (response.statusCode == 401) {
         if (mounted) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -94,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<AllArticlesModel?> _fetchAllArticlesData() async {
+  Future<articles_model.AllArticlesModel?> _fetchAllArticlesData() async {
     try {
       final authService = AuthService();
       final response =
@@ -142,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
           };
 
-          return AllArticlesModel.fromJson(articlesJson);
+          return articles_model.AllArticlesModel.fromJson(articlesJson);
         }
         return null;
       } else if (response.statusCode == 401) {
@@ -436,13 +436,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               );
             } else if (snapshot.hasData) {
-              final userData = snapshot.data![0] as AllUsersModel;
+              final userData = snapshot.data![0] as users_model.AllUsersModel;
 
               final eventsData = snapshot.data![1] as List<Event>;
 
               final projectsData = snapshot.data![2] as List<Project>;
 
-              final articlesData = snapshot.data![3] as AllArticlesModel?;
+              final articlesData = snapshot.data![3] as articles_model.AllArticlesModel?;
 
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
 
@@ -1146,11 +1146,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           margin: EdgeInsets.only(bottom: 15),
                                           child: InkWell(
                                             onTap: () {
+                                              final memberData = users_model.Data.fromYearGroupMember(member);
                                               Navigator.of(context).push(
                                                   MaterialPageRoute(
                                                       builder: (BuildContext
                                                               context) =>
-                                                          YearGroupScreen()));
+                                                          MemberDetailPage(data: memberData)));
                                             },
                                             borderRadius:
                                                 BorderRadius.circular(12),

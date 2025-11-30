@@ -4,6 +4,8 @@ import 'package:odadee/models/project.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
+import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
+import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/theme_service.dart';
 import 'package:intl/intl.dart';
@@ -408,82 +410,94 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
   Widget _buildMemberCard(YearGroupMember member, Color cardColor, Color textColor, Color subtitleColor, Color mutedColor, Color borderColor) {
     final user = member.user;
     
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          _buildAvatar(user?.profileImage, user?.fullName ?? 'Member', 50),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        user?.fullName ?? 'Anonymous',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    if (member.isAdmin)
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: odaSecondary.withAlpha(51),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+    return InkWell(
+      onTap: () {
+        final memberData = Data.fromYearGroupMember(member);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MemberDetailPage(data: memberData),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            _buildAvatar(user?.profileImage, user?.fullName ?? 'Member', 50),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                          'Admin',
+                          user?.fullName ?? 'Anonymous',
                           style: TextStyle(
-                            color: odaSecondary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                  ],
-                ),
-                if (user?.profession != null) ...[
-                  SizedBox(height: 4),
-                  Text(
-                    user!.profession!,
-                    style: TextStyle(
-                      color: subtitleColor,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-                if (user?.location != null) ...[
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, size: 12, color: mutedColor),
-                      SizedBox(width: 4),
-                      Text(
-                        user!.location!,
-                        style: TextStyle(
-                          color: mutedColor,
-                          fontSize: 12,
+                      if (member.isAdmin)
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: odaSecondary.withAlpha(51),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            'Admin',
+                            style: TextStyle(
+                              color: odaSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
                     ],
                   ),
+                  if (user?.profession != null) ...[
+                    SizedBox(height: 4),
+                    Text(
+                      user!.profession!,
+                      style: TextStyle(
+                        color: subtitleColor,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                  if (user?.location != null) ...[
+                    SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 12, color: mutedColor),
+                        SizedBox(width: 4),
+                        Text(
+                          user!.location!,
+                          style: TextStyle(
+                            color: mutedColor,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
