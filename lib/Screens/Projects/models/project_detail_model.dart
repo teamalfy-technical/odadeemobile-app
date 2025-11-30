@@ -1,3 +1,5 @@
+import '../../../utils/image_url_helper.dart';
+
 class ProjectDetailModel {
   Projects? projects;
 
@@ -69,7 +71,7 @@ class Projects {
     endDate = json['endDate'];
     userId = json['userId'];
     yeargroup = json['yeargroup'];
-    image = json['image'];
+    image = ImageUrlHelper.normalizeImageUrl(json['image']);
     fundingTarget = json['fundingTarget'];
     fundingTargetDollar = json['fundingTargetDollar'];
     currentFunding = json['currentFunding'];

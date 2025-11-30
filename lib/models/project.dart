@@ -42,6 +42,8 @@ class Project {
   }
 
   factory Project.fromJson(Map<String, dynamic> json) {
+    String? rawImageUrl = json['imageUrl'] ?? json['image'];
+    
     return Project(
       id: json['id'] ?? '',
       title: json['title'] ?? 'Untitled Project',
@@ -53,7 +55,7 @@ class Project {
       currentAmount: json['currentAmount'] != null
           ? double.tryParse(json['currentAmount'].toString())
           : null,
-      imageUrl: ImageUrlHelper.normalizeImageUrl(json['imageUrl']),
+      imageUrl: ImageUrlHelper.normalizeImageUrl(rawImageUrl),
       status: json['status'] ?? 'active',
       contributionId: json['contributionId'],
       yearGroupId: json['yearGroupId'],

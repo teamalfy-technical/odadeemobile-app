@@ -1,3 +1,5 @@
+import '../utils/image_url_helper.dart';
+
 class Event {
   final String id;
   final String title;
@@ -34,40 +36,12 @@ class Event {
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
-    // Support multiple possible image URL field names from API
-    String? imageUrl = json['bannerUrl'] ??
+    String? rawImageUrl = json['bannerUrl'] ??
         json['imageUrl'] ??
         json['image'] ??
         json['banner'];
 
-    print('===== EVENT IMAGE DEBUG =====');
-    print('Event title: ${json['title']}');
-    print('Raw image URL: $imageUrl');
-
-    // If imageUrl is not null and doesn't start with http/https, prepend base URL
-    // Per API docs: images are served via /api/images/ endpoint
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-        // Remove leading slash if present
-        if (imageUrl.startsWith('/')) {
-          imageUrl = imageUrl.substring(1);
-        }
-        // Images are served through /api/images/ endpoint per API docs
-        // Format: https://odadee.net/api/images/uploads/uuid
-        if (imageUrl.startsWith('uploads/')) {
-          imageUrl = 'https://odadee.net/api/images/$imageUrl';
-        } else {
-          imageUrl = 'https://odadee.net/api/images/uploads/$imageUrl';
-        }
-        print('Prepended base URL: $imageUrl');
-      } else {
-        print('URL already has protocol: $imageUrl');
-      }
-    } else {
-      print('No image URL found in API response');
-    }
-    print('Final image URL: $imageUrl');
-    print('=============================');
+    String? imageUrl = ImageUrlHelper.normalizeImageUrl(rawImageUrl);
 
     return Event(
       id: json['id'] ?? '',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../utils/image_url_helper.dart';
 
 class EventImageWidget extends StatefulWidget {
   final String? imageUrl;
@@ -41,36 +42,16 @@ class _EventImageWidgetState extends State<EventImageWidget> {
     };
   }
 
-  String _normalizeImageUrl(String url) {
-    // If URL already has protocol, return as-is
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
-    }
-    
-    // Remove leading slash if present
-    String normalizedUrl = url;
-    if (normalizedUrl.startsWith('/')) {
-      normalizedUrl = normalizedUrl.substring(1);
-    }
-    
-    // Images are served through /api/images/ endpoint per API docs
-    // Format: https://odadee.net/api/images/uploads/uuid
-    if (normalizedUrl.startsWith('uploads/')) {
-      return 'https://odadee.net/api/images/$normalizedUrl';
-    } else {
-      return 'https://odadee.net/api/images/uploads/$normalizedUrl';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // If no image URL is provided, show placeholder
     if (widget.imageUrl == null || widget.imageUrl!.isEmpty) {
       return _buildPlaceholder();
     }
 
-    // Normalize the URL to ensure it has the full domain
-    final String normalizedUrl = _normalizeImageUrl(widget.imageUrl!);
+    final String? normalizedUrl = ImageUrlHelper.normalizeImageUrl(widget.imageUrl);
+    if (normalizedUrl == null) {
+      return _buildPlaceholder();
+    }
 
     return FutureBuilder<Map<String, String>>(
       future: _headersFuture,

@@ -1,3 +1,5 @@
+import '../../../utils/image_url_helper.dart';
+
 class AllUsersModel {
   Users? users;
 
@@ -223,7 +225,7 @@ class Data {
     phone = json['phone'];
     pin = json['pin'];
     gender = json['gender'];
-    image = json['image'];
+    image = ImageUrlHelper.normalizeImageUrl(json['image']);
     city = json['city'];
     house = json['house'];
     latitude = json['latitude'];

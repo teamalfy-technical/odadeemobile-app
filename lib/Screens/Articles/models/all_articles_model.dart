@@ -1,3 +1,5 @@
+import '../../../utils/image_url_helper.dart';
+
 class AllArticlesModel {
   News? news;
 
@@ -143,7 +145,7 @@ class Data {
     content = json['content'];
     summary = json['summary'];
     video = json['video'];
-    image = json['image'];
+    image = ImageUrlHelper.normalizeImageUrl(json['image']);
     userId = json['userId'];
     yeargroup = json['yeargroup'];
     yearmonth = json['yearmonth'];

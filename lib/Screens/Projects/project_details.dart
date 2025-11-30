@@ -91,9 +91,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   color: Color(0xFF1e293b),
                 ),
                 child: Image.network(
-                  project!.imageUrl!.startsWith('http')
-                      ? project!.imageUrl!
-                      : '${ApiConfig.baseUrl}/${project!.imageUrl}',
+                  project!.imageUrl!,
                   width: double.infinity,
                   height: 250,
                   fit: BoxFit.cover,

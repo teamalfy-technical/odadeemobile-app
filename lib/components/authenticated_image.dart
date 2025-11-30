@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../services/auth_service.dart';
+import '../utils/image_url_helper.dart';
 
 class AuthenticatedImage extends StatefulWidget {
   final String imageUrl;
@@ -39,9 +40,18 @@ class _AuthenticatedImageState extends State<AuthenticatedImage> {
   Future<void> _loadImage() async {
     try {
       final token = await AuthService().getAccessToken();
+      final normalizedUrl = ImageUrlHelper.normalizeImageUrl(widget.imageUrl);
+      
+      if (normalizedUrl == null || normalizedUrl.isEmpty) {
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+        });
+        return;
+      }
       
       final response = await http.get(
-        Uri.parse(widget.imageUrl),
+        Uri.parse(normalizedUrl),
         headers: {
           'Authorization': 'Bearer $token',
         },
