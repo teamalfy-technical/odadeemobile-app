@@ -23,6 +23,7 @@ Built with Flutter 3.32.0 and Dart 3.8.0, the project targets the web platform w
 -   **Change Password:** Users can change their password or set a new one after logging in via magic link. Includes password validation (8+ characters, uppercase, lowercase, numbers), confirmation matching, and toggle for users without an existing password.
 -   **Dashboard Navigation:** All dashboard stat cards route to functional pages (Members, Events, Projects, PayDues) with consistent design and navigation.
 -   **Events & Projects Screens:** Redesigned to match the clean aesthetic of `MemberDetailPage`, featuring white app bars, dark backgrounds, blue CTAs, yellow accents, and flat designs with simple back navigation.
+-   **Centralized Image URL Handling:** All image URLs (events, projects, user avatars, articles) are normalized through `ImageUrlHelper` utility, ensuring consistent access via the correct API endpoint: `https://odadee.net/api/images/uploads/`. Both `EventImageWidget` and `AuthenticatedImage` components use this centralized helper.
 Error handling, null safety, and data transformation are implemented throughout.
 
 ### Feature Specifications
@@ -98,7 +99,7 @@ The production build script (`build.sh`) performs:
 - ✅ Event detail pages with banner images
 - ✅ Project detail pages with funding progress visualization
 - ✅ Null-safe data handling throughout
-- ✅ Image URL normalization for absolute and relative paths
+- ✅ Centralized image URL normalization via ImageUrlHelper (all images use /api/images/uploads/ endpoint)
 - ✅ Clean navigation architecture
 - ✅ Production-ready error handling
 
