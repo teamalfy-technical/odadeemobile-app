@@ -210,18 +210,33 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                         if (yearGroupId.isEmpty) {
                           print('Project has no yearGroupId, fetching from user...');
                           final authService = AuthService();
-                          final userData = await authService.getCurrentUser();
-                          print('User data keys: ${userData.keys.toList()}');
                           
-                          yearGroupId = userData['yearGroupId']?.toString() ?? '';
+                          // Try cached data first, then API
+                          Map<String, dynamic>? userData;
+                          userData = await authService.getCachedUser();
+                          print('Cached user data: $userData');
+                          
+                          if (userData == null) {
+                            try {
+                              userData = await authService.getCurrentUser();
+                              print('User data from API: $userData');
+                            } catch (e) {
+                              print('API fetch failed: $e');
+                              throw Exception('Your session has expired. Please log out and log in again.');
+                            }
+                          }
+                          
+                          print('User data keys: ${userData?.keys.toList()}');
+                          
+                          yearGroupId = userData?['yearGroupId']?.toString() ?? '';
                           if (yearGroupId.isEmpty) {
-                            yearGroupId = userData['yearGroup']?.toString() ?? '';
+                            yearGroupId = userData?['yearGroup']?.toString() ?? '';
                           }
                           if (yearGroupId.isEmpty) {
-                            yearGroupId = userData['graduationYear']?.toString() ?? '';
+                            yearGroupId = userData?['graduationYear']?.toString() ?? '';
                           }
-                          if (yearGroupId.isEmpty && userData['yearGroup'] is Map) {
-                            yearGroupId = (userData['yearGroup'] as Map)['id']?.toString() ?? 
+                          if (yearGroupId.isEmpty && userData?['yearGroup'] is Map) {
+                            yearGroupId = (userData!['yearGroup'] as Map)['id']?.toString() ?? 
                                          (userData['yearGroup'] as Map)['_id']?.toString() ?? '';
                           }
                           print('Resolved yearGroupId from user: "$yearGroupId"');
