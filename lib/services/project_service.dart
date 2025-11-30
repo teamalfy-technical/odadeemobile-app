@@ -14,11 +14,6 @@ class ProjectService {
         headers: {'Content-Type': 'application/json'},
       );
 
-      print('===== PUBLIC PROJECTS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
-      print('========================================');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> projectsJson = data['projects'] ?? [];
@@ -26,7 +21,6 @@ class ProjectService {
       }
       throw Exception('Failed to load public projects');
     } catch (e) {
-      print('Error fetching public projects: $e');
       rethrow;
     }
   }
@@ -38,11 +32,6 @@ class ProjectService {
         ApiConfig.projectsEndpoint,
       );
 
-      print('===== AUTHENTICATED PROJECTS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
-      print('===============================================');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> projectsJson = data['projects'] ?? [];
@@ -50,7 +39,6 @@ class ProjectService {
       }
       throw Exception('Failed to load projects');
     } catch (e) {
-      print('Error fetching authenticated projects: $e');
       rethrow;
     }
   }
@@ -68,7 +56,6 @@ class ProjectService {
       }
       throw Exception('Project not found');
     } catch (e) {
-      print('Error fetching project details: $e');
       rethrow;
     }
   }

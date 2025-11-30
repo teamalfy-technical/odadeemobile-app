@@ -16,36 +16,11 @@ class DiscussionService {
         endpoint += '?category=$category';
       }
       
-      print('=== DISCUSSION SERVICE: GET REQUEST ===');
-      print('Endpoint: $endpoint');
-      
       final response = await _authService.authenticatedRequest('GET', endpoint);
-
-      print('=== DISCUSSION SERVICE: GET RESPONSE ===');
-      print('Status Code: ${response.statusCode}');
-      print('================================');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> postsJson = data['discussions'] ?? data['posts'] ?? [];
-        print('=== DISCUSSION SERVICE: Parsing ${postsJson.length} discussions ===');
-        
-        // Print full structure of first discussion for debugging
-        if (postsJson.isNotEmpty) {
-          final firstPost = postsJson[0] as Map<String, dynamic>;
-          print('=== FIRST DISCUSSION RAW DATA ===');
-          print('All keys: ${firstPost.keys.toList()}');
-          firstPost.forEach((key, value) {
-            if (value is Map) {
-              print('$key: {Map with keys: ${(value as Map).keys.toList()}}');
-            } else if (value is List) {
-              print('$key: [List with ${(value as List).length} items]');
-            } else {
-              print('$key: $value');
-            }
-          });
-          print('=================================');
-        }
         
         final List<DiscussionPost> posts = [];
         for (int i = 0; i < postsJson.length; i++) {
@@ -53,21 +28,16 @@ class DiscussionService {
             final post = DiscussionPost.fromJson(postsJson[i] as Map<String, dynamic>);
             posts.add(post);
           } catch (e) {
-            print('=== DISCUSSION SERVICE: Error parsing at index $i: $e ===');
-            print('Raw data: ${postsJson[i]}');
+            // Skip malformed discussion entries
           }
         }
-        print('=== DISCUSSION SERVICE: Successfully parsed ${posts.length} discussions ===');
         
-        // Fetch comment counts for each post
         final List<DiscussionPost> postsWithCounts = [];
         for (final post in posts) {
           try {
             final comments = await getComments(post.id);
             postsWithCounts.add(post.copyWith(commentsCount: comments.length));
-            print('=== Post ${post.id}: ${comments.length} comments ===');
           } catch (e) {
-            print('=== Error fetching comments for post ${post.id}: $e ===');
             postsWithCounts.add(post);
           }
         }
@@ -83,7 +53,6 @@ class DiscussionService {
       
       throw Exception(errorMessage);
     } catch (e) {
-      debugPrint('Error fetching discussions: $e');
       rethrow;
     }
   }
@@ -101,7 +70,6 @@ class DiscussionService {
       }
       throw Exception('Discussion not found');
     } catch (e) {
-      debugPrint('Error fetching discussion: $e');
       rethrow;
     }
   }
@@ -112,11 +80,6 @@ class DiscussionService {
     required String category,
   }) async {
     try {
-      debugPrint('=== CREATE DISCUSSION REQUEST ===');
-      debugPrint('Title: $title');
-      debugPrint('Content: $content');
-      debugPrint('Category: $category');
-      
       final response = await _authService.authenticatedRequest(
         'POST',
         '/api/discussions',
@@ -127,12 +90,6 @@ class DiscussionService {
         },
       );
 
-      debugPrint('=== CREATE DISCUSSION RESPONSE ===');
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
-      debugPrint('==================================');
-
-      // API returns 201 for created
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         return DiscussionPost.fromJson(data['post'] ?? data['discussion'] ?? data);
@@ -146,7 +103,6 @@ class DiscussionService {
       
       throw Exception(errorMessage);
     } catch (e) {
-      debugPrint('Error creating post: $e');
       rethrow;
     }
   }
@@ -182,7 +138,6 @@ class DiscussionService {
       
       throw Exception(errorMessage);
     } catch (e) {
-      debugPrint('Error updating post: $e');
       rethrow;
     }
   }
@@ -203,25 +158,16 @@ class DiscussionService {
         throw Exception(errorMessage);
       }
     } catch (e) {
-      debugPrint('Error deleting post: $e');
       rethrow;
     }
   }
 
   Future<List<DiscussionComment>> getComments(String postId) async {
     try {
-      debugPrint('=== GET COMMENTS REQUEST ===');
-      debugPrint('Post ID: $postId');
-      
       final response = await _authService.authenticatedRequest(
         'GET',
         '/api/discussions/$postId/comments',
       );
-
-      debugPrint('=== GET COMMENTS RESPONSE ===');
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}...');
-      debugPrint('=============================');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -237,7 +183,6 @@ class DiscussionService {
       
       throw Exception(errorMessage);
     } catch (e) {
-      debugPrint('Error fetching comments: $e');
       rethrow;
     }
   }
@@ -247,22 +192,12 @@ class DiscussionService {
     required String content,
   }) async {
     try {
-      debugPrint('=== ADD COMMENT REQUEST ===');
-      debugPrint('Post ID: $postId');
-      debugPrint('Content: $content');
-      
       final response = await _authService.authenticatedRequest(
         'POST',
         '/api/discussions/$postId/comments',
         body: {'content': content},
       );
 
-      debugPrint('=== ADD COMMENT RESPONSE ===');
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
-      debugPrint('============================');
-
-      // API returns 201 for created
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         return DiscussionComment.fromJson(data['comment'] ?? data);
@@ -273,7 +208,6 @@ class DiscussionService {
         final errorData = jsonDecode(response.body);
         errorMessage = errorData['message'] ?? errorData['error'] ?? 'Failed to add comment (${response.statusCode})';
         
-        // Handle specific error for unverified members
         if (response.statusCode == 403) {
           errorMessage = 'Only verified members can post comments';
         }
@@ -281,7 +215,6 @@ class DiscussionService {
       
       throw Exception(errorMessage);
     } catch (e) {
-      debugPrint('Error adding comment: $e');
       rethrow;
     }
   }
@@ -305,7 +238,6 @@ class DiscussionService {
         throw Exception(errorMessage);
       }
     } catch (e) {
-      debugPrint('Error deleting comment: $e');
       rethrow;
     }
   }
@@ -358,20 +290,6 @@ class DiscussionPost {
     } else if (json['user'] != null) {
       author = Author.fromJson(json['user']);
     }
-    
-    // Debug log to see what fields are available
-    print('=== DISCUSSION POST PARSING ===');
-    print('ID: ${json['id']}');
-    print('Title: ${json['title']}');
-    print('author field: ${json['author']}');
-    print('user field: ${json['user']}');
-    print('Parsed author: ${author?.fullName ?? "null"}');
-    print('commentsCount field: ${json['commentsCount']}');
-    print('commentCount field: ${json['commentCount']}');
-    print('_count field: ${json['_count']}');
-    print('comments field: ${json['comments'] is List ? 'List with ${(json['comments'] as List).length} items' : json['comments']}');
-    print('Calculated commentCount: $commentCount');
-    print('===============================');
     
     return DiscussionPost(
       id: json['id'] ?? '',

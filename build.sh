@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting Odadee production build v1.1.0..."
+echo "Starting Odadee production build v1.2.0..."
 
 # Clean Flutter pub cache to prevent corrupted dependencies
 echo "Cleaning Flutter pub cache..."

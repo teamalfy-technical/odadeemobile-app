@@ -50,7 +50,7 @@ Error handling, null safety, and data transformation are implemented throughout.
 -   **Deployment:** Automated build process (`build.sh`) for optimized production web builds.
 
 ### System Design Choices
-The application uses a responsive design approach with `device_preview` for development. Deployment is on Replit as a **static web app**, using a custom build script (`build.sh`) to generate production-ready static files. The architecture prioritizes secure API communication with comprehensive error handling and debug logging, routing all API calls through an `AuthService`.
+The application uses a responsive design approach with `device_preview` for development. Deployment is on Replit as a **static web app**, using a custom build script (`build.sh`) to generate production-ready static files. The architecture prioritizes secure API communication with comprehensive error handling, routing all API calls through an `AuthService`. Debug logging has been removed for production to ensure clean console output and optimal performance.
 
 ## External Dependencies
 
@@ -115,10 +115,12 @@ The production build script (`build.sh`) performs:
 - ✅ Project contribution flow with amount input and payment integration
 - ✅ Community discussions with category filtering, posts, comments, and likes
 - ✅ Year Group section with members list and year-specific projects
+- ✅ Dashboard shows latest 3 discussions sorted by date (newest first)
 - ✅ Null-safe data handling throughout
 - ✅ Centralized image URL normalization via ImageUrlHelper (all images use /api/images/uploads/ endpoint)
 - ✅ Clean navigation architecture
-- ✅ Production-ready error handling
+- ✅ Production-ready error handling (debug logging removed)
+- ✅ Dark and light theme support
 
 ### Deployment Steps
 1. Ensure all code changes are committed

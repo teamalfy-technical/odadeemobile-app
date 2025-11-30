@@ -14,11 +14,6 @@ class EventService {
         headers: {'Content-Type': 'application/json'},
       );
 
-      print('===== PUBLIC EVENTS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
-      print('======================================');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> eventsJson = data['events'] ?? [];
@@ -26,7 +21,6 @@ class EventService {
       }
       throw Exception('Failed to load public events');
     } catch (e) {
-      print('Error fetching public events: $e');
       rethrow;
     }
   }
@@ -38,11 +32,6 @@ class EventService {
         ApiConfig.eventsEndpoint,
       );
 
-      print('===== AUTHENTICATED EVENTS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
-      print('===========================================');
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> eventsJson = data['events'] ?? [];
@@ -50,7 +39,6 @@ class EventService {
       }
       throw Exception('Failed to load events');
     } catch (e) {
-      print('Error fetching authenticated events: $e');
       rethrow;
     }
   }
@@ -68,7 +56,6 @@ class EventService {
       }
       throw Exception('Event not found');
     } catch (e) {
-      print('Error fetching event details: $e');
       rethrow;
     }
   }
@@ -82,21 +69,11 @@ class EventService {
         'ticketsPurchased': ticketsPurchased,
       };
       
-      print('=== EVENT REGISTRATION REQUEST ===');
-      print('Event ID: $eventId');
-      print('Tickets: $ticketsPurchased');
-      print('Endpoint: ${ApiConfig.eventsEndpoint}/$eventId/register');
-      
       final response = await _authService.authenticatedRequest(
         'POST',
         '${ApiConfig.eventsEndpoint}/$eventId/register',
         body: bodyData,
       );
-
-      print('=== EVENT REGISTRATION RESPONSE ===');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('==================================');
 
       // Accept both 200 (OK) and 201 (Created) as success
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -117,7 +94,6 @@ class EventService {
       
       throw Exception(errorMessage);
     } catch (e) {
-      print('Error registering for event: $e');
       rethrow;
     }
   }
@@ -136,7 +112,6 @@ class EventService {
       }
       throw Exception('Failed to load registrations');
     } catch (e) {
-      print('Error fetching registrations: $e');
       rethrow;
     }
   }

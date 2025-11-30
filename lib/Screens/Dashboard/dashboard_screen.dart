@@ -45,14 +45,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final response =
           await authService.authenticatedRequest('GET', '/api/users');
 
-      print('===== USERS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('==============================');
-
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-        print('Decoded JSON: $jsonData');
         return AllUsersModel.fromJson(jsonData);
       } else if (response.statusCode == 401) {
         if (mounted) {
@@ -63,22 +57,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       } else {
         throw Exception('Failed to load users. Status: ${response.statusCode}');
       }
-    } on SocketException catch (e) {
-      print('Socket error: $e');
+    } on SocketException catch (_) {
       throw Exception(
           'Network error: Unable to connect to server. Please check your internet connection.');
-    } on http.ClientException catch (e) {
-      print('Client error: $e');
+    } on http.ClientException catch (_) {
       throw Exception(
           'Network error: Unable to connect to server. Please check your internet connection.');
-    } on HttpException catch (e) {
-      print('HTTP error: $e');
+    } on HttpException catch (_) {
       throw Exception('Network error: Unable to connect to server.');
-    } on FormatException catch (e) {
-      print('Format error: $e');
+    } on FormatException catch (_) {
       throw Exception('Invalid data received from server.');
     } catch (e) {
-      print('Unexpected error in _fetchAllUsersData: $e');
       rethrow;
     }
   }
@@ -87,12 +76,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final eventService = EventService();
       final events = await eventService.getPublicEvents();
-      // Sort events by start date descending (latest at top)
       events.sort((a, b) => b.startDate.compareTo(a.startDate));
-      print('Fetched ${events.length} public events from odadee.net');
       return events;
     } catch (e) {
-      print('Error fetching events: $e');
       rethrow;
     }
   }
@@ -101,10 +87,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final projectService = ProjectService();
       final projects = await projectService.getPublicProjects();
-      print('Fetched ${projects.length} public projects from odadee.net');
       return projects;
     } catch (e) {
-      print('Error fetching projects: $e');
       rethrow;
     }
   }
@@ -114,12 +98,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final authService = AuthService();
       final response =
           await authService.authenticatedRequest('GET', '/api/discussions');
-
-      print('===== DISCUSSIONS API RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print(
-          'Response Body: ${response.body.substring(0, response.body.length < 200 ? response.body.length : 200)}...');
-      print('====================================');
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
@@ -173,11 +151,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
         return null;
       } else {
-        print('Failed to load discussions. Status: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('Error fetching discussions (non-critical): $e');
       return null;
     }
   }
@@ -193,7 +169,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       return null;
     } catch (e) {
-      print('Error fetching stats (non-critical): $e');
       return null;
     }
   }
@@ -222,24 +197,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _fetchCurrentUser() async {
     try {
       final authService = AuthService();
-
-      print('===== FETCHING CURRENT USER =====');
       final userData = await authService.getCurrentUser();
 
       if (userData == null) {
-        print('ERROR: getCurrentUser returned null');
         return;
       }
-
-      print('===== CURRENT USER DATA =====');
-      print('Full userData: $userData');
-      print('Keys in userData: ${userData.keys.toList()}');
-      print('firstName: ${userData['firstName']}');
-      print('first_name: ${userData['first_name']}');
-      print('email: ${userData['email']}');
-      print('yearGroup: ${userData['yearGroup']}');
-      print('graduationYear: ${userData['graduationYear']}');
-      print('==============================');
 
       if (mounted) {
         setState(() {
@@ -254,20 +216,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               userData['graduationYear']?.toString() ??
               '';
           userClass = yearGroup.isNotEmpty ? 'Class of $yearGroup' : '';
-
-          print('===== SET STATE COMPLETE =====');
-          print('userName: $userName');
-          print('userEmail: $userEmail');
-          print('userClass: $userClass');
-          print('==============================');
         });
       }
-    } catch (e, stackTrace) {
-      print('===== ERROR FETCHING CURRENT USER =====');
-      print('Error type: ${e.runtimeType}');
-      print('Error message: $e');
-      print('Stack trace: $stackTrace');
-      print('========================================');
+    } catch (e) {
+      // Non-critical error, continue without user data
     }
   }
 
@@ -323,7 +275,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       );
     } catch (e) {
-      print('Error parsing event date: $e');
       return _buildDateFallback();
     }
   }
@@ -388,7 +339,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ];
       return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year}';
     } catch (e) {
-      print('Error formatting event date: $e');
       return 'Date TBA';
     }
   }
@@ -424,7 +374,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               );
             } else if (snapshot.hasError) {
-              print('Dashboard error: ${snapshot.error}');
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -465,10 +414,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final articlesData = snapshot.data![3] as AllArticlesModel?;
 
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
-
-              print("===== STATS DATA =====");
-              print(statsData);
-              print("======================");
 
               // Check if critical data is null (users, events, projects are required)
               if (userData == null ||
