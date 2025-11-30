@@ -54,6 +54,7 @@ dependencies:
   simple_gradient_text: ^1.2.4
   uuid: ^4.0.0
   vector_math: ^2.1.4
+  video_player: ^2.9.3
   win32: ^5.11.0
   url_launcher: ^6.2.0
   webview_flutter: ^4.4.0
@@ -82,9 +83,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
-    # - assets/icons/
+    - assets/videos/
     - assets/launcher/
-    # - assets/lottie/
     - assets/fonts/
 
 flutter_icons:
