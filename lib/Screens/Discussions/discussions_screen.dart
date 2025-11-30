@@ -37,6 +37,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   @override
   void initState() {
     super.initState();
+    print('=== DISCUSSIONS SCREEN: INIT STATE ===');
     _loadPosts();
   }
 
@@ -48,22 +49,22 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   }
 
   Future<void> _loadPosts() async {
-    debugPrint('=== LOADING DISCUSSIONS ===');
+    print('=== DISCUSSIONS SCREEN: LOADING POSTS ===');
     setState(() => _isLoading = true);
     try {
       final posts = await _discussionService.getPosts(
         category: _selectedCategory == 'all' ? null : _selectedCategory,
       );
-      debugPrint('Loaded ${posts.length} posts, updating UI...');
+      print('=== DISCUSSIONS SCREEN: Loaded ${posts.length} posts ===');
       if (mounted) {
         setState(() {
           _posts = posts;
           _isLoading = false;
         });
-        debugPrint('UI updated - isLoading: $_isLoading, posts count: ${_posts.length}');
+        print('=== DISCUSSIONS SCREEN: UI updated, isLoading=$_isLoading ===');
       }
     } catch (e) {
-      debugPrint('Error loading discussions: $e');
+      print('=== DISCUSSIONS SCREEN ERROR: $e ===');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(

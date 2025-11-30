@@ -16,20 +16,19 @@ class DiscussionService {
         endpoint += '?category=$category';
       }
       
-      debugPrint('=== DISCUSSIONS GET REQUEST ===');
-      debugPrint('Endpoint: $endpoint');
+      print('=== DISCUSSION SERVICE: GET REQUEST ===');
+      print('Endpoint: $endpoint');
       
       final response = await _authService.authenticatedRequest('GET', endpoint);
 
-      debugPrint('=== DISCUSSIONS GET RESPONSE ===');
-      debugPrint('Status Code: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}...');
-      debugPrint('================================');
+      print('=== DISCUSSION SERVICE: GET RESPONSE ===');
+      print('Status Code: ${response.statusCode}');
+      print('================================');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> postsJson = data['discussions'] ?? data['posts'] ?? [];
-        debugPrint('Parsing ${postsJson.length} discussions...');
+        print('=== DISCUSSION SERVICE: Parsing ${postsJson.length} discussions ===');
         
         final List<DiscussionPost> posts = [];
         for (int i = 0; i < postsJson.length; i++) {
@@ -37,11 +36,11 @@ class DiscussionService {
             final post = DiscussionPost.fromJson(postsJson[i] as Map<String, dynamic>);
             posts.add(post);
           } catch (e) {
-            debugPrint('Error parsing discussion at index $i: $e');
-            debugPrint('Raw data: ${postsJson[i]}');
+            print('=== DISCUSSION SERVICE: Error parsing at index $i: $e ===');
+            print('Raw data: ${postsJson[i]}');
           }
         }
-        debugPrint('Successfully parsed ${posts.length} discussions');
+        print('=== DISCUSSION SERVICE: Successfully parsed ${posts.length} discussions ===');
         return posts;
       }
       
