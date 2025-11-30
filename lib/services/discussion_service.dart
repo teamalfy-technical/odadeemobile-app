@@ -29,7 +29,20 @@ class DiscussionService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> postsJson = data['discussions'] ?? data['posts'] ?? [];
-        return postsJson.map((p) => DiscussionPost.fromJson(p)).toList();
+        debugPrint('Parsing ${postsJson.length} discussions...');
+        
+        final List<DiscussionPost> posts = [];
+        for (int i = 0; i < postsJson.length; i++) {
+          try {
+            final post = DiscussionPost.fromJson(postsJson[i] as Map<String, dynamic>);
+            posts.add(post);
+          } catch (e) {
+            debugPrint('Error parsing discussion at index $i: $e');
+            debugPrint('Raw data: ${postsJson[i]}');
+          }
+        }
+        debugPrint('Successfully parsed ${posts.length} discussions');
+        return posts;
       }
       
       String errorMessage = 'Failed to load discussions';

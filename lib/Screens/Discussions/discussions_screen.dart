@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:odadee/services/discussion_service.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/utils/image_url_helper.dart';
@@ -47,20 +48,26 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   }
 
   Future<void> _loadPosts() async {
+    debugPrint('=== LOADING DISCUSSIONS ===');
     setState(() => _isLoading = true);
     try {
       final posts = await _discussionService.getPosts(
         category: _selectedCategory == 'all' ? null : _selectedCategory,
       );
-      setState(() {
-        _posts = posts;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
+      debugPrint('Loaded ${posts.length} posts, updating UI...');
       if (mounted) {
+        setState(() {
+          _posts = posts;
+          _isLoading = false;
+        });
+        debugPrint('UI updated - isLoading: $_isLoading, posts count: ${_posts.length}');
+      }
+    } catch (e) {
+      debugPrint('Error loading discussions: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load discussions: ${e.toString()}')),
+          SnackBar(content: Text('Failed to load discussions: ${e.toString().replaceAll('Exception: ', '')}')),
         );
       }
     }
