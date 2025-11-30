@@ -11,6 +11,14 @@ class YearGroupService {
 
   final AuthService _authService = AuthService();
 
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
   Future<List<YearGroup>> getAllYearGroups() async {
     try {
       final response = await _authService.authenticatedRequest(
@@ -173,15 +181,15 @@ class YearGroupService {
         final data = jsonDecode(response.body);
         final yearGroup = data['yearGroup'] ?? data;
         
-        final totalDues = (yearGroup['totalDues'] ?? 0).toDouble();
-        final membershipFees = (yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees'] ?? 0).toDouble();
-        final collections = (yearGroup['totalCollections'] ?? yearGroup['collections'] ?? 0).toDouble();
+        final totalDues = _parseDouble(yearGroup['totalDues']);
+        final membershipFees = _parseDouble(yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees']);
+        final collections = _parseDouble(yearGroup['totalCollections'] ?? yearGroup['collections']);
         
         if (totalDues > 0 || membershipFees > 0 || collections > 0) {
           return totalDues + membershipFees + collections;
         }
         
-        return (yearGroup['totalAmount'] ?? yearGroup['totalContributions'] ?? 0).toDouble();
+        return _parseDouble(yearGroup['totalAmount'] ?? yearGroup['totalContributions']);
       }
       return 0.0;
     } catch (e) {
@@ -313,7 +321,7 @@ class DuesPayment {
       lastName: json['lastName'] ?? '',
       email: json['email'],
       phoneNumber: json['phoneNumber'],
-      amount: (json['amount'] ?? 0).toDouble(),
+      amount: YearGroupService._parseDouble(json['amount']),
       status: json['status'] ?? 'pending',
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
