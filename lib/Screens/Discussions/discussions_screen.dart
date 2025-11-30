@@ -15,6 +15,7 @@ class DiscussionsScreen extends StatefulWidget {
 
 class _DiscussionsScreenState extends State<DiscussionsScreen> {
   final DiscussionService _discussionService = DiscussionService();
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _postController = TextEditingController();
   
   List<DiscussionPost> _posts = [];
@@ -27,7 +28,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     {'value': 'all', 'label': 'All Posts', 'icon': Icons.dashboard},
     {'value': 'general', 'label': 'General', 'icon': Icons.chat_bubble_outline},
     {'value': 'mentorship', 'label': 'Mentorship', 'icon': Icons.people},
-    {'value': 'jobs', 'label': 'Jobs & Careers', 'icon': Icons.work_outline},
+    {'value': 'career', 'label': 'Career', 'icon': Icons.work_outline},
     {'value': 'networking', 'label': 'Networking', 'icon': Icons.connect_without_contact},
     {'value': 'announcements', 'label': 'Announcements', 'icon': Icons.campaign},
   ];
@@ -40,6 +41,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
 
   @override
   void dispose() {
+    _titleController.dispose();
     _postController.dispose();
     super.dispose();
   }
@@ -65,17 +67,36 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   }
 
   Future<void> _createPost() async {
-    if (_postController.text.trim().isEmpty) return;
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a title for your post'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    if (_postController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter content for your post'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     
     setState(() => _isPosting = true);
     try {
       final newPost = await _discussionService.createPost(
+        title: _titleController.text.trim(),
         content: _postController.text.trim(),
         category: _newPostCategory,
       );
       
       setState(() {
         _posts.insert(0, newPost);
+        _titleController.clear();
         _postController.clear();
         _isPosting = false;
       });
@@ -92,34 +113,10 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
       setState(() => _isPosting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to create post: ${e.toString()}'),
+          content: Text('Failed to create post: ${e.toString().replaceAll('Exception: ', '')}'),
           backgroundColor: Colors.red,
         ),
       );
-    }
-  }
-
-  Future<void> _toggleLike(DiscussionPost post, int index) async {
-    final wasLiked = post.isLiked;
-    
-    setState(() {
-      _posts[index] = post.copyWith(
-        isLiked: !wasLiked,
-        likesCount: wasLiked ? post.likesCount - 1 : post.likesCount + 1,
-      );
-    });
-    
-    bool success;
-    if (wasLiked) {
-      success = await _discussionService.unlikePost(post.id);
-    } else {
-      success = await _discussionService.likePost(post.id);
-    }
-    
-    if (!success) {
-      setState(() {
-        _posts[index] = post;
-      });
     }
   }
 
@@ -132,6 +129,9 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     final borderColor = AppColors.borderColor(context);
     
     _newPostCategory = 'general';
+    _titleController.clear();
+    _postController.clear();
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -202,7 +202,36 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                 SizedBox(height: 16),
                 
                 Text(
-                  'What\'s on your mind?',
+                  'Title',
+                  style: TextStyle(color: subtitleColor, fontSize: 14),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _titleController,
+                  style: TextStyle(color: textColor),
+                  decoration: InputDecoration(
+                    hintText: 'Enter a title for your post...',
+                    hintStyle: TextStyle(color: mutedColor),
+                    filled: true,
+                    fillColor: surfaceColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: odaPrimary),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                
+                Text(
+                  'Content',
                   style: TextStyle(color: subtitleColor, fontSize: 14),
                 ),
                 SizedBox(height: 8),
@@ -435,7 +464,10 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                                     } catch (e) {
                                       setModalState(() => posting = false);
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Failed to add comment')),
+                                        SnackBar(
+                                          content: Text('${e.toString().replaceAll('Exception: ', '')}'),
+                                          backgroundColor: Colors.red,
+                                        ),
                                       );
                                     }
                                   },
@@ -476,14 +508,14 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
         children: [
           Row(
             children: [
-              _buildAvatar(comment.user?.profileImage, comment.user?.fullName ?? 'User', 32),
+              _buildAvatar(comment.author?.profileImage, comment.author?.fullName ?? 'User', 32),
               SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      comment.user?.fullName ?? 'Anonymous',
+                      comment.author?.fullName ?? 'Anonymous',
                       style: TextStyle(
                         color: textColor,
                         fontWeight: FontWeight.w600,
@@ -593,14 +625,14 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
         children: [
           Row(
             children: [
-              _buildAvatar(post.user?.profileImage, post.user?.fullName ?? 'User', 44),
+              _buildAvatar(post.author?.profileImage, post.author?.fullName ?? 'User', 44),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      post.user?.fullName ?? 'Anonymous',
+                      post.author?.fullName ?? 'Anonymous',
                       style: TextStyle(
                         color: textColor,
                         fontWeight: FontWeight.w600,
@@ -618,8 +650,8 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: odaPrimary.withAlpha(51),
-                            borderRadius: BorderRadius.circular(10),
+                            color: odaPrimary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -634,7 +666,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                                 category['label'] as String,
                                 style: TextStyle(
                                   color: odaPrimary,
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -648,76 +680,49 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
               ),
             ],
           ),
+          SizedBox(height: 12),
           
-          SizedBox(height: 16),
+          if (post.title.isNotEmpty) ...[
+            Text(
+              post.title,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+          ],
           
           Text(
             post.content,
             style: TextStyle(
               color: subtitleColor,
               fontSize: 14,
-              height: 1.5,
+              height: 1.4,
             ),
           ),
-          
           SizedBox(height: 16),
           
           Row(
             children: [
               InkWell(
-                onTap: () => _toggleLike(post, index),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: post.isLiked
-                        ? odaPrimary.withAlpha(51)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: post.isLiked ? odaPrimary : borderColor,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        post.isLiked ? Icons.favorite : Icons.favorite_border,
-                        size: 18,
-                        color: post.isLiked ? odaPrimary : mutedColor,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        '${post.likesCount}',
-                        style: TextStyle(
-                          color: post.isLiked ? odaPrimary : mutedColor,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              InkWell(
                 onTap: () => _showCommentsSheet(post, index),
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
+                    color: mutedColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: borderColor),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.chat_bubble_outline,
-                        size: 18,
-                        color: mutedColor,
-                      ),
+                      Icon(Icons.chat_bubble_outline, size: 18, color: subtitleColor),
                       SizedBox(width: 6),
                       Text(
                         '${post.commentsCount}',
-                        style: TextStyle(color: mutedColor, fontSize: 13),
+                        style: TextStyle(color: subtitleColor, fontSize: 13),
                       ),
                     ],
                   ),
@@ -732,31 +737,31 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final backgroundColor = theme.scaffoldBackgroundColor;
-    final cardColor = AppColors.cardColor(context);
+    final backgroundColor = AppColors.isDark(context) ? Color(0xFF0f172a) : Colors.grey[100];
     final textColor = AppColors.textColor(context);
     final subtitleColor = AppColors.subtitleColor(context);
-    final mutedColor = AppColors.mutedColor(context);
+    final cardColor = AppColors.cardColor(context);
     final borderColor = AppColors.borderColor(context);
     
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
+        backgroundColor: cardColor,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Discussions',
           style: TextStyle(
-            fontSize: 20,
+            color: textColor,
             fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: subtitleColor),
             onPressed: _loadPosts,
           ),
         ],
@@ -765,48 +770,52 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
         children: [
           Container(
             height: 50,
-            margin: EdgeInsets.symmetric(vertical: 12),
+            color: cardColor,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: 16),
               itemCount: _categories.length,
               itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = _selectedCategory == category['value'];
+                final cat = _categories[index];
+                final isSelected = _selectedCategory == cat['value'];
                 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedCategory = category['value'] as String);
-                    _loadPosts();
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(right: 8),
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: isSelected ? odaPrimary : cardColor,
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(
-                        color: isSelected ? odaPrimary : borderColor,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          category['icon'] as IconData,
-                          size: 16,
-                          color: isSelected ? Colors.white : subtitleColor,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          category['label'] as String,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : subtitleColor,
-                            fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                return Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedCategory = cat['value'] as String);
+                        _loadPosts();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? odaPrimary : Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? odaPrimary : borderColor,
                           ),
                         ),
-                      ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              cat['icon'] as IconData,
+                              size: 16,
+                              color: isSelected ? Colors.white : subtitleColor,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              cat['label'] as String,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : subtitleColor,
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 );
@@ -826,35 +835,20 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.forum_outlined,
-                                size: 64, color: mutedColor),
+                            Icon(Icons.forum_outlined, size: 64, color: subtitleColor),
                             SizedBox(height: 16),
                             Text(
                               'No discussions yet',
                               style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600),
+                                color: textColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             SizedBox(height: 8),
                             Text(
                               'Start a conversation with the community!',
                               style: TextStyle(color: subtitleColor),
-                            ),
-                            SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: _showCreatePostSheet,
-                              icon: Icon(Icons.add, color: Colors.white),
-                              label: Text('Create Post',
-                                  style: TextStyle(color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: odaPrimary,
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
                             ),
                           ],
                         ),
@@ -865,18 +859,20 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                         child: ListView.builder(
                           padding: EdgeInsets.all(16),
                           itemCount: _posts.length,
-                          itemBuilder: (context, index) {
-                            return _buildPostCard(_posts[index], index);
-                          },
+                          itemBuilder: (context, index) => _buildPostCard(_posts[index], index),
                         ),
                       ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreatePostSheet,
         backgroundColor: odaPrimary,
-        child: Icon(Icons.add, color: Colors.white),
+        icon: Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'New Post',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }

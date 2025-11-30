@@ -1,0 +1,285 @@
+1. Get All Discussion Posts
+Endpoint: GET /discussions
+
+Authentication: Required (JWT Bearer token)
+
+Future<List<DiscussionPost>> getDiscussions() async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/discussions'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['discussions'] as List)
+        .map((json) => DiscussionPost.fromJson(json))
+        .toList();
+  }
+  throw Exception('Failed to fetch discussions');
+}
+
+Response:
+
+{
+  "discussions": [
+    {
+      "id": "uuid",
+      "title": "Discussion Title",
+      "content": "Discussion content...",
+      "category": "general",
+      "userId": "user-uuid",
+      "createdAt": "2025-11-30T10:00:00.000Z",
+      "updatedAt": "2025-11-30T10:00:00.000Z",
+      "author": {
+        "id": "user-uuid",
+        "firstName": "John",
+        "lastName": "Doe",
+        "profileImage": "/uploads/..."
+      }
+    }
+  ]
+}
+
+2. Get Single Discussion
+Endpoint: GET /discussions/:id
+
+Future<DiscussionPost> getDiscussion(String id) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$id'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return DiscussionPost.fromJson(data['post']);
+  }
+  throw Exception('Discussion not found');
+}
+
+3. Create Discussion Post
+Endpoint: POST /discussions
+
+Future<DiscussionPost> createDiscussion({
+  required String title,
+  required String content,
+  required String category,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/discussions'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'title': title,
+      'content': content,
+      'category': category,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    final data = jsonDecode(response.body);
+    return DiscussionPost.fromJson(data['post']);
+  }
+  throw Exception('Failed to create discussion');
+}
+
+Categories: general, mentorship, career, networking, announcements
+
+4. Update Discussion (Author Only)
+Endpoint: PATCH /discussions/:id
+
+Future<DiscussionPost> updateDiscussion(String id, {
+  String? title,
+  String? content,
+  String? category,
+}) async {
+  final response = await http.patch(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$id'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      if (title != null) 'title': title,
+      if (content != null) 'content': content,
+      if (category != null) 'category': category,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return DiscussionPost.fromJson(data['post']);
+  }
+  throw Exception('Failed to update discussion');
+}
+
+5. Delete Discussion (Author Only)
+Endpoint: DELETE /discussions/:id
+
+Future<void> deleteDiscussion(String id) async {
+  final response = await http.delete(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$id'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+  
+  if (response.statusCode != 200) {
+    throw Exception('Failed to delete discussion');
+  }
+}
+
+6. Get Comments for Discussion
+Endpoint: GET /discussions/:id/comments
+
+Future<List<DiscussionComment>> getComments(String postId) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$postId/comments'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['comments'] as List)
+        .map((json) => DiscussionComment.fromJson(json))
+        .toList();
+  }
+  throw Exception('Failed to fetch comments');
+}
+
+7. Add Comment to Discussion
+Endpoint: POST /discussions/:id/comments
+
+Note: Requires verified membership (user must be a verified member of a year group)
+
+Future<DiscussionComment> addComment(String postId, String content) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$postId/comments'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'content': content,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    final data = jsonDecode(response.body);
+    return DiscussionComment.fromJson(data['comment']);
+  }
+  throw Exception('Failed to add comment');
+}
+
+8. Delete Comment (Author Only)
+Endpoint: DELETE /discussions/:id/comments/:commentId
+
+Future<void> deleteComment(String postId, String commentId) async {
+  final response = await http.delete(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$postId/comments/$commentId'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+  
+  if (response.statusCode != 200) {
+    throw Exception('Failed to delete comment');
+  }
+}
+
+Data Models
+class DiscussionPost {
+  final String id;
+  final String title;
+  final String content;
+  final String category;
+  final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final Author? author;
+  DiscussionPost({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.category,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.author,
+  });
+  factory DiscussionPost.fromJson(Map<String, dynamic> json) {
+    return DiscussionPost(
+      id: json['id'],
+      title: json['title'],
+      content: json['content'],
+      category: json['category'],
+      userId: json['userId'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      author: json['author'] != null ? Author.fromJson(json['author']) : null,
+    );
+  }
+}
+class DiscussionComment {
+  final String id;
+  final String postId;
+  final String userId;
+  final String content;
+  final DateTime createdAt;
+  DiscussionComment({
+    required this.id,
+    required this.postId,
+    required this.userId,
+    required this.content,
+    required this.createdAt,
+  });
+  factory DiscussionComment.fromJson(Map<String, dynamic> json) {
+    return DiscussionComment(
+      id: json['id'],
+      postId: json['postId'],
+      userId: json['userId'],
+      content: json['content'],
+      createdAt: DateTime.parse(json['createdAt']),
+    );
+  }
+}
+class Author {
+  final String id;
+  final String firstName;
+  final String lastName;
+  final String? profileImage;
+  Author({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    this.profileImage,
+  });
+  factory Author.fromJson(Map<String, dynamic> json) {
+    return Author(
+      id: json['id'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      profileImage: json['profileImage'],
+    );
+  }
+}
+
+Important Notes
+Authentication: All endpoints require JWT authentication via Authorization: Bearer <token> header
+Commenting: Only verified members (users with verified year group membership) can post comments
+Author-only actions: Only the original author can update or delete their posts/comments
+Error codes:
+401 - Not authenticated
+403 - Forbidden (not author or not verified member)
+404 - Discussion/comment not found
+400 - Invalid request data
