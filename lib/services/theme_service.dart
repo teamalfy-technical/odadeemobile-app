@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemeService extends ChangeNotifier {
   static final ThemeService _instance = ThemeService._internal();
   
-  bool _isDarkMode = false;
+  bool _isDarkMode = true;
   static const String _themePreferenceKey = 'isDarkMode';
 
   ThemeService._internal();
@@ -91,11 +91,11 @@ class ThemeService extends ChangeNotifier {
   Future<void> initialize() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      _isDarkMode = prefs.getBool(_themePreferenceKey) ?? false;
+      _isDarkMode = prefs.getBool(_themePreferenceKey) ?? true;
       notifyListeners();
     } catch (e) {
       print('Error loading theme preference: $e');
-      _isDarkMode = false;
+      _isDarkMode = true;
     }
   }
 
