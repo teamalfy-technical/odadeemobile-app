@@ -320,14 +320,24 @@ class DiscussionPost {
       commentCount = json['numComments'] is int ? json['numComments'] : int.tryParse(json['numComments'].toString()) ?? 0;
     }
     
+    // Parse author - check both 'author' and 'user' fields
+    Author? author;
+    if (json['author'] != null) {
+      author = Author.fromJson(json['author']);
+    } else if (json['user'] != null) {
+      author = Author.fromJson(json['user']);
+    }
+    
     // Debug log to see what fields are available
     print('=== DISCUSSION POST PARSING ===');
     print('ID: ${json['id']}');
     print('Title: ${json['title']}');
+    print('author field: ${json['author']}');
+    print('user field: ${json['user']}');
+    print('Parsed author: ${author?.fullName ?? "null"}');
     print('commentsCount field: ${json['commentsCount']}');
     print('commentCount field: ${json['commentCount']}');
     print('_count field: ${json['_count']}');
-    print('comments field type: ${json['comments']?.runtimeType}');
     print('comments field: ${json['comments'] is List ? 'List with ${(json['comments'] as List).length} items' : json['comments']}');
     print('Calculated commentCount: $commentCount');
     print('===============================');
@@ -345,7 +355,7 @@ class DiscussionPost {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : DateTime.now(),
-      author: json['author'] != null ? Author.fromJson(json['author']) : null,
+      author: author,
     );
   }
 
