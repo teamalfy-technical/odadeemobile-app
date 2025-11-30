@@ -20,24 +20,57 @@ class PaymentService {
     String? eventId,
   }) async {
     try {
-      // Get user data from API (AuthService now returns normalized data)
-      print('Fetching user data from API...');
-      final userData = await authService.getCurrentUser();
+      // First try cached user data, then fetch from API
+      print('Getting user data for payment...');
+      Map<String, dynamic>? userData;
       
-      print('User data from API: $userData');
+      // Try cached data first
+      userData = await authService.getCachedUser();
+      print('Cached user data: $userData');
       
-      final firstName = userData['firstName']?.toString() ?? 
-                        userData['first_name']?.toString() ?? '';
-      final lastName = userData['lastName']?.toString() ?? 
-                       userData['last_name']?.toString() ?? '';
-      final email = userData['email']?.toString() ?? '';
+      // If no cached data or missing required fields, try fetching from API
+      if (userData == null || 
+          (userData['firstName']?.toString().isEmpty ?? true) ||
+          (userData['email']?.toString().isEmpty ?? true)) {
+        print('Cached data incomplete, fetching from API...');
+        try {
+          userData = await authService.getCurrentUser();
+          print('User data from API: $userData');
+        } catch (e) {
+          print('API fetch failed: $e');
+          // If API fails and we have partial cached data, use it
+          if (userData == null) {
+            // Try to get individual cached fields
+            final cachedFirstName = await storage.read(key: 'user_first_name');
+            final cachedLastName = await storage.read(key: 'user_last_name');
+            final cachedEmail = await storage.read(key: 'user_email');
+            
+            if (cachedFirstName != null && cachedLastName != null && cachedEmail != null) {
+              userData = {
+                'firstName': cachedFirstName,
+                'lastName': cachedLastName,
+                'email': cachedEmail,
+              };
+              print('Using individually cached fields: $userData');
+            } else {
+              throw Exception('Your session has expired. Please log out and log in again to continue with the payment.');
+            }
+          }
+        }
+      }
+      
+      final firstName = userData?['firstName']?.toString() ?? 
+                        userData?['first_name']?.toString() ?? '';
+      final lastName = userData?['lastName']?.toString() ?? 
+                       userData?['last_name']?.toString() ?? '';
+      final email = userData?['email']?.toString() ?? '';
       
       print('Extracted - firstName: "$firstName", lastName: "$lastName", email: "$email"');
       
       // Validate required fields
       if (firstName.isEmpty || lastName.isEmpty || email.isEmpty) {
         print('ERROR: Missing fields - firstName: ${firstName.isEmpty}, lastName: ${lastName.isEmpty}, email: ${email.isEmpty}');
-        throw Exception('User information incomplete. Please ensure your profile has firstName, lastName, and email filled in.');
+        throw Exception('User information incomplete. Please update your profile with your name and email, then try again.');
       }
       
       // Map payment types to backend product codes
