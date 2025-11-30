@@ -154,6 +154,11 @@ class YearGroupService {
 
   Future<double> getYearGroupContributions(String yearGroupId) async {
     try {
+      final duesCollection = await getDuesCollectionSummary(yearGroupId);
+      if (duesCollection != null) {
+        return duesCollection.totalCollectedAmount + duesCollection.totalPendingAmount;
+      }
+      
       final stats = await getYearGroupStats(yearGroupId);
       if (stats != null) {
         return stats.totalAmount;
@@ -181,6 +186,28 @@ class YearGroupService {
       return 0.0;
     } catch (e) {
       return 0.0;
+    }
+  }
+
+  Future<DuesCollectionSummary?> getDuesCollectionSummary(String yearGroupId) async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups/$yearGroupId/dues-collection',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return DuesCollectionSummary.fromJson(data);
+      }
+      
+      if (response.statusCode == 403) {
+        return null;
+      }
+      
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 }
@@ -214,6 +241,88 @@ class YearGroupStats {
   }
 
   double get totalAmount => totalContributions + totalDues + totalMembershipFees + totalCollections;
+}
+
+class DuesCollectionSummary {
+  final String totalCollected;
+  final String totalPending;
+  final int paymentCount;
+  final String currency;
+  final List<DuesPayment> payments;
+
+  DuesCollectionSummary({
+    required this.totalCollected,
+    required this.totalPending,
+    required this.paymentCount,
+    required this.currency,
+    required this.payments,
+  });
+
+  factory DuesCollectionSummary.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> paymentsJson = json['payments'] ?? [];
+    return DuesCollectionSummary(
+      totalCollected: json['totalCollected']?.toString() ?? '0',
+      totalPending: json['totalPending']?.toString() ?? '0',
+      paymentCount: json['paymentCount'] ?? 0,
+      currency: json['currency'] ?? 'GHS',
+      payments: paymentsJson.map((p) => DuesPayment.fromJson(p)).toList(),
+    );
+  }
+
+  double get totalCollectedAmount => double.tryParse(totalCollected) ?? 0.0;
+  double get totalPendingAmount => double.tryParse(totalPending) ?? 0.0;
+  double get totalAmount => totalCollectedAmount + totalPendingAmount;
+  
+  String get formattedTotalCollected => '$currency ${totalCollectedAmount.toStringAsFixed(2)}';
+  String get formattedTotalPending => '$currency ${totalPendingAmount.toStringAsFixed(2)}';
+  String get formattedTotal => '$currency ${totalAmount.toStringAsFixed(2)}';
+  
+  double get collectionRate {
+    if (totalAmount == 0) return 0;
+    return (totalCollectedAmount / totalAmount) * 100;
+  }
+}
+
+class DuesPayment {
+  final String? id;
+  final String firstName;
+  final String lastName;
+  final String? email;
+  final String? phoneNumber;
+  final double amount;
+  final String status;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  DuesPayment({
+    this.id,
+    required this.firstName,
+    required this.lastName,
+    this.email,
+    this.phoneNumber,
+    required this.amount,
+    required this.status,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory DuesPayment.fromJson(Map<String, dynamic> json) {
+    return DuesPayment(
+      id: json['id'],
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      email: json['email'],
+      phoneNumber: json['phoneNumber'],
+      amount: (json['amount'] ?? 0).toDouble(),
+      status: json['status'] ?? 'pending',
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
+    );
+  }
+
+  String get fullName => '$firstName $lastName';
+  bool get isSuccessful => status.toLowerCase() == 'successful' || status.toLowerCase() == 'completed';
+  bool get isPending => status.toLowerCase() == 'pending';
 }
 
 class YearGroup {
