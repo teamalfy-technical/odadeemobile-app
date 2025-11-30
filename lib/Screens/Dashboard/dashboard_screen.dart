@@ -126,6 +126,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         if (jsonData['discussions'] != null) {
           final discussionsList = jsonData['discussions'] as List;
+          
+          // Sort discussions by createdAt date (newest first)
+          discussionsList.sort((a, b) {
+            final dateA = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime(1970);
+            final dateB = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime(1970);
+            return dateB.compareTo(dateA);
+          });
 
           final articlesJson = {
             'news': {
