@@ -7,6 +7,7 @@ import 'package:odadee/components/event_image_widget.dart';
 import 'package:odadee/services/event_service.dart';
 import 'package:odadee/services/payment_service.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/year_group_service.dart';
 import 'package:odadee/services/theme_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,6 +25,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   final EventService _eventService = EventService();
   final PaymentService _paymentService = PaymentService();
   final AuthService _authService = AuthService();
+  final YearGroupService _yearGroupService = YearGroupService();
   
   bool _isRegistering = false;
   bool _isRegistered = false;
@@ -45,13 +47,50 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
     try {
       if (ticketPrice > 0) {
+        print('=== EVENT PAYMENT DEBUG ===');
+        print('Event ID: ${event!.id}');
+        print('Event yearGroupId: ${event!.yearGroupId}');
+        print('Ticket count: $_ticketCount');
+        print('Total amount: $totalAmount');
+        
         String yearGroupId = event!.yearGroupId ?? '';
         if (yearGroupId.isEmpty) {
-          final userData = await _authService.getCurrentUser();
-          yearGroupId = userData['yearGroupId']?.toString() ?? 
-                       userData['yearGroup']?.toString() ?? 
-                       userData['graduationYear']?.toString() ?? '';
+          print('Event has no yearGroupId, fetching user year group...');
+          
+          // Get the actual year group UUID from YearGroupService
+          try {
+            final yearGroup = await _yearGroupService.getUserYearGroup();
+            if (yearGroup != null) {
+              yearGroupId = yearGroup.id;
+              print('Got year group from service: id=${yearGroup.id}, name=${yearGroup.name}');
+            }
+          } catch (e) {
+            print('Failed to get year group from service: $e');
+            // Fallback: try to get from user data
+            Map<String, dynamic>? userData = await _authService.getCachedUser();
+            if (userData == null) {
+              try {
+                userData = await _authService.getCurrentUser();
+              } catch (e) {
+                print('API fetch also failed: $e');
+              }
+            }
+            
+            // Check if user data has a yearGroupId (UUID)
+            yearGroupId = userData?['yearGroupId']?.toString() ?? '';
+            if (yearGroupId.isEmpty && userData?['yearGroup'] is Map) {
+              yearGroupId = (userData!['yearGroup'] as Map)['id']?.toString() ?? '';
+            }
+          }
+          print('Resolved yearGroupId: "$yearGroupId"');
         }
+        
+        if (yearGroupId.isEmpty) {
+          throw Exception('Could not determine year group. Please update your profile with your graduation year.');
+        }
+        
+        print('Final yearGroupId: $yearGroupId');
+        print('Calling payment service...');
         
         final paymentUrl = await _paymentService.createPayment(
           paymentType: 'event',
@@ -61,12 +100,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           description: 'Ticket purchase for ${event!.title} ($_ticketCount ticket${_ticketCount > 1 ? 's' : ''})',
         );
         
+        print('Payment URL received: $paymentUrl');
+        
         setState(() {
           _isRegistering = false;
         });
         
         _showPaymentConfirmation(paymentUrl, totalAmount);
       } else {
+        // Free event - register directly
+        print('Free event - registering directly...');
         final registration = await _eventService.registerForEvent(
           eventId: event!.id,
           ticketsPurchased: _ticketCount,
@@ -80,13 +123,19 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
         _showSuccessDialog(registration);
       }
     } catch (e) {
+      print('Event registration error: $e');
       setState(() {
         _isRegistering = false;
       });
       
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Registration failed: ${e.toString()}'),
+          content: Text('Registration failed: $errorMessage'),
           backgroundColor: Colors.red,
         ),
       );
@@ -102,6 +151,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -109,9 +159,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           children: [
             Icon(Icons.payment, color: odaPrimary, size: 28),
             SizedBox(width: 12),
-            Text(
-              'Complete Payment',
-              style: TextStyle(color: textColor, fontSize: 18),
+            Expanded(
+              child: Text(
+                'Complete Payment',
+                style: TextStyle(color: textColor, fontSize: 18),
+              ),
             ),
           ],
         ),
@@ -143,7 +195,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             ),
             SizedBox(height: 12),
             Text(
-              'Click "Pay Now" to open the payment page. After completing payment, return to the app.',
+              'Click "Pay Now" to open the payment page. After completing payment, return here and tap "I\'ve Completed Payment".',
               style: TextStyle(color: mutedColor, fontSize: 12),
             ),
           ],
@@ -155,18 +207,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
               final uri = Uri.parse(paymentUrl);
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
                 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Complete your payment in the browser, then return to the app.'),
-                    backgroundColor: odaPrimary,
-                    duration: Duration(seconds: 5),
-                  ),
-                );
+                // Close current dialog and show payment completion dialog
+                Navigator.pop(context);
+                _showPaymentCompletionDialog(amount);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -182,6 +229,128 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             child: Text('Pay Now', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+  
+  void _showPaymentCompletionDialog(double amount) {
+    final cardColor = AppColors.cardColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    
+    bool isConfirming = false;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: cardColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: odaSecondary, size: 28),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Payment Status',
+                    style: TextStyle(color: textColor, fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Have you completed your payment of GH₵ ${amount.toStringAsFixed(2)} for "${event!.title}"?',
+                  style: TextStyle(color: subtitleColor),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'If you\'ve completed the payment, tap "I\'ve Completed Payment" to complete your registration.',
+                  style: TextStyle(color: subtitleColor.withOpacity(0.7), fontSize: 12),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isConfirming ? null : () {
+                  Navigator.pop(dialogContext);
+                },
+                child: Text('Not Yet', style: TextStyle(color: subtitleColor)),
+              ),
+              ElevatedButton(
+                onPressed: isConfirming ? null : () async {
+                  setDialogState(() => isConfirming = true);
+                  
+                  try {
+                    print('Completing event registration after payment...');
+                    
+                    // Call the registration endpoint to complete registration
+                    final registration = await _eventService.registerForEvent(
+                      eventId: event!.id,
+                      ticketsPurchased: _ticketCount,
+                    );
+                    
+                    print('Registration successful: ${registration.id}');
+                    
+                    Navigator.pop(dialogContext);
+                    
+                    if (!mounted) return;
+                    
+                    setState(() {
+                      _isRegistered = true;
+                    });
+                    
+                    // Show success dialog
+                    _showSuccessDialog(registration);
+                  } catch (e) {
+                    print('Registration error: $e');
+                    
+                    setDialogState(() => isConfirming = false);
+                    
+                    if (!mounted) return;
+                    
+                    String errorMessage = e.toString();
+                    if (errorMessage.startsWith('Exception: ')) {
+                      errorMessage = errorMessage.substring(11);
+                    }
+                    
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.white, size: 20),
+                            SizedBox(width: 8),
+                            Expanded(child: Text('Registration failed: $errorMessage')),
+                          ],
+                        ),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                child: isConfirming 
+                  ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text("I've Completed Payment", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

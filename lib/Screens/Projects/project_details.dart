@@ -446,13 +446,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final textColor = AppColors.textColor(context);
     final subtitleColor = AppColors.subtitleColor(context);
     
+    bool isConfirming = false;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
-          bool isConfirming = false;
-          
           return AlertDialog(
             backgroundColor: cardColor,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -485,69 +485,65 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () {
+                onPressed: isConfirming ? null : () {
                   Navigator.pop(dialogContext);
                 },
                 child: Text('Not Yet', style: TextStyle(color: subtitleColor)),
               ),
-              StatefulBuilder(
-                builder: (context, setButtonState) {
-                  return ElevatedButton(
-                    onPressed: isConfirming ? null : () async {
-                      setButtonState(() => isConfirming = true);
-                      
-                      // Refresh project data from API
-                      final success = await _refreshProjectData();
-                      
-                      Navigator.pop(dialogContext);
-                      
-                      if (!mounted) return;
-                      
-                      if (success) {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                Icon(Icons.check_circle, color: Colors.white, size: 20),
-                                SizedBox(width: 8),
-                                Expanded(child: Text('Thank you for your contribution!')),
-                              ],
-                            ),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                Icon(Icons.info_outline, color: Colors.white, size: 20),
-                                SizedBox(width: 8),
-                                Expanded(child: Text('Payment recorded. Progress will update shortly.')),
-                              ],
-                            ),
-                            backgroundColor: odaPrimary,
-                            duration: Duration(seconds: 4),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    child: isConfirming 
-                      ? SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text("I've Completed Payment", style: TextStyle(color: Colors.white)),
-                  );
+              ElevatedButton(
+                onPressed: isConfirming ? null : () async {
+                  setDialogState(() => isConfirming = true);
+                  
+                  // Refresh project data from API
+                  final success = await _refreshProjectData();
+                  
+                  Navigator.pop(dialogContext);
+                  
+                  if (!mounted) return;
+                  
+                  if (success) {
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.white, size: 20),
+                            SizedBox(width: 8),
+                            Expanded(child: Text('Thank you for your contribution!')),
+                          ],
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.white, size: 20),
+                            SizedBox(width: 8),
+                            Expanded(child: Text('Payment recorded. Progress will update shortly.')),
+                          ],
+                        ),
+                        backgroundColor: odaPrimary,
+                        duration: Duration(seconds: 4),
+                      ),
+                    );
+                  }
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                child: isConfirming 
+                  ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text("I've Completed Payment", style: TextStyle(color: Colors.white)),
               ),
             ],
           );
