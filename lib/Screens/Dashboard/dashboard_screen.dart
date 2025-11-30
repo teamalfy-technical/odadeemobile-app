@@ -17,6 +17,8 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Projects/projects_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
+import 'package:odadee/Screens/Discussions/discussions_screen.dart';
+import 'package:odadee/Screens/YearGroup/year_group_screen.dart';
 import 'package:odadee/components/stat_card.dart';
 import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/components/event_image_widget.dart';
@@ -1093,7 +1095,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               MaterialPageRoute(
                                                   builder:
                                                       (BuildContext context) =>
-                                                          MembersScreen()));
+                                                          YearGroupScreen()));
                                         },
                                         child: Container(
                                           child: Text('View All',
@@ -1301,7 +1303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 MaterialPageRoute(
                                                     builder: (BuildContext
                                                             context) =>
-                                                        AllNewsScreen()));
+                                                        DiscussionsScreen()));
                                           },
                                           child: Text('View All',
                                               style: const TextStyle(

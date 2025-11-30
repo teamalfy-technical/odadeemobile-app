@@ -1,0 +1,244 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/models/project.dart';
+import 'package:odadee/models/event.dart';
+import 'package:odadee/utils/image_url_helper.dart';
+
+class YearGroupService {
+  static final YearGroupService _instance = YearGroupService._internal();
+  factory YearGroupService() => _instance;
+  YearGroupService._internal();
+
+  final AuthService _authService = AuthService();
+
+  Future<List<YearGroup>> getAllYearGroups() async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> groupsJson = data['yearGroups'] ?? [];
+        return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
+      }
+      throw Exception('Failed to load year groups');
+    } catch (e) {
+      debugPrint('Error fetching year groups: $e');
+      rethrow;
+    }
+  }
+
+  Future<YearGroup> getYearGroupDetails(String yearGroupId) async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups/$yearGroupId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return YearGroup.fromJson(data['yearGroup']);
+      }
+      throw Exception('Year group not found');
+    } catch (e) {
+      debugPrint('Error fetching year group details: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<YearGroupMember>> getYearGroupMembers(String yearGroupId) async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups/$yearGroupId/members',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> membersJson = data['members'] ?? [];
+        return membersJson.map((m) => YearGroupMember.fromJson(m)).toList();
+      }
+      throw Exception('Failed to load members');
+    } catch (e) {
+      debugPrint('Error fetching year group members: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Project>> getYearGroupProjects(String yearGroupId) async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/year-groups/$yearGroupId/projects',
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> projectsJson = data['projects'] ?? [];
+        return projectsJson.map((p) => Project.fromJson(p)).toList();
+      }
+      throw Exception('Failed to load year group projects');
+    } catch (e) {
+      debugPrint('Error fetching year group projects: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> joinYearGroup(String yearGroupId) async {
+    try {
+      final response = await _authService.authenticatedRequest(
+        'POST',
+        '/api/year-groups/$yearGroupId/join',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'membership': data['membership'],
+          'message': data['message'] ?? 'Join request sent',
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to join year group',
+        };
+      }
+    } catch (e) {
+      debugPrint('Error joining year group: $e');
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
+
+  Future<YearGroup?> getUserYearGroup() async {
+    try {
+      final userData = await _authService.getCurrentUser();
+      final graduationYear = userData['graduationYear'];
+      
+      if (graduationYear == null) return null;
+      
+      final yearGroups = await getAllYearGroups();
+      return yearGroups.firstWhere(
+        (g) => g.year == graduationYear,
+        orElse: () => throw Exception('Year group not found'),
+      );
+    } catch (e) {
+      debugPrint('Error getting user year group: $e');
+      return null;
+    }
+  }
+}
+
+class YearGroup {
+  final String id;
+  final String name;
+  final int year;
+  final String? description;
+  final int memberCount;
+  final DateTime createdAt;
+
+  YearGroup({
+    required this.id,
+    required this.name,
+    required this.year,
+    this.description,
+    required this.memberCount,
+    required this.createdAt,
+  });
+
+  factory YearGroup.fromJson(Map<String, dynamic> json) {
+    return YearGroup(
+      id: json['id'] ?? '',
+      name: json['name'] ?? 'Class of ${json['year'] ?? 'Unknown'}',
+      year: json['year'] ?? 0,
+      description: json['description'],
+      memberCount: json['memberCount'] ?? 0,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+    );
+  }
+}
+
+class YearGroupMember {
+  final String id;
+  final String yearGroupId;
+  final bool isAdmin;
+  final String verificationStatus;
+  final DateTime joinedAt;
+  final MemberUser? user;
+
+  YearGroupMember({
+    required this.id,
+    required this.yearGroupId,
+    required this.isAdmin,
+    required this.verificationStatus,
+    required this.joinedAt,
+    this.user,
+  });
+
+  factory YearGroupMember.fromJson(Map<String, dynamic> json) {
+    return YearGroupMember(
+      id: json['id'] ?? '',
+      yearGroupId: json['yearGroupId'] ?? '',
+      isAdmin: json['isAdmin'] ?? false,
+      verificationStatus: json['verificationStatus'] ?? 'pending',
+      joinedAt: json['joinedAt'] != null
+          ? DateTime.parse(json['joinedAt'])
+          : DateTime.now(),
+      user: json['user'] != null ? MemberUser.fromJson(json['user']) : null,
+    );
+  }
+}
+
+class MemberUser {
+  final String? id;
+  final String firstName;
+  final String lastName;
+  final String? email;
+  final String? phoneNumber;
+  final String? profession;
+  final String? location;
+  final String? profileImage;
+  final List<String>? skills;
+
+  MemberUser({
+    this.id,
+    required this.firstName,
+    required this.lastName,
+    this.email,
+    this.phoneNumber,
+    this.profession,
+    this.location,
+    this.profileImage,
+    this.skills,
+  });
+
+  factory MemberUser.fromJson(Map<String, dynamic> json) {
+    String? rawProfileImage = json['profileImage'];
+    String? profileImage = ImageUrlHelper.normalizeImageUrl(rawProfileImage);
+    
+    return MemberUser(
+      id: json['id'],
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      email: json['email'],
+      phoneNumber: json['phoneNumber'],
+      profession: json['profession'],
+      location: json['location'],
+      profileImage: profileImage,
+      skills: json['skills'] != null
+          ? List<String>.from(json['skills'])
+          : null,
+    );
+  }
+
+  String get fullName => '$firstName $lastName';
+}

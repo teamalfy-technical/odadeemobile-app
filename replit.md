@@ -23,6 +23,10 @@ Built with Flutter 3.32.0 and Dart 3.8.0, the project targets the web platform w
 -   **Change Password:** Users can change their password or set a new one after logging in via magic link. Includes password validation (8+ characters, uppercase, lowercase, numbers), confirmation matching, and toggle for users without an existing password.
 -   **Dashboard Navigation:** All dashboard stat cards route to functional pages (Members, Events, Projects, PayDues) with consistent design and navigation.
 -   **Events & Projects Screens:** Redesigned to match the clean aesthetic of `MemberDetailPage`, featuring white app bars, dark backgrounds, blue CTAs, yellow accents, and flat designs with simple back navigation.
+-   **Event RSVP:** Complete ticket selection flow with quantity controls, payment integration for paid events via PayAngel, and free event registration. Shows registration confirmation with event details.
+-   **Discussions Feature:** Full community discussions screen with category filtering (General, Mentorship, Jobs, Networking, Announcements), post creation, comments, and like/unlike functionality. Uses `DiscussionService` for API communication.
+-   **Project Contributions:** Contribution flow with amount input, quick-select buttons, and PayAngel payment integration. Handles projects with and without yearGroupId by falling back to user's graduation year.
+-   **Year Group Section:** Dedicated year group screen with tabbed interface (Overview, Members, Projects). Displays year group stats, member list with profile pictures, and year-group-specific projects with funding progress.
 -   **Centralized Image URL Handling:** All image URLs (events, projects, user avatars, articles) are normalized through `ImageUrlHelper` utility, ensuring consistent access via the correct API endpoint: `https://odadee.net/api/images/uploads/`. Both `EventImageWidget` and `AuthenticatedImage` components use this centralized helper.
 Error handling, null safety, and data transformation are implemented throughout.
 
@@ -66,8 +70,8 @@ The application uses a responsive design approach with `device_preview` for deve
 ## Production Deployment
 
 ### Current Version
-- **Version**: 1.1.0+2
-- **Release Date**: November 23, 2025
+- **Version**: 1.2.0+3
+- **Release Date**: November 30, 2025
 - **API Integration**: Live production API at odadee.net
 
 ### Deployment Configuration
@@ -94,10 +98,14 @@ The production build script (`build.sh`) performs:
 
 **Note:** Flutter automatically selects the optimal web renderer based on the browser. Deprecated flags have been removed for compatibility with modern Flutter versions.
 
-### Production Features (v1.1.0)
+### Production Features (v1.2.0)
 - ✅ Live API integration with odadee.net
-- ✅ Event detail pages with banner images
+- ✅ Event detail pages with banner images and RSVP functionality
+- ✅ Event ticket purchase with quantity selection and PayAngel payment
 - ✅ Project detail pages with funding progress visualization
+- ✅ Project contribution flow with amount input and payment integration
+- ✅ Community discussions with category filtering, posts, comments, and likes
+- ✅ Year Group section with members list and year-specific projects
 - ✅ Null-safe data handling throughout
 - ✅ Centralized image URL normalization via ImageUrlHelper (all images use /api/images/uploads/ endpoint)
 - ✅ Clean navigation architecture

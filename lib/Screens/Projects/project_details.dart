@@ -3,6 +3,9 @@ import 'package:odadee/models/project.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:odadee/services/payment_service.dart';
+import 'package:odadee/services/auth_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
   final dynamic data;
@@ -15,6 +18,10 @@ class ProjectDetailsScreen extends StatefulWidget {
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   Project? get project => widget.data is Project ? widget.data as Project : null;
+  final PaymentService _paymentService = PaymentService();
+  
+  bool _isContributing = false;
+  final TextEditingController _amountController = TextEditingController();
 
   String _formatCurrency(double? amount) {
     final formatter = NumberFormat('#,##0.00');
@@ -43,6 +50,330 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final current = project!.currentAmount ?? 0.0;
     final target = project!.targetAmount ?? 1.0;
     return current > target;
+  }
+
+  void _showContributeSheet() {
+    _amountController.clear();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Color(0xFF1e293b),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: StatefulBuilder(
+          builder: (context, setModalState) => Container(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Contribute to Project',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(Icons.close, color: Color(0xFF94a3b8)),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  project!.title,
+                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                ),
+                SizedBox(height: 24),
+                
+                Text(
+                  'Enter Amount (GH₵)',
+                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    prefixText: 'GH₵ ',
+                    prefixStyle: TextStyle(color: Color(0xFFf4d03f), fontSize: 24, fontWeight: FontWeight.bold),
+                    hintText: '0.00',
+                    hintStyle: TextStyle(color: Color(0xFF64748b), fontSize: 24),
+                    filled: true,
+                    fillColor: Color(0xFF0f172a),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Color(0xFF334155)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Color(0xFF334155)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Color(0xFF2563eb)),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                
+                Text(
+                  'Quick amounts:',
+                  style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+                ),
+                SizedBox(height: 8),
+                Row(
+                  children: [50.0, 100.0, 200.0, 500.0].map((amount) {
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: amount == 500.0 ? 0 : 8),
+                        child: OutlinedButton(
+                          onPressed: () {
+                            _amountController.text = amount.toStringAsFixed(2);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Color(0xFF334155)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            '₵${amount.toInt()}',
+                            style: TextStyle(color: Color(0xFF94a3b8)),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                
+                SizedBox(height: 24),
+                
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF0f172a),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Color(0xFF2563eb), size: 20),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'You will be redirected to complete payment via PayAngel',
+                          style: TextStyle(color: Color(0xFF94a3b8), fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                SizedBox(height: 24),
+                
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isContributing ? null : () async {
+                      final amount = double.tryParse(_amountController.text) ?? 0;
+                      if (amount <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Please enter a valid amount'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                      
+                      setModalState(() => _isContributing = true);
+                      
+                      try {
+                        String yearGroupId = project!.yearGroupId ?? '';
+                        if (yearGroupId.isEmpty) {
+                          final authService = AuthService();
+                          final userData = await authService.getCurrentUser();
+                          yearGroupId = userData['yearGroupId']?.toString() ?? 
+                                       userData['yearGroup']?.toString() ?? 
+                                       userData['graduationYear']?.toString() ?? '';
+                        }
+                        
+                        final paymentUrl = await _paymentService.createPayment(
+                          paymentType: 'project',
+                          amount: amount,
+                          yearGroupId: yearGroupId,
+                          projectId: project!.id,
+                          description: 'Contribution to ${project!.title}',
+                        );
+                        
+                        Navigator.pop(context);
+                        
+                        _showPaymentConfirmation(paymentUrl, amount);
+                      } catch (e) {
+                        setModalState(() => _isContributing = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Payment failed: ${e.toString()}'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF2563eb),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isContributing
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            'Continue to Payment',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+                SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).whenComplete(() {
+      setState(() => _isContributing = false);
+    });
+  }
+
+  void _showPaymentConfirmation(String paymentUrl, double amount) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF1e293b),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.payment, color: Color(0xFF2563eb), size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Complete Payment',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your contribution of GH₵ ${amount.toStringAsFixed(2)} is ready.',
+              style: TextStyle(color: Color(0xFF94a3b8)),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Color(0xFF0f172a),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildPaymentInfoRow('Project', project!.title),
+                  SizedBox(height: 8),
+                  _buildPaymentInfoRow('Amount', 'GH₵ ${amount.toStringAsFixed(2)}'),
+                ],
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Click "Pay Now" to open the payment page. After completing payment, return to the app.',
+              style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: Color(0xFF94a3b8))),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final uri = Uri.parse(paymentUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Complete your payment in the browser, then return to the app.'),
+                    backgroundColor: Color(0xFF2563eb),
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Could not open payment page'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF2563eb),
+            ),
+            child: Text('Pay Now', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: Color(0xFF94a3b8), fontSize: 13)),
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
   }
 
   @override
@@ -141,7 +472,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 children: [
                   Row(
                     children: [
-                      if (project!.category != null && project!.category!.isNotEmpty)
+                      if (project!.category.isNotEmpty)
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -153,7 +484,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             ),
                           ),
                           child: Text(
-                            project!.category!,
+                            project!.category,
                             style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF2563eb),
@@ -162,7 +493,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           ),
                         ),
                       Spacer(),
-                      if (project!.status != null && project!.status!.isNotEmpty)
+                      if (project!.status.isNotEmpty)
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
@@ -172,7 +503,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            project!.status!.toUpperCase(),
+                            project!.status.toUpperCase(),
                             style: TextStyle(
                               fontSize: 12,
                               color: project!.status == 'active' 
@@ -387,24 +718,30 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Project funding coming soon!')),
-                        );
-                      },
+                      onPressed: project!.status == 'active' ? _showContributeSheet : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF2563eb),
+                        disabledBackgroundColor: Color(0xFF64748b),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(
-                        'Contribute to Project',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.volunteer_activism, color: Colors.white, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            project!.status == 'active' 
+                                ? 'Contribute to Project' 
+                                : 'Project Not Active',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
