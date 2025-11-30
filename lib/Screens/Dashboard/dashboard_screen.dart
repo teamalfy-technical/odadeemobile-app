@@ -786,6 +786,258 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Column(
                                 children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Projects",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder:
+                                                      (BuildContext context) =>
+                                                          ProjectsScreen()));
+                                        },
+                                        child: Text('View All',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: odaPrimary)),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 15),
+                                  if (projectsData.isEmpty)
+                                    Container(
+                                      padding: EdgeInsets.all(40),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF1e293b),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Color(0xFF334155),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.work_off,
+                                              size: 60,
+                                              color: Color(0xFF64748b)),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            'No active projects',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFF94a3b8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Column(
+                                      children:
+                                          projectsData.take(3).map((project) {
+                                        final fundingProgress =
+                                            project.fundingProgress;
+                                        final fundingPercentage =
+                                            project.fundingPercentage;
+
+                                        return Container(
+                                          margin: EdgeInsets.only(bottom: 15),
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                      builder: (BuildContext
+                                                              context) =>
+                                                          ProjectDetailsScreen(
+                                                              data: project)));
+                                            },
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            child: Container(
+                                              padding: EdgeInsets.all(20),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF1e293b),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
+                                                  color: Color(0xFF334155),
+                                                  width: 1,
+                                                ),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Container(
+                                                        height: 60,
+                                                        width: 60,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          color: (project
+                                                                      .imageUrl
+                                                                      ?.isNotEmpty ??
+                                                                  false)
+                                                              ? null
+                                                              : Color(
+                                                                  0xFF334155),
+                                                          border: Border.all(
+                                                            color: Color(
+                                                                0xFF475469),
+                                                            width: 1,
+                                                          ),
+                                                          image: (project
+                                                                      .imageUrl
+                                                                      ?.isNotEmpty ??
+                                                                  false)
+                                                              ? DecorationImage(
+                                                                  image: NetworkImage(
+                                                                      project
+                                                                          .imageUrl!),
+                                                                  fit: BoxFit
+                                                                      .cover)
+                                                              : null,
+                                                        ),
+                                                        child: (project.imageUrl
+                                                                    ?.isNotEmpty ??
+                                                                false)
+                                                            ? null
+                                                            : Center(
+                                                                child: Icon(
+                                                                  Icons
+                                                                      .card_giftcard_outlined,
+                                                                  size: 30,
+                                                                  color: Color(
+                                                                      0xFF64748b),
+                                                                ),
+                                                              ),
+                                                      ),
+                                                      SizedBox(width: 15),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              project.title,
+                                                              style: TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: Colors
+                                                                      .white),
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                            if (project
+                                                                .description
+                                                                .isNotEmpty) ...[
+                                                              SizedBox(
+                                                                  height: 4),
+                                                              Text(
+                                                                project
+                                                                    .description,
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        13,
+                                                                    color: Color(
+                                                                        0xFF94a3b8)),
+                                                                maxLines: 2,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                              ),
+                                                            ],
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Icon(
+                                                        Icons.arrow_forward_ios,
+                                                        size: 16,
+                                                        color:
+                                                            Color(0xFF64748b),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 12),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        'Funding Progress',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color:
+                                                              Color(0xFF94a3b8),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '$fundingPercentage%',
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: odaPrimary,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    child:
+                                                        LinearProgressIndicator(
+                                                      value: fundingProgress,
+                                                      backgroundColor:
+                                                          Color(0xFF334155),
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                                  Color>(
+                                                              odaPrimary),
+                                                      minHeight: 8,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 30),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Column(
+                                children: [
                                   StatCard(
                                     title: 'Total Members',
                                     value: '$usersCount',
@@ -1043,257 +1295,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     Icons.arrow_forward_ios,
                                                     size: 16,
                                                     color: Color(0xFF64748b),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Projects",
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                  builder:
-                                                      (BuildContext context) =>
-                                                          ProjectsScreen()));
-                                        },
-                                        child: Text('View All',
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: odaPrimary)),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 15),
-                                  if (projectsData.isEmpty)
-                                    Container(
-                                      padding: EdgeInsets.all(40),
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFF1e293b),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Color(0xFF334155),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Icon(Icons.work_off,
-                                              size: 60,
-                                              color: Color(0xFF64748b)),
-                                          SizedBox(height: 16),
-                                          Text(
-                                            'No active projects',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Color(0xFF94a3b8),
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  else
-                                    Column(
-                                      children:
-                                          projectsData.take(3).map((project) {
-                                        final fundingProgress =
-                                            project.fundingProgress;
-                                        final fundingPercentage =
-                                            project.fundingPercentage;
-
-                                        return Container(
-                                          margin: EdgeInsets.only(bottom: 15),
-                                          child: InkWell(
-                                            onTap: () {
-                                              Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                      builder: (BuildContext
-                                                              context) =>
-                                                          ProjectDetailsScreen(
-                                                              data: project)));
-                                            },
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            child: Container(
-                                              padding: EdgeInsets.all(20),
-                                              decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                border: Border.all(
-                                                  color: Color(0xFF334155),
-                                                  width: 1,
-                                                ),
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        height: 60,
-                                                        width: 60,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          color: (project
-                                                                      .imageUrl
-                                                                      ?.isNotEmpty ??
-                                                                  false)
-                                                              ? null
-                                                              : Color(
-                                                                  0xFF334155),
-                                                          border: Border.all(
-                                                            color: Color(
-                                                                0xFF475569),
-                                                            width: 1,
-                                                          ),
-                                                          image: (project
-                                                                      .imageUrl
-                                                                      ?.isNotEmpty ??
-                                                                  false)
-                                                              ? DecorationImage(
-                                                                  image: NetworkImage(
-                                                                      project
-                                                                          .imageUrl!),
-                                                                  fit: BoxFit
-                                                                      .cover)
-                                                              : null,
-                                                        ),
-                                                        child: (project.imageUrl
-                                                                    ?.isNotEmpty ??
-                                                                false)
-                                                            ? null
-                                                            : Center(
-                                                                child: Icon(
-                                                                  Icons
-                                                                      .card_giftcard_outlined,
-                                                                  size: 30,
-                                                                  color: Color(
-                                                                      0xFF64748b),
-                                                                ),
-                                                              ),
-                                                      ),
-                                                      SizedBox(width: 15),
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              project.title,
-                                                              style: TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                  color: Colors
-                                                                      .white),
-                                                              maxLines: 1,
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            ),
-                                                            if (project
-                                                                .description
-                                                                .isNotEmpty) ...[
-                                                              SizedBox(
-                                                                  height: 4),
-                                                              Text(
-                                                                project
-                                                                    .description,
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        13,
-                                                                    color: Color(
-                                                                        0xFF94a3b8)),
-                                                                maxLines: 2,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ],
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      Icon(
-                                                        Icons.arrow_forward_ios,
-                                                        size: 16,
-                                                        color:
-                                                            Color(0xFF64748b),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(height: 12),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Text(
-                                                        'Funding Progress',
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                          color:
-                                                              Color(0xFF94a3b8),
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '$fundingPercentage%',
-                                                        style: TextStyle(
-                                                          fontSize: 13,
-                                                          color: odaPrimary,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(height: 8),
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    child:
-                                                        LinearProgressIndicator(
-                                                      value: fundingProgress,
-                                                      backgroundColor:
-                                                          Color(0xFF334155),
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation<
-                                                                  Color>(
-                                                              odaPrimary),
-                                                      minHeight: 8,
-                                                    ),
                                                   ),
                                                 ],
                                               ),
