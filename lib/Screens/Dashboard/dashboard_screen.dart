@@ -1326,8 +1326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   MaterialPageRoute(
                                                       builder: (BuildContext
                                                               context) =>
-                                                          NewsDetailsScreen(
-                                                              data: article)));
+                                                          DiscussionsScreen()));
                                             },
                                             borderRadius:
                                                 BorderRadius.circular(12),
@@ -1360,7 +1359,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     ),
                                                     child: Center(
                                                       child: Icon(
-                                                        Icons.article_outlined,
+                                                        Icons.forum_outlined,
                                                         size: 30,
                                                         color: odaPrimary,
                                                       ),
