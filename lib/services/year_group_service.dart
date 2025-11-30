@@ -119,16 +119,28 @@ class YearGroupService {
 
   Future<YearGroup?> getUserYearGroup() async {
     try {
-      final userData = await _authService.getCurrentUser();
+      // Try cached user data first to avoid session expiration issues
+      Map<String, dynamic>? userData = await _authService.getCachedUser();
+      if (userData == null) {
+        debugPrint('No cached user, trying API...');
+        userData = await _authService.getCurrentUser();
+      }
+      
       final graduationYear = userData['graduationYear'];
+      debugPrint('getUserYearGroup: graduationYear = $graduationYear');
       
       if (graduationYear == null) return null;
       
       final yearGroups = await getAllYearGroups();
-      return yearGroups.firstWhere(
+      debugPrint('getUserYearGroup: fetched ${yearGroups.length} year groups');
+      
+      final matchingGroup = yearGroups.firstWhere(
         (g) => g.year == graduationYear,
-        orElse: () => throw Exception('Year group not found'),
+        orElse: () => throw Exception('Year group not found for year $graduationYear'),
       );
+      
+      debugPrint('getUserYearGroup: found matching group id=${matchingGroup.id}, name=${matchingGroup.name}');
+      return matchingGroup;
     } catch (e) {
       debugPrint('Error getting user year group: $e');
       return null;
