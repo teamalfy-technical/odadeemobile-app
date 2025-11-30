@@ -6,6 +6,7 @@ import 'package:odadee/services/payment_service.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/theme_service.dart';
 import 'package:odadee/services/year_group_service.dart';
+import 'package:odadee/services/project_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
@@ -18,11 +19,47 @@ class ProjectDetailsScreen extends StatefulWidget {
 }
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
-  Project? get project => widget.data is Project ? widget.data as Project : null;
+  late Project? _project;
+  Project? get project => _project;
+  
   final PaymentService _paymentService = PaymentService();
+  final ProjectService _projectService = ProjectService();
   
   bool _isContributing = false;
+  bool _isRefreshing = false;
   final TextEditingController _amountController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+    _project = widget.data is Project ? widget.data as Project : null;
+  }
+  
+  Future<bool> _refreshProjectData() async {
+    if (_project == null) return false;
+    
+    if (mounted) {
+      setState(() => _isRefreshing = true);
+    }
+    
+    try {
+      final updatedProject = await _projectService.getProjectDetails(_project!.id);
+      if (mounted) {
+        setState(() {
+          _project = updatedProject;
+          _isRefreshing = false;
+        });
+      }
+      print('Project refreshed: currentAmount=${updatedProject.currentAmount}, targetAmount=${updatedProject.targetAmount}');
+      return true;
+    } catch (e) {
+      print('Failed to refresh project: $e');
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+      }
+      return false;
+    }
+  }
 
   String _formatCurrency(double? amount) {
     final formatter = NumberFormat('#,##0.00');
@@ -324,6 +361,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -331,9 +369,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           children: [
             Icon(Icons.payment, color: odaPrimary, size: 28),
             SizedBox(width: 12),
-            Text(
-              'Complete Payment',
-              style: TextStyle(color: textColor, fontSize: 18),
+            Expanded(
+              child: Text(
+                'Complete Payment',
+                style: TextStyle(color: textColor, fontSize: 18),
+              ),
             ),
           ],
         ),
@@ -363,7 +403,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             ),
             SizedBox(height: 12),
             Text(
-              'Click "Pay Now" to open the payment page. After completing payment, return to the app.',
+              'Click "Pay Now" to open the payment page. After completing payment, return here and tap "I\'ve Completed Payment".',
               style: TextStyle(color: mutedColor, fontSize: 12),
             ),
           ],
@@ -375,18 +415,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
               final uri = Uri.parse(paymentUrl);
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
                 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Complete your payment in the browser, then return to the app.'),
-                    backgroundColor: odaPrimary,
-                    duration: Duration(seconds: 5),
-                  ),
-                );
+                // Close current dialog and show payment completion dialog
+                Navigator.pop(context);
+                _showPaymentCompletionDialog(amount);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -402,6 +437,121 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             child: Text('Pay Now', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+  
+  void _showPaymentCompletionDialog(double amount) {
+    final cardColor = AppColors.cardColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          bool isConfirming = false;
+          
+          return AlertDialog(
+            backgroundColor: cardColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: odaSecondary, size: 28),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Payment Status',
+                    style: TextStyle(color: textColor, fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Have you completed your payment of GH₵ ${amount.toStringAsFixed(2)} for "${project!.title}"?',
+                  style: TextStyle(color: subtitleColor),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'If you\'ve completed the payment, tap "I\'ve Completed Payment" to update the project progress.',
+                  style: TextStyle(color: subtitleColor.withOpacity(0.7), fontSize: 12),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                child: Text('Not Yet', style: TextStyle(color: subtitleColor)),
+              ),
+              StatefulBuilder(
+                builder: (context, setButtonState) {
+                  return ElevatedButton(
+                    onPressed: isConfirming ? null : () async {
+                      setButtonState(() => isConfirming = true);
+                      
+                      // Refresh project data from API
+                      final success = await _refreshProjectData();
+                      
+                      Navigator.pop(dialogContext);
+                      
+                      if (!mounted) return;
+                      
+                      if (success) {
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                SizedBox(width: 8),
+                                Expanded(child: Text('Thank you for your contribution!')),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.info_outline, color: Colors.white, size: 20),
+                                SizedBox(width: 8),
+                                Expanded(child: Text('Payment recorded. Progress will update shortly.')),
+                              ],
+                            ),
+                            backgroundColor: odaPrimary,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                    child: isConfirming 
+                      ? SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text("I've Completed Payment", style: TextStyle(color: Colors.white)),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
