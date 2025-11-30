@@ -745,6 +745,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('=== DISCUSSIONS SCREEN: BUILD METHOD v2 ===');
     final backgroundColor = AppColors.isDark(context) ? Color(0xFF0f172a) : Colors.grey[100];
     final textColor = AppColors.textColor(context);
     final subtitleColor = AppColors.subtitleColor(context);
