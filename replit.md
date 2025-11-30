@@ -115,8 +115,10 @@ The production build script (`build.sh`) performs:
 - ✅ Project contribution flow with amount input and payment integration
 - ✅ Community discussions with category filtering, posts, comments, and likes
 - ✅ Year Group section with members list and year-specific projects
+- ✅ Year Group Dues Collection API integration with admin/member fallback
+- ✅ Dashboard shows Year Group Dues with accurate totals (collected + pending)
 - ✅ Dashboard shows latest 3 discussions sorted by date (newest first)
-- ✅ Null-safe data handling throughout
+- ✅ Null-safe data handling throughout with tolerant parsing for string/numeric values
 - ✅ Centralized image URL normalization via ImageUrlHelper (all images use /api/images/uploads/ endpoint)
 - ✅ Clean navigation architecture
 - ✅ Production-ready error handling (debug logging removed)
