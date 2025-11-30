@@ -304,13 +304,41 @@ class DiscussionPost {
   });
 
   factory DiscussionPost.fromJson(Map<String, dynamic> json) {
+    // Calculate comment count from various possible fields
+    int commentCount = 0;
+    
+    // Check various field names for comment count
+    if (json['commentsCount'] != null) {
+      commentCount = json['commentsCount'] is int ? json['commentsCount'] : int.tryParse(json['commentsCount'].toString()) ?? 0;
+    } else if (json['commentCount'] != null) {
+      commentCount = json['commentCount'] is int ? json['commentCount'] : int.tryParse(json['commentCount'].toString()) ?? 0;
+    } else if (json['_count'] != null && json['_count']['comments'] != null) {
+      commentCount = json['_count']['comments'] is int ? json['_count']['comments'] : int.tryParse(json['_count']['comments'].toString()) ?? 0;
+    } else if (json['comments'] != null && json['comments'] is List) {
+      commentCount = (json['comments'] as List).length;
+    } else if (json['numComments'] != null) {
+      commentCount = json['numComments'] is int ? json['numComments'] : int.tryParse(json['numComments'].toString()) ?? 0;
+    }
+    
+    // Debug log to see what fields are available
+    print('=== DISCUSSION POST PARSING ===');
+    print('ID: ${json['id']}');
+    print('Title: ${json['title']}');
+    print('commentsCount field: ${json['commentsCount']}');
+    print('commentCount field: ${json['commentCount']}');
+    print('_count field: ${json['_count']}');
+    print('comments field type: ${json['comments']?.runtimeType}');
+    print('comments field: ${json['comments'] is List ? 'List with ${(json['comments'] as List).length} items' : json['comments']}');
+    print('Calculated commentCount: $commentCount');
+    print('===============================');
+    
     return DiscussionPost(
       id: json['id'] ?? '',
       userId: json['userId'] ?? '',
       title: json['title'] ?? '',
       content: json['content'] ?? '',
       category: json['category'] ?? 'general',
-      commentsCount: json['commentsCount'] ?? json['_count']?['comments'] ?? 0,
+      commentsCount: commentCount,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
