@@ -80,10 +80,21 @@ class _MembersScreenState extends State<MembersScreen> {
     }
   }
   
+  bool _hasProfileImage(dynamic member) {
+    final profileImage = member['profileImage'] ?? member['image'];
+    return profileImage != null && profileImage.toString().isNotEmpty;
+  }
+
+  List<dynamic> _sortByImageFirst(List<dynamic> memberList) {
+    final withImages = memberList.where((m) => _hasProfileImage(m)).toList();
+    final withoutImages = memberList.where((m) => !_hasProfileImage(m)).toList();
+    return [...withImages, ...withoutImages];
+  }
+
   void _filterMembers(String? query) {
     if (query == null || query.isEmpty) {
       setState(() {
-        members = allMembers;
+        members = _sortByImageFirst(allMembers);
         isLoading = false;
       });
       return;
@@ -98,7 +109,7 @@ class _MembersScreenState extends State<MembersScreen> {
     final filtered = scoredResults.map((result) => result['member']).toList();
     
     setState(() {
-      members = filtered;
+      members = _sortByImageFirst(filtered);
       isLoading = false;
     });
   }
