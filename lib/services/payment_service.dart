@@ -46,22 +46,31 @@ class PaymentService {
       print('Creating payment: productCode=$productCode, amount=$amount, yearGroupId=$yearGroupId');
       print('User info: firstName=$firstName, lastName=$lastName, email=$email');
       
+      final requestBody = {
+        'paymentType': productCode,
+        'amount': amount,
+        'yearGroupId': yearGroupId,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        if (description != null) 'description': description,
+        if (phoneNumber != null) 'phoneNumber': phoneNumber,
+        if (projectId != null) 'projectId': projectId,
+        if (eventId != null) 'eventId': eventId,
+      };
+      
+      print('=== PAYMENT API REQUEST ===');
+      print('Endpoint: /api/payments/create');
+      print('Request body: $requestBody');
+      
       final response = await authService.authenticatedRequest(
         'POST',
         '/api/payments/create',
-        body: {
-          'paymentType': productCode,
-          'amount': amount,
-          'yearGroupId': yearGroupId,
-          'firstName': firstName,
-          'lastName': lastName,
-          'email': email,
-          if (description != null) 'description': description,
-          if (phoneNumber != null) 'phoneNumber': phoneNumber,
-          if (projectId != null) 'projectId': projectId,
-          if (eventId != null) 'eventId': eventId,
-        },
+        body: requestBody,
       );
+      
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {

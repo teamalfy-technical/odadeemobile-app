@@ -201,14 +201,38 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       setModalState(() => _isContributing = true);
                       
                       try {
+                        print('=== PROJECT PAYMENT DEBUG ===');
+                        print('Project ID: ${project!.id}');
+                        print('Project yearGroupId: ${project!.yearGroupId}');
+                        print('Amount: $amount');
+                        
                         String yearGroupId = project!.yearGroupId ?? '';
                         if (yearGroupId.isEmpty) {
+                          print('Project has no yearGroupId, fetching from user...');
                           final authService = AuthService();
                           final userData = await authService.getCurrentUser();
-                          yearGroupId = userData['yearGroupId']?.toString() ?? 
-                                       userData['yearGroup']?.toString() ?? 
-                                       userData['graduationYear']?.toString() ?? '';
+                          print('User data keys: ${userData.keys.toList()}');
+                          
+                          yearGroupId = userData['yearGroupId']?.toString() ?? '';
+                          if (yearGroupId.isEmpty) {
+                            yearGroupId = userData['yearGroup']?.toString() ?? '';
+                          }
+                          if (yearGroupId.isEmpty) {
+                            yearGroupId = userData['graduationYear']?.toString() ?? '';
+                          }
+                          if (yearGroupId.isEmpty && userData['yearGroup'] is Map) {
+                            yearGroupId = (userData['yearGroup'] as Map)['id']?.toString() ?? 
+                                         (userData['yearGroup'] as Map)['_id']?.toString() ?? '';
+                          }
+                          print('Resolved yearGroupId from user: "$yearGroupId"');
                         }
+                        
+                        if (yearGroupId.isEmpty) {
+                          throw Exception('Could not determine year group. Please update your profile with your graduation year.');
+                        }
+                        
+                        print('Final yearGroupId: $yearGroupId');
+                        print('Calling payment service...');
                         
                         final paymentUrl = await _paymentService.createPayment(
                           paymentType: 'project',
@@ -218,15 +242,25 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           description: 'Contribution to ${project!.title}',
                         );
                         
+                        print('Payment URL received: $paymentUrl');
+                        
                         Navigator.pop(context);
                         
                         _showPaymentConfirmation(paymentUrl, amount);
                       } catch (e) {
+                        print('Payment error: $e');
                         setModalState(() => _isContributing = false);
+                        
+                        String errorMessage = e.toString();
+                        if (errorMessage.startsWith('Exception: ')) {
+                          errorMessage = errorMessage.substring(11);
+                        }
+                        
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Payment failed: ${e.toString()}'),
+                            content: Text(errorMessage),
                             backgroundColor: Colors.red,
+                            duration: Duration(seconds: 5),
                           ),
                         );
                       }
