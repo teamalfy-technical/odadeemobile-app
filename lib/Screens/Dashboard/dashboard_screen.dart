@@ -358,6 +358,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     };
   }
 
+  String _formatEventDate(dynamic date) {
+    try {
+      DateTime dateTime;
+      if (date == null) {
+        return 'Date TBA';
+      } else if (date is String) {
+        if (date.isEmpty) return 'Date TBA';
+        dateTime = DateTime.parse(date);
+      } else if (date is DateTime) {
+        dateTime = date;
+      } else {
+        return 'Date TBA';
+      }
+
+      final months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year}';
+    } catch (e) {
+      print('Error formatting event date: $e');
+      return 'Date TBA';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -720,24 +745,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       stackTrace) {
                                                                 print(
                                                                     'Error loading image ${event.bannerUrl}: $error');
-                                                                return Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          8.0),
-                                                                  child: _buildEventDate(
-                                                                      event
-                                                                          .startDate),
+                                                                return Center(
+                                                                  child: Icon(
+                                                                    Icons.event,
+                                                                    size: 30,
+                                                                    color: Color(0xFF64748b),
+                                                                  ),
                                                                 );
                                                               },
                                                             )
-                                                          : Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(8.0),
-                                                              child: _buildEventDate(
-                                                                  event
-                                                                      .startDate),
+                                                          : Center(
+                                                              child: Icon(
+                                                                Icons.event,
+                                                                size: 30,
+                                                                color: Color(0xFF64748b),
+                                                              ),
                                                             ),
                                                     ),
                                                   ),
@@ -762,6 +784,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                         ),
+                                                        if (event.startDate != null) ...[
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            _formatEventDate(event.startDate!),
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: Color(0xFF94a3b8),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ],
                                                     ),
                                                   ),
