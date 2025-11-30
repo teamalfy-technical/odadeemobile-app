@@ -82,17 +82,40 @@ class EventService {
         'ticketsPurchased': ticketsPurchased,
       };
       
+      print('=== EVENT REGISTRATION REQUEST ===');
+      print('Event ID: $eventId');
+      print('Tickets: $ticketsPurchased');
+      print('Endpoint: ${ApiConfig.eventsEndpoint}/$eventId/register');
+      
       final response = await _authService.authenticatedRequest(
         'POST',
         '${ApiConfig.eventsEndpoint}/$eventId/register',
         body: bodyData,
       );
 
-      if (response.statusCode == 200) {
+      print('=== EVENT REGISTRATION RESPONSE ===');
+      print('Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('==================================');
+
+      // Accept both 200 (OK) and 201 (Created) as success
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        return EventRegistration.fromJson(data['registration']);
+        // Handle both 'registration' and 'eventRegistration' response formats
+        final registrationData = data['registration'] ?? data['eventRegistration'] ?? data;
+        return EventRegistration.fromJson(registrationData);
       }
-      throw Exception('Registration failed');
+      
+      // Parse error message from server response
+      String errorMessage = 'Registration failed';
+      try {
+        final errorData = jsonDecode(response.body);
+        errorMessage = errorData['message'] ?? errorData['error'] ?? 'Registration failed (${response.statusCode})';
+      } catch (_) {
+        errorMessage = 'Registration failed with status ${response.statusCode}';
+      }
+      
+      throw Exception(errorMessage);
     } catch (e) {
       print('Error registering for event: $e');
       rethrow;
