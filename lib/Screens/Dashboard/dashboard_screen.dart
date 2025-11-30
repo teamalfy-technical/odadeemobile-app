@@ -19,6 +19,7 @@ import 'package:odadee/Screens/Projects/projects_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/components/stat_card.dart';
 import 'package:odadee/components/footer_nav.dart';
+import 'package:odadee/components/event_image_widget.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/event_service.dart';
