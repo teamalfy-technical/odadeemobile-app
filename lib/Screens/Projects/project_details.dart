@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:odadee/models/project.dart';
-import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:odadee/services/payment_service.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/theme_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
@@ -27,14 +27,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final formatter = NumberFormat('#,##0.00');
     return 'GH₵ ${formatter.format(amount ?? 0.0)}';
   }
-
-  double _getFundingProgress() {
-    if (project == null || (project!.targetAmount ?? 0) == 0) return 0.0;
-    final current = project!.currentAmount ?? 0.0;
-    final target = project!.targetAmount ?? 1.0;
-    if (target == 0) return 0.0;
-    return (current / target).clamp(0.0, 1.0);
-  }
   
   String _getProgressPercentage() {
     if (project == null || (project!.targetAmount ?? 0) == 0) return '0.0';
@@ -53,12 +45,19 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   void _showContributeSheet() {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     _amountController.clear();
     
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Color(0xFF1e293b),
+      backgroundColor: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -79,51 +78,51 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     Text(
                       'Contribute to Project',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textColor,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close, color: Color(0xFF94a3b8)),
+                      icon: Icon(Icons.close, color: subtitleColor),
                     ),
                   ],
                 ),
                 SizedBox(height: 8),
                 Text(
                   project!.title,
-                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                  style: TextStyle(color: subtitleColor, fontSize: 14),
                 ),
                 SizedBox(height: 24),
                 
                 Text(
                   'Enter Amount (GH₵)',
-                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                  style: TextStyle(color: subtitleColor, fontSize: 14),
                 ),
                 SizedBox(height: 8),
                 TextField(
                   controller: _amountController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold),
                   decoration: InputDecoration(
                     prefixText: 'GH₵ ',
-                    prefixStyle: TextStyle(color: Color(0xFFf4d03f), fontSize: 24, fontWeight: FontWeight.bold),
+                    prefixStyle: TextStyle(color: odaSecondary, fontSize: 24, fontWeight: FontWeight.bold),
                     hintText: '0.00',
-                    hintStyle: TextStyle(color: Color(0xFF64748b), fontSize: 24),
+                    hintStyle: TextStyle(color: mutedColor, fontSize: 24),
                     filled: true,
-                    fillColor: Color(0xFF0f172a),
+                    fillColor: surfaceColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color(0xFF334155)),
+                      borderSide: BorderSide(color: borderColor),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color(0xFF334155)),
+                      borderSide: BorderSide(color: borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color(0xFF2563eb)),
+                      borderSide: BorderSide(color: odaPrimary),
                     ),
                   ),
                 ),
@@ -131,7 +130,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 
                 Text(
                   'Quick amounts:',
-                  style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+                  style: TextStyle(color: mutedColor, fontSize: 12),
                 ),
                 SizedBox(height: 8),
                 Row(
@@ -144,14 +143,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             _amountController.text = amount.toStringAsFixed(2);
                           },
                           style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Color(0xFF334155)),
+                            side: BorderSide(color: borderColor),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           child: Text(
                             '₵${amount.toInt()}',
-                            style: TextStyle(color: Color(0xFF94a3b8)),
+                            style: TextStyle(color: subtitleColor),
                           ),
                         ),
                       ),
@@ -164,17 +163,17 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Color(0xFF0f172a),
+                    color: surfaceColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: Color(0xFF2563eb), size: 20),
+                      Icon(Icons.info_outline, color: odaPrimary, size: 20),
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'You will be redirected to complete payment via PayAngel',
-                          style: TextStyle(color: Color(0xFF94a3b8), fontSize: 12),
+                          style: TextStyle(color: subtitleColor, fontSize: 12),
                         ),
                       ),
                     ],
@@ -233,7 +232,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2563eb),
+                      backgroundColor: odaPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -269,18 +268,24 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   void _showPaymentConfirmation(String paymentUrl, double amount) {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1e293b),
+        backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.payment, color: Color(0xFF2563eb), size: 28),
+            Icon(Icons.payment, color: odaPrimary, size: 28),
             SizedBox(width: 12),
             Text(
               'Complete Payment',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: textColor, fontSize: 18),
             ),
           ],
         ),
@@ -290,35 +295,35 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           children: [
             Text(
               'Your contribution of GH₵ ${amount.toStringAsFixed(2)} is ready.',
-              style: TextStyle(color: Color(0xFF94a3b8)),
+              style: TextStyle(color: subtitleColor),
             ),
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(0xFF0f172a),
+                color: surfaceColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildPaymentInfoRow('Project', project!.title),
+                  _buildPaymentInfoRow('Project', project!.title, textColor, subtitleColor),
                   SizedBox(height: 8),
-                  _buildPaymentInfoRow('Amount', 'GH₵ ${amount.toStringAsFixed(2)}'),
+                  _buildPaymentInfoRow('Amount', 'GH₵ ${amount.toStringAsFixed(2)}', textColor, subtitleColor),
                 ],
               ),
             ),
             SizedBox(height: 12),
             Text(
               'Click "Pay Now" to open the payment page. After completing payment, return to the app.',
-              style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+              style: TextStyle(color: mutedColor, fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Color(0xFF94a3b8))),
+            child: Text('Cancel', style: TextStyle(color: subtitleColor)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -330,7 +335,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Complete your payment in the browser, then return to the app.'),
-                    backgroundColor: Color(0xFF2563eb),
+                    backgroundColor: odaPrimary,
                     duration: Duration(seconds: 5),
                   ),
                 );
@@ -344,7 +349,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF2563eb),
+              backgroundColor: odaPrimary,
             ),
             child: Text('Pay Now', style: TextStyle(color: Colors.white)),
           ),
@@ -353,15 +358,15 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     );
   }
 
-  Widget _buildPaymentInfoRow(String label, String value) {
+  Widget _buildPaymentInfoRow(String label, String value, Color textColor, Color subtitleColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Color(0xFF94a3b8), fontSize: 13)),
+        Text(label, style: TextStyle(color: subtitleColor, fontSize: 13)),
         Flexible(
           child: Text(
             value,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w500, fontSize: 13),
             textAlign: TextAlign.right,
             overflow: TextOverflow.ellipsis,
           ),
@@ -378,33 +383,37 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = AppColors.cardColor(context);
+    final borderColor = AppColors.borderColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     if (project == null) {
       return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
-          title: Text('Project Details', style: TextStyle(color: Colors.black)),
+          title: Text('Project Details'),
         ),
-        body: Center(child: Text('Project not found')),
+        body: Center(child: Text('Project not found', style: TextStyle(color: textColor))),
       );
     }
 
     return Scaffold(
-      backgroundColor: Color(0xFF0f172a),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Project Details',
           style: TextStyle(
-            color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -419,7 +428,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 width: double.infinity,
                 height: 250,
                 decoration: BoxDecoration(
-                  color: Color(0xFF1e293b),
+                  color: cardColor,
                 ),
                 child: Image.network(
                   project!.imageUrl!,
@@ -428,12 +437,12 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      color: Color(0xFF1e293b),
+                      color: cardColor,
                       child: Center(
                         child: Icon(
                           Icons.work,
                           size: 80,
-                          color: Color(0xFF64748b),
+                          color: mutedColor,
                         ),
                       ),
                     );
@@ -441,10 +450,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Container(
-                      color: Color(0xFF1e293b),
+                      color: cardColor,
                       child: Center(
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+                          valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
                         ),
                       ),
                     );
@@ -455,12 +464,12 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               Container(
                 width: double.infinity,
                 height: 200,
-                color: Color(0xFF1e293b),
+                color: cardColor,
                 child: Center(
                   child: Icon(
                     Icons.work,
                     size: 80,
-                    color: Color(0xFF64748b),
+                    color: mutedColor,
                   ),
                 ),
               ),
@@ -476,10 +485,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Color(0xFF2563eb).withOpacity(0.2),
+                            color: odaPrimary.withAlpha(51),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Color(0xFF2563eb),
+                              color: odaPrimary,
                               width: 1,
                             ),
                           ),
@@ -487,7 +496,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             project!.category,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF2563eb),
+                              color: odaPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -498,8 +507,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: project!.status == 'active'
-                                ? Color(0xFF10b981).withOpacity(0.2)
-                                : Color(0xFF64748b).withOpacity(0.2),
+                                ? Color(0xFF10b981).withAlpha(51)
+                                : mutedColor.withAlpha(51),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -508,7 +517,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                               fontSize: 12,
                               color: project!.status == 'active' 
                                   ? Color(0xFF10b981) 
-                                  : Color(0xFF94a3b8),
+                                  : subtitleColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -522,7 +531,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -530,10 +539,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   Container(
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Color(0xFF1e293b),
+                      color: cardColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Color(0xFFf4d03f),
+                        color: odaSecondary,
                         width: 2,
                       ),
                     ),
@@ -545,7 +554,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                         SizedBox(height: 16),
@@ -567,9 +576,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                   child: LinearProgressIndicator(
                                     value: rawRatio.clamp(0.0, 1.0),
                                     minHeight: 12,
-                                    backgroundColor: Color(0xFF334155),
+                                    backgroundColor: borderColor,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      rawRatio >= 1.0 ? Color(0xFF10b981) : Color(0xFF2563eb)
+                                      rawRatio >= 1.0 ? Color(0xFF10b981) : odaPrimary
                                     ),
                                   ),
                                 ),
@@ -580,26 +589,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                       scrollDirection: Axis.horizontal,
                                       child: Row(
                                         children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
-                                            child: Container(
-                                              height: 6,
-                                              width: overflowWidth,
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: [
-                                                    Color(0xFF10b981),
-                                                    Color(0xFFf4d03f),
-                                                  ],
-                                                ),
-                                              ),
+                                          Container(
+                                            width: overflowWidth.clamp(0.0, containerWidth),
+                                            height: 8,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xFF10b981).withAlpha(128),
+                                              borderRadius: BorderRadius.circular(4),
                                             ),
-                                          ),
-                                          SizedBox(width: 6),
-                                          Icon(
-                                            Icons.arrow_forward,
-                                            size: 10,
-                                            color: Color(0xFFf4d03f),
                                           ),
                                         ],
                                       ),
@@ -621,16 +617,16 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                 Text(
                                   'Raised',
                                   style: TextStyle(
+                                    color: subtitleColor,
                                     fontSize: 12,
-                                    color: Color(0xFF94a3b8),
                                   ),
                                 ),
                                 SizedBox(height: 4),
                                 Text(
                                   _formatCurrency(project!.currentAmount),
                                   style: TextStyle(
+                                    color: textColor,
                                     fontSize: 18,
-                                    color: Color(0xFF2563eb),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -642,16 +638,16 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                 Text(
                                   'Goal',
                                   style: TextStyle(
+                                    color: subtitleColor,
                                     fontSize: 12,
-                                    color: Color(0xFF94a3b8),
                                   ),
                                 ),
                                 SizedBox(height: 4),
                                 Text(
                                   _formatCurrency(project!.targetAmount),
                                   style: TextStyle(
+                                    color: textColor,
                                     fontSize: 18,
-                                    color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -663,29 +659,22 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                         SizedBox(height: 12),
                         
                         Center(
-                          child: Column(
-                            children: [
-                              Text(
-                                '${_getProgressPercentage()}% funded',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFFf4d03f),
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _isOverfunded()
+                                  ? Color(0xFF10b981).withAlpha(51)
+                                  : odaPrimary.withAlpha(51),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '${_getProgressPercentage()}% Funded${_isOverfunded() ? ' - Goal Exceeded!' : ''}',
+                              style: TextStyle(
+                                color: _isOverfunded() ? Color(0xFF10b981) : odaPrimary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
                               ),
-                              if (_isOverfunded())
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    'GOAL EXCEEDED',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF10b981),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
                         ),
                       ],
@@ -699,7 +688,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                   SizedBox(height: 12),
@@ -707,7 +696,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     project!.description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF94a3b8),
+                      color: subtitleColor,
                       height: 1.5,
                     ),
                   ),
@@ -720,8 +709,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     child: ElevatedButton(
                       onPressed: project!.status == 'active' ? _showContributeSheet : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF2563eb),
-                        disabledBackgroundColor: Color(0xFF64748b),
+                        backgroundColor: odaPrimary,
+                        disabledBackgroundColor: mutedColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -732,9 +721,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           Icon(Icons.volunteer_activism, color: Colors.white, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            project!.status == 'active' 
-                                ? 'Contribute to Project' 
-                                : 'Project Not Active',
+                            project!.status == 'active' ? 'Contribute to Project' : 'Project Closed',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

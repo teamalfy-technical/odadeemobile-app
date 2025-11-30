@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:odadee/services/discussion_service.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/utils/image_url_helper.dart';
+import 'package:odadee/constants.dart';
+import 'package:odadee/services/theme_service.dart';
 import 'package:intl/intl.dart';
 
 class DiscussionsScreen extends StatefulWidget {
@@ -122,11 +124,18 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   }
 
   void _showCreatePostSheet() {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     _newPostCategory = 'general';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Color(0xFF1e293b),
+      backgroundColor: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -147,14 +156,14 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                     Text(
                       'Create Post',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textColor,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close, color: Color(0xFF94a3b8)),
+                      icon: Icon(Icons.close, color: subtitleColor),
                     ),
                   ],
                 ),
@@ -162,22 +171,22 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                 
                 Text(
                   'Category',
-                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                  style: TextStyle(color: subtitleColor, fontSize: 14),
                 ),
                 SizedBox(height: 8),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: Color(0xFF0f172a),
+                    color: surfaceColor,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Color(0xFF334155)),
+                    border: Border.all(color: borderColor),
                   ),
                   child: DropdownButton<String>(
                     value: _newPostCategory,
                     isExpanded: true,
-                    dropdownColor: Color(0xFF1e293b),
+                    dropdownColor: cardColor,
                     underline: SizedBox(),
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: textColor),
                     items: _categories
                         .where((c) => c['value'] != 'all')
                         .map((c) => DropdownMenuItem(
@@ -194,29 +203,29 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                 
                 Text(
                   'What\'s on your mind?',
-                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                  style: TextStyle(color: subtitleColor, fontSize: 14),
                 ),
                 SizedBox(height: 8),
                 TextField(
                   controller: _postController,
                   maxLines: 4,
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     hintText: 'Share your thoughts with the community...',
-                    hintStyle: TextStyle(color: Color(0xFF64748b)),
+                    hintStyle: TextStyle(color: mutedColor),
                     filled: true,
-                    fillColor: Color(0xFF0f172a),
+                    fillColor: surfaceColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Color(0xFF334155)),
+                      borderSide: BorderSide(color: borderColor),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Color(0xFF334155)),
+                      borderSide: BorderSide(color: borderColor),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Color(0xFF2563eb)),
+                      borderSide: BorderSide(color: odaPrimary),
                     ),
                   ),
                 ),
@@ -228,7 +237,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   child: ElevatedButton(
                     onPressed: _isPosting ? null : _createPost,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2563eb),
+                      backgroundColor: odaPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -262,6 +271,13 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   }
 
   void _showCommentsSheet(DiscussionPost post, int postIndex) {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     final TextEditingController commentController = TextEditingController();
     List<DiscussionComment> comments = [];
     bool loadingComments = true;
@@ -270,7 +286,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Color(0xFF1e293b),
+      backgroundColor: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -298,7 +314,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: Color(0xFF334155)),
+                      bottom: BorderSide(color: borderColor),
                     ),
                   ),
                   child: Row(
@@ -307,14 +323,14 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                       Text(
                         'Comments (${post.commentsCount})',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: Icon(Icons.close, color: Color(0xFF94a3b8)),
+                        icon: Icon(Icons.close, color: subtitleColor),
                       ),
                     ],
                   ),
@@ -324,7 +340,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   child: loadingComments
                       ? Center(
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+                            valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
                           ),
                         )
                       : comments.isEmpty
@@ -333,16 +349,16 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.chat_bubble_outline,
-                                      size: 48, color: Color(0xFF64748b)),
+                                      size: 48, color: mutedColor),
                                   SizedBox(height: 16),
                                   Text(
                                     'No comments yet',
-                                    style: TextStyle(color: Color(0xFF94a3b8)),
+                                    style: TextStyle(color: subtitleColor),
                                   ),
                                   Text(
                                     'Be the first to comment!',
                                     style: TextStyle(
-                                        color: Color(0xFF64748b), fontSize: 12),
+                                        color: mutedColor, fontSize: 12),
                                   ),
                                 ],
                               ),
@@ -353,7 +369,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                               itemCount: comments.length,
                               itemBuilder: (context, index) {
                                 final comment = comments[index];
-                                return _buildCommentCard(comment);
+                                return _buildCommentCard(comment, surfaceColor, textColor, subtitleColor, mutedColor);
                               },
                             ),
                 ),
@@ -361,9 +377,9 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Color(0xFF0f172a),
+                    color: surfaceColor,
                     border: Border(
-                      top: BorderSide(color: Color(0xFF334155)),
+                      top: BorderSide(color: borderColor),
                     ),
                   ),
                   child: SafeArea(
@@ -372,12 +388,12 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                         Expanded(
                           child: TextField(
                             controller: commentController,
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: textColor),
                             decoration: InputDecoration(
                               hintText: 'Write a comment...',
-                              hintStyle: TextStyle(color: Color(0xFF64748b)),
+                              hintStyle: TextStyle(color: mutedColor),
                               filled: true,
-                              fillColor: Color(0xFF1e293b),
+                              fillColor: cardColor,
                               contentPadding: EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 12),
                               border: OutlineInputBorder(
@@ -390,7 +406,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                         SizedBox(width: 12),
                         Container(
                           decoration: BoxDecoration(
-                            color: Color(0xFF2563eb),
+                            color: odaPrimary,
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
@@ -447,12 +463,12 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     );
   }
 
-  Widget _buildCommentCard(DiscussionComment comment) {
+  Widget _buildCommentCard(DiscussionComment comment, Color surfaceColor, Color textColor, Color subtitleColor, Color mutedColor) {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color(0xFF0f172a),
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -469,14 +485,14 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                     Text(
                       comment.user?.fullName ?? 'Anonymous',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textColor,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
                     ),
                     Text(
                       _formatTimeAgo(comment.createdAt),
-                      style: TextStyle(color: Color(0xFF64748b), fontSize: 11),
+                      style: TextStyle(color: mutedColor, fontSize: 11),
                     ),
                   ],
                 ),
@@ -486,7 +502,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           SizedBox(height: 8),
           Text(
             comment.content,
-            style: TextStyle(color: Color(0xFF94a3b8), fontSize: 13),
+            style: TextStyle(color: subtitleColor, fontSize: 13),
           ),
         ],
       ),
@@ -536,7 +552,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Color(0xFF2563eb),
+        color: odaPrimary,
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -553,6 +569,12 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   }
 
   Widget _buildPostCard(DiscussionPost post, int index) {
+    final cardColor = AppColors.cardColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     final category = _categories.firstWhere(
       (c) => c['value'] == post.category,
       orElse: () => {'label': post.category, 'icon': Icons.chat},
@@ -562,9 +584,9 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF1e293b),
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Color(0xFF334155)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,7 +602,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                     Text(
                       post.user?.fullName ?? 'Anonymous',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: textColor,
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
                       ),
@@ -590,13 +612,13 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                       children: [
                         Text(
                           _formatTimeAgo(post.createdAt),
-                          style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+                          style: TextStyle(color: mutedColor, fontSize: 12),
                         ),
                         SizedBox(width: 8),
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Color(0xFF2563eb).withOpacity(0.2),
+                            color: odaPrimary.withAlpha(51),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -605,13 +627,13 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                               Icon(
                                 category['icon'] as IconData,
                                 size: 12,
-                                color: Color(0xFF2563eb),
+                                color: odaPrimary,
                               ),
                               SizedBox(width: 4),
                               Text(
                                 category['label'] as String,
                                 style: TextStyle(
-                                  color: Color(0xFF2563eb),
+                                  color: odaPrimary,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -632,7 +654,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           Text(
             post.content,
             style: TextStyle(
-              color: Color(0xFF94a3b8),
+              color: subtitleColor,
               fontSize: 14,
               height: 1.5,
             ),
@@ -649,11 +671,11 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: post.isLiked
-                        ? Color(0xFF2563eb).withOpacity(0.2)
+                        ? odaPrimary.withAlpha(51)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: post.isLiked ? Color(0xFF2563eb) : Color(0xFF334155),
+                      color: post.isLiked ? odaPrimary : borderColor,
                     ),
                   ),
                   child: Row(
@@ -661,13 +683,13 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                       Icon(
                         post.isLiked ? Icons.favorite : Icons.favorite_border,
                         size: 18,
-                        color: post.isLiked ? Color(0xFF2563eb) : Color(0xFF64748b),
+                        color: post.isLiked ? odaPrimary : mutedColor,
                       ),
                       SizedBox(width: 6),
                       Text(
                         '${post.likesCount}',
                         style: TextStyle(
-                          color: post.isLiked ? Color(0xFF2563eb) : Color(0xFF64748b),
+                          color: post.isLiked ? odaPrimary : mutedColor,
                           fontSize: 13,
                         ),
                       ),
@@ -683,19 +705,19 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Color(0xFF334155)),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.chat_bubble_outline,
                         size: 18,
-                        color: Color(0xFF64748b),
+                        color: mutedColor,
                       ),
                       SizedBox(width: 6),
                       Text(
                         '${post.commentsCount}',
-                        style: TextStyle(color: Color(0xFF64748b), fontSize: 13),
+                        style: TextStyle(color: mutedColor, fontSize: 13),
                       ),
                     ],
                   ),
@@ -710,26 +732,31 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = AppColors.cardColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     return Scaffold(
-      backgroundColor: Color(0xFF0f172a),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Discussions',
           style: TextStyle(
-            color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.black),
+            icon: Icon(Icons.refresh),
             onPressed: _loadPosts,
           ),
         ],
@@ -756,10 +783,10 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                     margin: EdgeInsets.only(right: 8),
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: isSelected ? Color(0xFF2563eb) : Color(0xFF1e293b),
+                      color: isSelected ? odaPrimary : cardColor,
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(
-                        color: isSelected ? Color(0xFF2563eb) : Color(0xFF334155),
+                        color: isSelected ? odaPrimary : borderColor,
                       ),
                     ),
                     child: Row(
@@ -768,13 +795,13 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                         Icon(
                           category['icon'] as IconData,
                           size: 16,
-                          color: isSelected ? Colors.white : Color(0xFF94a3b8),
+                          color: isSelected ? Colors.white : subtitleColor,
                         ),
                         SizedBox(width: 6),
                         Text(
                           category['label'] as String,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Color(0xFF94a3b8),
+                            color: isSelected ? Colors.white : subtitleColor,
                             fontSize: 13,
                             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                           ),
@@ -791,7 +818,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
             child: _isLoading
                 ? Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+                      valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
                     ),
                   )
                 : _posts.isEmpty
@@ -800,19 +827,19 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.forum_outlined,
-                                size: 64, color: Color(0xFF64748b)),
+                                size: 64, color: mutedColor),
                             SizedBox(height: 16),
                             Text(
                               'No discussions yet',
                               style: TextStyle(
-                                  color: Colors.white,
+                                  color: textColor,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600),
                             ),
                             SizedBox(height: 8),
                             Text(
                               'Start a conversation with the community!',
-                              style: TextStyle(color: Color(0xFF94a3b8)),
+                              style: TextStyle(color: subtitleColor),
                             ),
                             SizedBox(height: 24),
                             ElevatedButton.icon(
@@ -821,7 +848,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                               label: Text('Create Post',
                                   style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF2563eb),
+                                backgroundColor: odaPrimary,
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 12),
                                 shape: RoundedRectangleBorder(
@@ -834,7 +861,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                       )
                     : RefreshIndicator(
                         onRefresh: _loadPosts,
-                        color: Color(0xFF2563eb),
+                        color: odaPrimary,
                         child: ListView.builder(
                           padding: EdgeInsets.all(16),
                           itemCount: _posts.length,
@@ -848,7 +875,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreatePostSheet,
-        backgroundColor: Color(0xFF2563eb),
+        backgroundColor: odaPrimary,
         child: Icon(Icons.add, color: Colors.white),
       ),
     );

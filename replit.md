@@ -9,7 +9,16 @@ None documented yet.
 ## System Architecture
 
 ### UI/UX Decisions
-The application utilizes a dark theme aligned with the website's branding, featuring a color palette of dark navy, slate, blue as a primary accent, and yellow as a secondary accent. Text is primarily white with light gray for secondary text. The design incorporates styled cards with rounded corners and elevation, blue-accented buttons, and input fields that match the dark theme. The dashboard features a minimalist webapp-style aesthetic with personalized greetings and vertically stacked cards for information display. A persistent footer navigation uses modern rounded icons and active tab indicators. The overall design emphasizes flat colors, subtle borders, and minimal shadows for a professional, business-focused look. Consistent design patterns are applied across secondary screens (Members, Events, Projects) for a unified user experience.
+The application supports both dark and light themes, toggled via Settings. The dark theme features dark navy (#0f172a), slate (#1e293b), blue primary accent (#2563eb), and yellow secondary accent (#f4d03f). Light mode uses white/gray backgrounds with proper contrast. Theme colors are centralized in `ThemeService` with a complete `ColorScheme` for both modes. The `AppColors` utility class provides context-aware color access throughout the app:
+- `AppColors.cardColor(context)` - Card backgrounds
+- `AppColors.surfaceColor(context)` - Container/input backgrounds  
+- `AppColors.textColor(context)` - Primary text
+- `AppColors.subtitleColor(context)` - Secondary text
+- `AppColors.mutedColor(context)` - Disabled/muted text
+- `AppColors.borderColor(context)` - Borders and dividers
+- `AppColors.isDark(context)` - Theme detection
+
+The design incorporates styled cards with rounded corners, blue-accented buttons, and theme-adaptive input fields. The dashboard features a minimalist webapp-style aesthetic with personalized greetings and vertically stacked cards for information display. A persistent footer navigation uses modern rounded icons and active tab indicators. The overall design emphasizes flat colors, subtle borders, and minimal shadows for a professional, business-focused look. Consistent design patterns are applied across all screens (Events, Projects, Discussions, Year Group) for a unified user experience in both light and dark modes.
 
 ### Technical Implementations
 Built with Flutter 3.32.0 and Dart 3.8.0, the project targets the web platform with a modular structure comprising `components`, feature-specific `Screens`, and utility files. Authentication is managed via `flutter_secure_storage` and `AuthService`, ensuring secure token management and API communication.

@@ -4,6 +4,8 @@ import 'package:odadee/models/project.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
+import 'package:odadee/constants.dart';
+import 'package:odadee/services/theme_service.dart';
 import 'package:intl/intl.dart';
 
 class YearGroupScreen extends StatefulWidget {
@@ -112,6 +114,12 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
   Widget _buildOverviewTab() {
     if (_yearGroup == null) return SizedBox();
     
+    final cardColor = AppColors.cardColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -122,7 +130,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF2563eb), Color(0xFF1e40af)],
+                colors: [odaPrimary, Color(0xFF1e40af)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -134,7 +142,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha(51),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -163,7 +171,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   Text(
                     _yearGroup!.description!,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withAlpha(204),
                       fontSize: 14,
                     ),
                     textAlign: TextAlign.center,
@@ -182,7 +190,11 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   icon: Icons.people,
                   value: '${_yearGroup!.memberCount}',
                   label: 'Members',
-                  color: Color(0xFF2563eb),
+                  color: odaPrimary,
+                  cardColor: cardColor,
+                  textColor: textColor,
+                  subtitleColor: subtitleColor,
+                  borderColor: borderColor,
                 ),
               ),
               SizedBox(width: 12),
@@ -191,7 +203,11 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   icon: Icons.work,
                   value: '${_projects.length}',
                   label: 'Projects',
-                  color: Color(0xFFf4d03f),
+                  color: odaSecondary,
+                  cardColor: cardColor,
+                  textColor: textColor,
+                  subtitleColor: subtitleColor,
+                  borderColor: borderColor,
                 ),
               ),
             ],
@@ -202,7 +218,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
           Text(
             'Quick Actions',
             style: TextStyle(
-              color: Colors.white,
+              color: textColor,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -214,6 +230,11 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
             title: 'View Members',
             subtitle: 'See all classmates in your year',
             onTap: () => _tabController.animateTo(1),
+            cardColor: cardColor,
+            textColor: textColor,
+            subtitleColor: subtitleColor,
+            mutedColor: mutedColor,
+            borderColor: borderColor,
           ),
           SizedBox(height: 12),
           _buildQuickActionCard(
@@ -221,6 +242,11 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
             title: 'Class Projects',
             subtitle: 'Support and contribute to year group initiatives',
             onTap: () => _tabController.animateTo(2),
+            cardColor: cardColor,
+            textColor: textColor,
+            subtitleColor: subtitleColor,
+            mutedColor: mutedColor,
+            borderColor: borderColor,
           ),
         ],
       ),
@@ -232,13 +258,17 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
     required String value,
     required String label,
     required Color color,
+    required Color cardColor,
+    required Color textColor,
+    required Color subtitleColor,
+    required Color borderColor,
   }) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF1e293b),
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Color(0xFF334155)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
@@ -247,7 +277,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
           Text(
             value,
             style: TextStyle(
-              color: Colors.white,
+              color: textColor,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -255,7 +285,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
           Text(
             label,
             style: TextStyle(
-              color: Color(0xFF94a3b8),
+              color: subtitleColor,
               fontSize: 12,
             ),
           ),
@@ -269,6 +299,11 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    required Color cardColor,
+    required Color textColor,
+    required Color subtitleColor,
+    required Color mutedColor,
+    required Color borderColor,
   }) {
     return InkWell(
       onTap: onTap,
@@ -276,19 +311,19 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Color(0xFF1e293b),
+          color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Color(0xFF334155)),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           children: [
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(0xFF2563eb).withOpacity(0.2),
+                color: odaPrimary.withAlpha(51),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: Color(0xFF2563eb), size: 24),
+              child: Icon(icon, color: odaPrimary, size: 24),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -298,7 +333,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -307,14 +342,14 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Color(0xFF94a3b8),
+                      color: subtitleColor,
                       fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Color(0xFF64748b)),
+            Icon(Icons.chevron_right, color: mutedColor),
           ],
         ),
       ),
@@ -322,10 +357,16 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
   }
 
   Widget _buildMembersTab() {
+    final cardColor = AppColors.cardColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     if (_loadingMembers) {
       return Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+          valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
         ),
       );
     }
@@ -335,15 +376,15 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.people_outline, size: 64, color: Color(0xFF64748b)),
+            Icon(Icons.people_outline, size: 64, color: mutedColor),
             SizedBox(height: 16),
             Text(
               'No members yet',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: textColor, fontSize: 18),
             ),
             Text(
               'Be the first to join!',
-              style: TextStyle(color: Color(0xFF94a3b8)),
+              style: TextStyle(color: subtitleColor),
             ),
           ],
         ),
@@ -352,28 +393,28 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
     
     return RefreshIndicator(
       onRefresh: _loadMembers,
-      color: Color(0xFF2563eb),
+      color: odaPrimary,
       child: ListView.builder(
         padding: EdgeInsets.all(16),
         itemCount: _members.length,
         itemBuilder: (context, index) {
           final member = _members[index];
-          return _buildMemberCard(member);
+          return _buildMemberCard(member, cardColor, textColor, subtitleColor, mutedColor, borderColor);
         },
       ),
     );
   }
 
-  Widget _buildMemberCard(YearGroupMember member) {
+  Widget _buildMemberCard(YearGroupMember member, Color cardColor, Color textColor, Color subtitleColor, Color mutedColor, Color borderColor) {
     final user = member.user;
     
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF1e293b),
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Color(0xFF334155)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
@@ -389,7 +430,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                       child: Text(
                         user?.fullName ?? 'Anonymous',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -399,13 +440,13 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Color(0xFFf4d03f).withOpacity(0.2),
+                          color: odaSecondary.withAlpha(51),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           'Admin',
                           style: TextStyle(
-                            color: Color(0xFFf4d03f),
+                            color: odaSecondary,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -418,7 +459,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   Text(
                     user!.profession!,
                     style: TextStyle(
-                      color: Color(0xFF94a3b8),
+                      color: subtitleColor,
                       fontSize: 13,
                     ),
                   ),
@@ -427,12 +468,12 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 12, color: Color(0xFF64748b)),
+                      Icon(Icons.location_on, size: 12, color: mutedColor),
                       SizedBox(width: 4),
                       Text(
                         user!.location!,
                         style: TextStyle(
-                          color: Color(0xFF64748b),
+                          color: mutedColor,
                           fontSize: 12,
                         ),
                       ),
@@ -448,10 +489,17 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
   }
 
   Widget _buildProjectsTab() {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    final borderColor = AppColors.borderColor(context);
+    
     if (_loadingProjects) {
       return Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+          valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
         ),
       );
     }
@@ -461,15 +509,15 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.work_outline, size: 64, color: Color(0xFF64748b)),
+            Icon(Icons.work_outline, size: 64, color: mutedColor),
             SizedBox(height: 16),
             Text(
               'No projects yet',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: textColor, fontSize: 18),
             ),
             Text(
               'Year group projects will appear here',
-              style: TextStyle(color: Color(0xFF94a3b8)),
+              style: TextStyle(color: subtitleColor),
             ),
           ],
         ),
@@ -478,19 +526,19 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
     
     return RefreshIndicator(
       onRefresh: _loadProjects,
-      color: Color(0xFF2563eb),
+      color: odaPrimary,
       child: ListView.builder(
         padding: EdgeInsets.all(16),
         itemCount: _projects.length,
         itemBuilder: (context, index) {
           final project = _projects[index];
-          return _buildProjectCard(project);
+          return _buildProjectCard(project, cardColor, surfaceColor, textColor, subtitleColor, mutedColor, borderColor);
         },
       ),
     );
   }
 
-  Widget _buildProjectCard(Project project) {
+  Widget _buildProjectCard(Project project, Color cardColor, Color surfaceColor, Color textColor, Color subtitleColor, Color mutedColor, Color borderColor) {
     final progress = project.targetAmount != null && project.targetAmount! > 0
         ? (project.currentAmount ?? 0) / project.targetAmount!
         : 0.0;
@@ -508,9 +556,9 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
       child: Container(
         margin: EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Color(0xFF1e293b),
+          color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Color(0xFF334155)),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,9 +574,9 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 100,
-                      color: Color(0xFF0f172a),
+                      color: surfaceColor,
                       child: Center(
-                        child: Icon(Icons.work, color: Color(0xFF64748b), size: 40),
+                        child: Icon(Icons.work, color: mutedColor, size: 40),
                       ),
                     );
                   },
@@ -542,38 +590,38 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                 children: [
                   Row(
                     children: [
-                      if (project.category != null)
+                      if (project.category.isNotEmpty)
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Color(0xFF2563eb).withOpacity(0.2),
+                            color: odaPrimary.withAlpha(51),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            project.category!,
+                            project.category,
                             style: TextStyle(
-                              color: Color(0xFF2563eb),
+                              color: odaPrimary,
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       Spacer(),
-                      if (project.status != null)
+                      if (project.status.isNotEmpty)
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: project.status == 'active'
-                                ? Color(0xFF10b981).withOpacity(0.2)
-                                : Color(0xFF64748b).withOpacity(0.2),
+                                ? Color(0xFF10b981).withAlpha(51)
+                                : mutedColor.withAlpha(51),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            project.status!.toUpperCase(),
+                            project.status.toUpperCase(),
                             style: TextStyle(
                               color: project.status == 'active'
                                   ? Color(0xFF10b981)
-                                  : Color(0xFF94a3b8),
+                                  : subtitleColor,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -585,7 +633,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                   Text(
                     project.title,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textColor,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -598,9 +646,9 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                     child: LinearProgressIndicator(
                       value: progress.clamp(0.0, 1.0),
                       minHeight: 6,
-                      backgroundColor: Color(0xFF334155),
+                      backgroundColor: borderColor,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        progress >= 1.0 ? Color(0xFF10b981) : Color(0xFF2563eb),
+                        progress >= 1.0 ? Color(0xFF10b981) : odaPrimary,
                       ),
                     ),
                   ),
@@ -611,7 +659,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                       Text(
                         'GH₵ ${NumberFormat('#,##0.00').format(project.currentAmount ?? 0)}',
                         style: TextStyle(
-                          color: Color(0xFF2563eb),
+                          color: odaPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -619,7 +667,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                       Text(
                         'of GH₵ ${NumberFormat('#,##0.00').format(project.targetAmount ?? 0)}',
                         style: TextStyle(
-                          color: Color(0xFF94a3b8),
+                          color: subtitleColor,
                           fontSize: 12,
                         ),
                       ),
@@ -660,7 +708,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Color(0xFF2563eb),
+        color: odaPrimary,
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -678,28 +726,30 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     return Scaffold(
-      backgroundColor: Color(0xFF0f172a),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           _yearGroup?.name ?? 'Year Group',
           style: TextStyle(
-            color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),
         bottom: _yearGroup != null ? TabBar(
           controller: _tabController,
-          labelColor: Color(0xFF2563eb),
-          unselectedLabelColor: Color(0xFF64748b),
-          indicatorColor: Color(0xFF2563eb),
+          labelColor: odaPrimary,
+          unselectedLabelColor: mutedColor,
+          indicatorColor: odaPrimary,
           tabs: [
             Tab(text: 'Overview'),
             Tab(text: 'Members'),
@@ -710,7 +760,7 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+                valueColor: AlwaysStoppedAnimation<Color>(odaPrimary),
               ),
             )
           : _error != null
@@ -720,18 +770,18 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64, color: Color(0xFF64748b)),
+                        Icon(Icons.error_outline, size: 64, color: mutedColor),
                         SizedBox(height: 16),
                         Text(
                           _error!,
-                          style: TextStyle(color: Color(0xFF94a3b8)),
+                          style: TextStyle(color: subtitleColor, fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: _loadYearGroup,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF2563eb),
+                            backgroundColor: odaPrimary,
                           ),
                           child: Text('Retry', style: TextStyle(color: Colors.white)),
                         ),

@@ -7,6 +7,7 @@ import 'package:odadee/components/event_image_widget.dart';
 import 'package:odadee/services/event_service.dart';
 import 'package:odadee/services/payment_service.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/theme_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class EventDetailsScreen extends StatefulWidget {
@@ -30,10 +31,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   String _formatDate(DateTime date) {
     return DateFormat('EEEE, MMMM d, yyyy • h:mm a').format(date);
-  }
-
-  String _formatDateShort(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
   }
 
   Future<void> _handleRegistration() async {
@@ -61,7 +58,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           amount: totalAmount,
           yearGroupId: yearGroupId,
           eventId: event!.id,
-          description: 'Ticket purchase for ${event!.title} (${_ticketCount} ticket${_ticketCount > 1 ? 's' : ''})',
+          description: 'Ticket purchase for ${event!.title} ($_ticketCount ticket${_ticketCount > 1 ? 's' : ''})',
         );
         
         setState(() {
@@ -97,18 +94,24 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   void _showPaymentConfirmation(String paymentUrl, double amount) {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1e293b),
+        backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.payment, color: Color(0xFF2563eb), size: 28),
+            Icon(Icons.payment, color: odaPrimary, size: 28),
             SizedBox(width: 12),
             Text(
               'Complete Payment',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: textColor, fontSize: 18),
             ),
           ],
         ),
@@ -118,37 +121,37 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           children: [
             Text(
               'Your ticket purchase of GH₵ ${amount.toStringAsFixed(2)} is ready.',
-              style: TextStyle(color: Color(0xFF94a3b8)),
+              style: TextStyle(color: subtitleColor),
             ),
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(0xFF0f172a),
+                color: surfaceColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildPaymentInfoRow('Event', event!.title),
+                  _buildPaymentInfoRow('Event', event!.title, textColor, subtitleColor),
                   SizedBox(height: 8),
-                  _buildPaymentInfoRow('Tickets', '$_ticketCount'),
+                  _buildPaymentInfoRow('Tickets', '$_ticketCount', textColor, subtitleColor),
                   SizedBox(height: 8),
-                  _buildPaymentInfoRow('Amount', 'GH₵ ${amount.toStringAsFixed(2)}'),
+                  _buildPaymentInfoRow('Amount', 'GH₵ ${amount.toStringAsFixed(2)}', textColor, subtitleColor),
                 ],
               ),
             ),
             SizedBox(height: 12),
             Text(
               'Click "Pay Now" to open the payment page. After completing payment, return to the app.',
-              style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+              style: TextStyle(color: mutedColor, fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Color(0xFF94a3b8))),
+            child: Text('Cancel', style: TextStyle(color: subtitleColor)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -160,7 +163,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Complete your payment in the browser, then return to the app.'),
-                    backgroundColor: Color(0xFF2563eb),
+                    backgroundColor: odaPrimary,
                     duration: Duration(seconds: 5),
                   ),
                 );
@@ -174,7 +177,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF2563eb),
+              backgroundColor: odaPrimary,
             ),
             child: Text('Pay Now', style: TextStyle(color: Colors.white)),
           ),
@@ -183,15 +186,15 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-  Widget _buildPaymentInfoRow(String label, String value) {
+  Widget _buildPaymentInfoRow(String label, String value, Color textColor, Color subtitleColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Color(0xFF94a3b8), fontSize: 13)),
+        Text(label, style: TextStyle(color: subtitleColor, fontSize: 13)),
         Flexible(
           child: Text(
             value,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w500, fontSize: 13),
             textAlign: TextAlign.right,
             overflow: TextOverflow.ellipsis,
           ),
@@ -201,10 +204,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
   void _showSuccessDialog(EventRegistration registration) {
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1e293b),
+        backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
@@ -212,7 +221,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
             SizedBox(width: 12),
             Text(
               'Registration Successful!',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: textColor, fontSize: 18),
             ),
           ],
         ),
@@ -222,53 +231,53 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           children: [
             Text(
               'You have successfully registered for this event.',
-              style: TextStyle(color: Color(0xFF94a3b8)),
+              style: TextStyle(color: subtitleColor),
             ),
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(0xFF0f172a),
+                color: surfaceColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('Event', event!.title),
+                  _buildInfoRow('Event', event!.title, textColor, subtitleColor),
                   SizedBox(height: 8),
-                  _buildInfoRow('Tickets', '${registration.ticketsPurchased}'),
+                  _buildInfoRow('Tickets', '${registration.ticketsPurchased}', textColor, subtitleColor),
                   if (registration.totalAmount > 0) ...[
                     SizedBox(height: 8),
-                    _buildInfoRow('Total', 'GH₵ ${registration.totalAmount.toStringAsFixed(2)}'),
+                    _buildInfoRow('Total', 'GH₵ ${registration.totalAmount.toStringAsFixed(2)}', textColor, subtitleColor),
                   ],
                   SizedBox(height: 8),
-                  _buildInfoRow('Status', registration.paymentStatus.toUpperCase()),
+                  _buildInfoRow('Status', registration.paymentStatus.toUpperCase(), textColor, subtitleColor),
                 ],
               ),
             ),
             SizedBox(height: 12),
             Text(
               "You'll receive an email confirmation with event details.",
-              style: TextStyle(color: Color(0xFF64748b), fontSize: 12),
+              style: TextStyle(color: mutedColor, fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Done', style: TextStyle(color: Color(0xFF2563eb))),
+            child: Text('Done', style: TextStyle(color: odaPrimary)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, Color textColor, Color subtitleColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Color(0xFF94a3b8), fontSize: 13)),
-        Text(value, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13)),
+        Text(label, style: TextStyle(color: subtitleColor, fontSize: 13)),
+        Text(value, style: TextStyle(color: textColor, fontWeight: FontWeight.w500, fontSize: 13)),
       ],
     );
   }
@@ -276,9 +285,15 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   void _showTicketSelector() {
     if (event == null) return;
     
+    final cardColor = AppColors.cardColor(context);
+    final surfaceColor = AppColors.surfaceColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     showModalBottomSheet(
       context: context,
-      backgroundColor: Color(0xFF1e293b),
+      backgroundColor: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -296,7 +311,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 Text(
                   'Select Tickets',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: textColor,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -304,14 +319,14 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 SizedBox(height: 8),
                 Text(
                   event!.title,
-                  style: TextStyle(color: Color(0xFF94a3b8), fontSize: 14),
+                  style: TextStyle(color: subtitleColor, fontSize: 14),
                 ),
                 SizedBox(height: 24),
                 
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Color(0xFF0f172a),
+                    color: surfaceColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -319,7 +334,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     children: [
                       Text(
                         'Number of Tickets',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(color: textColor, fontSize: 16),
                       ),
                       Row(
                         children: [
@@ -329,18 +344,18 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               setState(() {});
                             } : null,
                             icon: Icon(Icons.remove_circle_outline),
-                            color: _ticketCount > 1 ? Color(0xFF2563eb) : Color(0xFF64748b),
+                            color: _ticketCount > 1 ? odaPrimary : mutedColor,
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Color(0xFF1e293b),
+                              color: cardColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               '$_ticketCount',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: textColor,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -352,7 +367,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                               setState(() {});
                             },
                             icon: Icon(Icons.add_circle_outline),
-                            color: Color(0xFF2563eb),
+                            color: odaPrimary,
                           ),
                         ],
                       ),
@@ -365,7 +380,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Color(0xFF0f172a),
+                      color: surfaceColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -373,12 +388,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       children: [
                         Text(
                           'Total Amount',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          style: TextStyle(color: textColor, fontSize: 16),
                         ),
                         Text(
                           'GH₵ ${totalPrice.toStringAsFixed(2)}',
                           style: TextStyle(
-                            color: Color(0xFFf4d03f),
+                            color: odaSecondary,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -399,7 +414,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       _handleRegistration();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2563eb),
+                      backgroundColor: odaPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -436,33 +451,38 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = AppColors.isDark(context);
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = AppColors.cardColor(context);
+    final borderColor = AppColors.borderColor(context);
+    final textColor = AppColors.textColor(context);
+    final subtitleColor = AppColors.subtitleColor(context);
+    final mutedColor = AppColors.mutedColor(context);
+    
     if (event == null) {
       return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
-          title: Text('Event Details', style: TextStyle(color: Colors.black)),
+          title: Text('Event Details'),
         ),
-        body: Center(child: Text('Event not found')),
+        body: Center(child: Text('Event not found', style: TextStyle(color: textColor))),
       );
     }
 
     return Scaffold(
-      backgroundColor: Color(0xFF0f172a),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Event Details',
           style: TextStyle(
-            color: Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -485,12 +505,12 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
               Container(
                 width: double.infinity,
                 height: 200,
-                color: Color(0xFF1e293b),
+                color: cardColor,
                 child: Center(
                   child: Icon(
                     Icons.event,
                     size: 80,
-                    color: Color(0xFF64748b),
+                    color: mutedColor,
                   ),
                 ),
               ),
@@ -506,8 +526,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: event!.status == 'upcoming'
-                              ? Color(0xFF2563eb).withOpacity(0.2)
-                              : Color(0xFF64748b).withOpacity(0.2),
+                              ? odaPrimary.withAlpha(51)
+                              : mutedColor.withAlpha(51),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -515,8 +535,8 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             color: event!.status == 'upcoming' 
-                                ? Color(0xFF2563eb) 
-                                : Color(0xFF94a3b8),
+                                ? odaPrimary 
+                                : subtitleColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -526,7 +546,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Color(0xFF10b981).withOpacity(0.2),
+                            color: Color(0xFF10b981).withAlpha(51),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -555,7 +575,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                   SizedBox(height: 20),
@@ -563,16 +583,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Color(0xFF1e293b),
+                      color: cardColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Color(0xFF334155),
+                        color: borderColor,
                         width: 1,
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.calendar_today, color: Color(0xFF2563eb), size: 20),
+                        Icon(Icons.calendar_today, color: odaPrimary, size: 20),
                         SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -582,7 +602,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 'Date & Time',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF94a3b8),
+                                  color: subtitleColor,
                                 ),
                               ),
                               SizedBox(height: 4),
@@ -590,7 +610,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 _formatDate(event!.startDate),
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.white,
+                                  color: textColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -606,16 +626,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   Container(
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Color(0xFF1e293b),
+                      color: cardColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Color(0xFF334155),
+                        color: borderColor,
                         width: 1,
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.location_on, color: Color(0xFF2563eb), size: 20),
+                        Icon(Icons.location_on, color: odaPrimary, size: 20),
                         SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -625,7 +645,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 'Location',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF94a3b8),
+                                  color: subtitleColor,
                                 ),
                               ),
                               SizedBox(height: 4),
@@ -633,7 +653,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                 event!.location,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.white,
+                                  color: textColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -649,16 +669,16 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1e293b),
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Color(0xFF334155),
+                          color: borderColor,
                           width: 1,
                         ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.confirmation_number, color: Color(0xFF2563eb), size: 20),
+                          Icon(Icons.confirmation_number, color: odaPrimary, size: 20),
                           SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -668,7 +688,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                   'Ticket Price',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Color(0xFF94a3b8),
+                                    color: subtitleColor,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -676,7 +696,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                   'GH₵ ${event!.ticketPrice!.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.white,
+                                    color: textColor,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -695,7 +715,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                   SizedBox(height: 12),
@@ -703,7 +723,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     event!.description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF94a3b8),
+                      color: subtitleColor,
                       height: 1.5,
                     ),
                   ),
@@ -716,7 +736,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     child: ElevatedButton(
                       onPressed: _isRegistered ? null : (_isRegistering ? null : _showTicketSelector),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isRegistered ? Color(0xFF10b981) : Color(0xFF2563eb),
+                        backgroundColor: _isRegistered ? Color(0xFF10b981) : odaPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
