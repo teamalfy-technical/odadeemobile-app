@@ -693,76 +693,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               ),
                                               child: Row(
                                                 children: [
-                                                  Container(
+                                                  EventImageWidget(
+                                                    imageUrl: event.bannerUrl,
                                                     height: 60,
                                                     width: 60,
-                                                    decoration: BoxDecoration(
-                                                      color: Color(0xFF334155),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10),
-                                                      border: Border.all(
-                                                        color:
-                                                            Color(0xFF475569),
-                                                        width: 1,
-                                                      ),
-                                                    ),
-                                                    child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10),
-                                                      child: (event.bannerUrl !=
-                                                                  null &&
-                                                              event.bannerUrl!
-                                                                  .isNotEmpty)
-                                                          ? Image.network(
-                                                              event.bannerUrl!,
-                                                              fit: BoxFit.cover,
-                                                              loadingBuilder:
-                                                                  (context,
-                                                                      child,
-                                                                      loadingProgress) {
-                                                                if (loadingProgress ==
-                                                                    null) {
-                                                                  return child;
-                                                                }
-                                                                return Center(
-                                                                  child:
-                                                                      CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2,
-                                                                    valueColor:
-                                                                        AlwaysStoppedAnimation<
-                                                                            Color>(
-                                                                      Color(
-                                                                          0xFF64748b),
-                                                                    ),
-                                                                  ),
-                                                                );
-                                                              },
-                                                              errorBuilder:
-                                                                  (context,
-                                                                      error,
-                                                                      stackTrace) {
-                                                                print(
-                                                                    'Error loading image ${event.bannerUrl}: $error');
-                                                                return Center(
-                                                                  child: Icon(
-                                                                    Icons.event,
-                                                                    size: 30,
-                                                                    color: Color(0xFF64748b),
-                                                                  ),
-                                                                );
-                                                              },
-                                                            )
-                                                          : Center(
-                                                              child: Icon(
-                                                                Icons.event,
-                                                                size: 30,
-                                                                color: Color(0xFF64748b),
-                                                              ),
-                                                            ),
-                                                    ),
+                                                    borderRadius: BorderRadius.circular(10),
                                                   ),
                                                   SizedBox(width: 15),
                                                   Expanded(
