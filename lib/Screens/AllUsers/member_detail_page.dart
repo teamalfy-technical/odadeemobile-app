@@ -4,6 +4,7 @@ import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/theme_service.dart';
 
 class MemberDetailPage extends StatefulWidget {
   final Data data;
@@ -22,7 +23,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
     }
     try {
       DateTime? parsedDate;
-      
+
       try {
         parsedDate = DateTime.parse(dateString);
       } catch (e) {
@@ -33,7 +34,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
           DateFormat('dd/MM/yyyy'),
           DateFormat('MM/dd/yyyy'),
         ];
-        
+
         for (var format in formats) {
           try {
             parsedDate = format.parse(dateString);
@@ -41,11 +42,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
           } catch (_) {}
         }
       }
-      
+
       if (parsedDate == null) {
         return '';
       }
-      
+
       final month = DateFormat.MMM().format(parsedDate);
       final day = DateFormat.d().format(parsedDate);
       final year = DateFormat.y().format(parsedDate);
@@ -58,22 +59,29 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String userName = "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim().isNotEmpty 
-        ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim()
-        : 'Unknown User';
+    final String userName =
+        "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}"
+                .trim()
+                .isNotEmpty
+            ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}"
+                .trim()
+            : 'Unknown User';
 
     return Scaffold(
-      backgroundColor: odaBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: AppColors.textColor(context)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           userName,
-          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: AppColors.textColor(context),
+              fontSize: 18,
+              fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -89,9 +97,13 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
   }
 
   Widget _buildProfileHeader() {
-    final String userName = "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim().isNotEmpty 
-        ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim()
-        : 'Unknown User';
+    final String userName =
+        "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}"
+                .trim()
+                .isNotEmpty
+            ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}"
+                .trim()
+            : 'Unknown User';
 
     return Container(
       padding: EdgeInsets.all(24),
@@ -106,7 +118,8 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: widget.data.image != null && widget.data.image!.trim().isNotEmpty
+              child: widget.data.image != null &&
+                      widget.data.image!.trim().isNotEmpty
                   ? AuthenticatedImage(
                       imageUrl: widget.data.image!.startsWith('http')
                           ? widget.data.image!
@@ -117,12 +130,12 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                       errorWidget: Container(
                         width: 120,
                         height: 120,
-                        color: odaCardBackground,
+                        color: Theme.of(context).colorScheme.surface,
                         child: Center(
                           child: Icon(
                             Icons.person,
                             size: 50,
-                            color: bodyText2,
+                            color: AppColors.mutedColor(context),
                           ),
                         ),
                       ),
@@ -130,12 +143,12 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   : Container(
                       width: 120,
                       height: 120,
-                      color: odaCardBackground,
+                      color: Theme.of(context).colorScheme.surface,
                       child: Center(
                         child: Icon(
                           Icons.person,
                           size: 50,
-                          color: bodyText2,
+                          color: AppColors.mutedColor(context),
                         ),
                       ),
                     ),
@@ -147,11 +160,12 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: bodyText1,
+              color: AppColors.textColor(context),
             ),
           ),
           SizedBox(height: 8),
-          if (widget.data.yearGroup != null && widget.data.yearGroup!.trim().isNotEmpty)
+          if (widget.data.yearGroup != null &&
+              widget.data.yearGroup!.trim().isNotEmpty)
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
@@ -162,7 +176,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                 "Year Group: ${widget.data.yearGroup}",
                 style: TextStyle(
                   fontSize: 14,
-                  color: bodyText2,
+                  color: AppColors.subtitleColor(context),
                 ),
               ),
             ),
@@ -175,7 +189,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: odaCardBackground,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -197,7 +211,9 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   child: Text(
                     "Information",
                     style: TextStyle(
-                      color: isInfoTab ? Colors.white : bodyText2,
+                      color: isInfoTab
+                          ? Colors.white
+                          : AppColors.subtitleColor(context),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -223,7 +239,9 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   child: Text(
                     "Status",
                     style: TextStyle(
-                      color: !isInfoTab ? Colors.white : bodyText2,
+                      color: !isInfoTab
+                          ? Colors.white
+                          : AppColors.subtitleColor(context),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -250,7 +268,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                 widget.data.about!,
                 style: TextStyle(
                   fontSize: 15,
-                  color: bodyText2,
+                  color: AppColors.subtitleColor(context),
                   height: 1.5,
                 ),
               ),
@@ -259,30 +277,47 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
             title: "Contact Information",
             child: Column(
               children: [
-                if (widget.data.email != null && widget.data.email!.trim().isNotEmpty)
-                  _buildInfoRow(Icons.email_outlined, "Email", widget.data.email!),
-                if (widget.data.phone != null && widget.data.phone!.trim().isNotEmpty)
-                  _buildInfoRow(Icons.phone_outlined, "Phone", widget.data.phone!),
-                if (widget.data.city != null && widget.data.city!.trim().isNotEmpty)
-                  _buildInfoRow(Icons.location_on_outlined, "City", widget.data.city!),
-                if (widget.data.country != null && widget.data.country!.trim().isNotEmpty)
-                  _buildInfoRow(Icons.public_outlined, "Country", widget.data.country!),
+                if (widget.data.email != null &&
+                    widget.data.email!.trim().isNotEmpty)
+                  _buildInfoRow(
+                      Icons.email_outlined, "Email", widget.data.email!),
+                if (widget.data.phone != null &&
+                    widget.data.phone!.trim().isNotEmpty)
+                  _buildInfoRow(
+                      Icons.phone_outlined, "Phone", widget.data.phone!),
+                if (widget.data.city != null &&
+                    widget.data.city!.trim().isNotEmpty)
+                  _buildInfoRow(
+                      Icons.location_on_outlined, "City", widget.data.city!),
+                if (widget.data.country != null &&
+                    widget.data.country!.trim().isNotEmpty)
+                  _buildInfoRow(
+                      Icons.public_outlined, "Country", widget.data.country!),
               ],
             ),
           ),
-          if (widget.data.workPlace != null && widget.data.workPlace!.trim().isNotEmpty ||
-              widget.data.position != null && widget.data.position!.trim().isNotEmpty ||
-              widget.data.jobTitle != null && widget.data.jobTitle!.trim().isNotEmpty)
+          if (widget.data.workPlace != null &&
+                  widget.data.workPlace!.trim().isNotEmpty ||
+              widget.data.position != null &&
+                  widget.data.position!.trim().isNotEmpty ||
+              widget.data.jobTitle != null &&
+                  widget.data.jobTitle!.trim().isNotEmpty)
             _buildInfoCard(
               title: "Professional Information",
               child: Column(
                 children: [
-                  if (widget.data.workPlace != null && widget.data.workPlace!.trim().isNotEmpty)
-                    _buildInfoRow(Icons.business_outlined, "Workplace", widget.data.workPlace!),
-                  if (widget.data.position != null && widget.data.position!.trim().isNotEmpty)
-                    _buildInfoRow(Icons.work_outline, "Position", widget.data.position!),
-                  if (widget.data.jobTitle != null && widget.data.jobTitle!.trim().isNotEmpty)
-                    _buildInfoRow(Icons.badge_outlined, "Job Title", widget.data.jobTitle!),
+                  if (widget.data.workPlace != null &&
+                      widget.data.workPlace!.trim().isNotEmpty)
+                    _buildInfoRow(Icons.business_outlined, "Workplace",
+                        widget.data.workPlace!),
+                  if (widget.data.position != null &&
+                      widget.data.position!.trim().isNotEmpty)
+                    _buildInfoRow(
+                        Icons.work_outline, "Position", widget.data.position!),
+                  if (widget.data.jobTitle != null &&
+                      widget.data.jobTitle!.trim().isNotEmpty)
+                    _buildInfoRow(Icons.badge_outlined, "Job Title",
+                        widget.data.jobTitle!),
                 ],
               ),
             ),
@@ -297,7 +332,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: odaCardBackground,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -308,7 +343,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: bodyText1,
+              color: AppColors.textColor(context),
             ),
           ),
           SizedBox(height: 16),
@@ -334,7 +369,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   label,
                   style: TextStyle(
                     fontSize: 13,
-                    color: bodyText2.withOpacity(0.7),
+                    color: AppColors.subtitleColor(context).withOpacity(0.7),
                   ),
                 ),
                 SizedBox(height: 2),
@@ -342,7 +377,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   value,
                   style: TextStyle(
                     fontSize: 15,
-                    color: bodyText2,
+                    color: AppColors.subtitleColor(context),
                   ),
                 ),
               ],
@@ -361,7 +396,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
         margin: EdgeInsets.symmetric(horizontal: 24),
         padding: EdgeInsets.all(40),
         decoration: BoxDecoration(
-          color: odaCardBackground,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
@@ -370,14 +405,14 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
               Icon(
                 Icons.chat_bubble_outline,
                 size: 48,
-                color: bodyText2.withOpacity(0.5),
+                color: AppColors.mutedColor(context),
               ),
               SizedBox(height: 16),
               Text(
                 "No status updates yet",
                 style: TextStyle(
                   fontSize: 16,
-                  color: bodyText2,
+                  color: AppColors.subtitleColor(context),
                 ),
               ),
             ],
@@ -396,7 +431,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                 margin: EdgeInsets.only(bottom: 16),
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: odaCardBackground,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -413,9 +448,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(7),
-                            child: widget.data.image != null && widget.data.image!.trim().isNotEmpty
+                            child: widget.data.image != null &&
+                                    widget.data.image!.trim().isNotEmpty
                                 ? AuthenticatedImage(
-                                    imageUrl: widget.data.image!.startsWith('http')
+                                    imageUrl: widget.data.image!
+                                            .startsWith('http')
                                         ? widget.data.image!
                                         : '${ApiConfig.baseUrl}${widget.data.image}',
                                     width: 40,
@@ -424,22 +461,24 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                                     errorWidget: Container(
                                       width: 40,
                                       height: 40,
-                                      color: odaBackground,
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor,
                                       child: Icon(
                                         Icons.person,
                                         size: 20,
-                                        color: bodyText2,
+                                        color: AppColors.mutedColor(context),
                                       ),
                                     ),
                                   )
                                 : Container(
                                     width: 40,
                                     height: 40,
-                                    color: odaBackground,
+                                    color: Theme.of(context)
+                                        .scaffoldBackgroundColor,
                                     child: Icon(
                                       Icons.person,
                                       size: 20,
-                                      color: bodyText2,
+                                      color: AppColors.mutedColor(context),
                                     ),
                                   ),
                           ),
@@ -450,23 +489,28 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim().isNotEmpty 
-                                    ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim()
+                                "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}"
+                                        .trim()
+                                        .isNotEmpty
+                                    ? "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}"
+                                        .trim()
                                     : 'Unknown User',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: bodyText1,
+                                  color: AppColors.textColor(context),
                                 ),
                               ),
-                              if (status.createdTime != null && status.createdTime!.trim().isNotEmpty)
+                              if (status.createdTime != null &&
+                                  status.createdTime!.trim().isNotEmpty)
                                 Text(
-                                  _safeConvertDate(status.createdTime) != '' 
+                                  _safeConvertDate(status.createdTime) != ''
                                       ? _safeConvertDate(status.createdTime)
                                       : status.createdTime!,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: bodyText2.withOpacity(0.7),
+                                    color: AppColors.subtitleColor(context)
+                                        .withOpacity(0.7),
                                   ),
                                 ),
                             ],
@@ -479,11 +523,12 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                       status.status!,
                       style: TextStyle(
                         fontSize: 15,
-                        color: bodyText2,
+                        color: AppColors.textColor(context),
                         height: 1.5,
                       ),
                     ),
-                    if (status.attachment != null && status.attachment!.trim().isNotEmpty)
+                    if (status.attachment != null &&
+                        status.attachment!.trim().isNotEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: 12),
                         child: ClipRRect(

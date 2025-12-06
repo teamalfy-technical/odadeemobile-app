@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/theme_service.dart';
 
 class StatCard extends StatelessWidget {
   final String title;
@@ -25,10 +26,10 @@ class StatCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Color(0xFF1e293b),
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Color(0xFF334155),
+            color: Theme.of(context).colorScheme.outline,
             width: 1,
           ),
         ),
@@ -47,7 +48,7 @@ class StatCard extends StatelessWidget {
                       Text(
                         title,
                         style: TextStyle(
-                          color: Color(0xFF94a3b8),
+                          color: AppColors.subtitleColor(context),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -56,7 +57,7 @@ class StatCard extends StatelessWidget {
                       Text(
                         value,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textColor(context),
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -66,7 +67,7 @@ class StatCard extends StatelessWidget {
                         Text(
                           subtitle!,
                           style: TextStyle(
-                            color: Color(0xFF64748b),
+                            color: AppColors.mutedColor(context),
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
                           ),
@@ -77,7 +78,7 @@ class StatCard extends StatelessWidget {
                 ),
                 Icon(
                   icon,
-                  color: Color(0xFF64748b),
+                  color: AppColors.mutedColor(context),
                   size: 24,
                 ),
               ],

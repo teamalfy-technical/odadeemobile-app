@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeService extends ChangeNotifier {
   static final ThemeService _instance = ThemeService._internal();
-  
+
   bool _isDarkMode = true;
   static const String _themePreferenceKey = 'isDarkMode';
 
@@ -28,6 +28,7 @@ class ThemeService extends ChangeNotifier {
         primary: primaryBlue,
         secondary: secondaryYellow,
         surface: Colors.white,
+        surfaceContainer: Colors.grey[50]!,
         surfaceContainerHighest: Colors.grey[100]!,
         onSurface: Colors.black87,
         onSurfaceVariant: Colors.grey[600]!,
@@ -41,7 +42,8 @@ class ThemeService extends ChangeNotifier {
         surfaceTintColor: Colors.transparent,
       ),
       textTheme: TextTheme(
-        headlineLarge: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        headlineLarge:
+            TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         bodyMedium: TextStyle(color: Colors.black87),
         bodySmall: TextStyle(color: Colors.grey[600]),
       ),
@@ -80,7 +82,7 @@ class ThemeService extends ChangeNotifier {
     const darkTextPrimary = Colors.white;
     const darkTextSecondary = Color(0xFF94a3b8);
     const darkTextMuted = Color(0xFF64748b);
-    
+
     return ThemeData(
       brightness: Brightness.dark,
       primaryColor: primaryBlue,
@@ -102,7 +104,8 @@ class ThemeService extends ChangeNotifier {
         surfaceTintColor: Colors.transparent,
       ),
       textTheme: TextTheme(
-        headlineLarge: TextStyle(color: darkTextPrimary, fontWeight: FontWeight.bold),
+        headlineLarge:
+            TextStyle(color: darkTextPrimary, fontWeight: FontWeight.bold),
         bodyMedium: TextStyle(color: darkTextPrimary),
         bodySmall: TextStyle(color: darkTextSecondary),
       ),
@@ -175,18 +178,26 @@ class ThemeService extends ChangeNotifier {
 
 class AppColors {
   static Color cardColor(BuildContext context) => Theme.of(context).cardColor;
-  static Color surfaceColor(BuildContext context) => Theme.of(context).colorScheme.surfaceContainerHighest;
-  static Color textColor(BuildContext context) => Theme.of(context).colorScheme.onSurface;
-  static Color subtitleColor(BuildContext context) => Theme.of(context).colorScheme.onSurfaceVariant;
-  static Color mutedColor(BuildContext context) => Theme.of(context).colorScheme.outlineVariant;
-  static Color borderColor(BuildContext context) => Theme.of(context).colorScheme.outline;
-  static Color primary(BuildContext context) => Theme.of(context).colorScheme.primary;
-  static Color secondary(BuildContext context) => Theme.of(context).colorScheme.secondary;
-  static bool isDark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
-  
+  static Color surfaceColor(BuildContext context) =>
+      Theme.of(context).colorScheme.surfaceContainerHighest;
+  static Color textColor(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurface;
+  static Color subtitleColor(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant;
+  static Color mutedColor(BuildContext context) =>
+      Theme.of(context).colorScheme.outlineVariant;
+  static Color borderColor(BuildContext context) =>
+      Theme.of(context).colorScheme.outline;
+  static Color primary(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
+  static Color secondary(BuildContext context) =>
+      Theme.of(context).colorScheme.secondary;
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
   static const Color success = Color(0xFF10b981);
   static const Color error = Color(0xFFef4444);
   static const Color warning = Color(0xFFf59e0b);
-  
+
   static Color onPrimary(BuildContext context) => Colors.white;
 }

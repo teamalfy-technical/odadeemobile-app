@@ -4,6 +4,7 @@ import 'package:odadee/Screens/Profile/user_profile_screen.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/theme_service.dart';
 
 class FooterNav extends StatelessWidget {
   final String activeTab;
@@ -19,7 +20,7 @@ class FooterNav extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
         decoration: BoxDecoration(
-          color: Color(0xFF0f172a),
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: odaSecondary,
@@ -116,12 +117,14 @@ class FooterNav extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
+          color: isActive ? AppColors.textColor(context) : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(
           icon,
-          color: isActive ? Color(0xFF0f172a) : Colors.white,
+          color: isActive
+              ? Theme.of(context).colorScheme.surface
+              : AppColors.mutedColor(context),
           size: 26,
         ),
       ),

@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/AllUsers/all_users_screen.dart';
-import 'package:odadee/Screens/AllUsers/models/all_users_model.dart' as users_model;
+import 'package:odadee/Screens/AllUsers/models/all_users_model.dart'
+    as users_model;
 import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
 import 'package:odadee/Screens/Articles/all_news_screen.dart';
 import 'package:odadee/Screens/Members/members_screen.dart';
-import 'package:odadee/Screens/Articles/models/all_articles_model.dart' as articles_model;
+import 'package:odadee/Screens/Articles/models/all_articles_model.dart'
+    as articles_model;
 import 'package:odadee/Screens/Articles/news_details.dart';
 import 'package:odadee/Screens/Events/event_details.dart';
 import 'package:odadee/Screens/Events/events_list.dart';
@@ -24,6 +26,7 @@ import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/components/event_image_widget.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/theme_service.dart';
 import 'package:odadee/services/event_service.dart';
 import 'package:odadee/services/project_service.dart';
 import 'package:odadee/models/event.dart';
@@ -105,11 +108,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         if (jsonData['discussions'] != null) {
           final discussionsList = jsonData['discussions'] as List;
-          
+
           // Sort discussions by createdAt date (newest first)
           discussionsList.sort((a, b) {
-            final dateA = DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime(1970);
-            final dateB = DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime(1970);
+            final dateA =
+                DateTime.tryParse(a['createdAt'] ?? '') ?? DateTime(1970);
+            final dateB =
+                DateTime.tryParse(b['createdAt'] ?? '') ?? DateTime(1970);
             return dateB.compareTo(dateA);
           });
 
@@ -195,7 +200,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (yearGroup == null) {
         return 0.0;
       }
-      final contributions = await yearGroupService.getYearGroupContributions(yearGroup.id);
+      final contributions =
+          await yearGroupService.getYearGroupContributions(yearGroup.id);
       return contributions;
     } catch (e) {
       return 0.0;
@@ -363,8 +369,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
 
       final months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
       ];
       return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year}';
     } catch (e) {
@@ -442,11 +458,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               final projectsData = snapshot.data![2] as List<Project>;
 
-              final articlesData = snapshot.data![3] as articles_model.AllArticlesModel?;
+              final articlesData =
+                  snapshot.data![3] as articles_model.AllArticlesModel?;
 
               final statsData = snapshot.data![4] as Map<String, dynamic>?;
 
-              final yearGroupMembers = snapshot.data![5] as List<YearGroupMember>;
+              final yearGroupMembers =
+                  snapshot.data![5] as List<YearGroupMember>;
 
               final yearGroupContributions = snapshot.data![6] as double;
 
@@ -528,7 +546,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       fontWeight:
                                                           FontWeight.w900,
                                                       fontSize: 20,
-                                                      color: Colors.white,
+                                                      color:
+                                                          AppColors.textColor(
+                                                              context),
                                                     ),
                                                   ),
                                                   if (userEmail != null &&
@@ -539,8 +559,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       userEmail!,
                                                       style: TextStyle(
                                                         fontSize: 12,
-                                                        color:
-                                                            Color(0xFF94a3b8),
+                                                        color: AppColors
+                                                            .subtitleColor(
+                                                                context),
                                                         fontWeight:
                                                             FontWeight.w400,
                                                       ),
@@ -557,8 +578,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       userClass!,
                                                       style: TextStyle(
                                                         fontSize: 12,
-                                                        color:
-                                                            Color(0xFF94a3b8),
+                                                        color: AppColors
+                                                            .subtitleColor(
+                                                                context),
                                                         fontWeight:
                                                             FontWeight.w400,
                                                       ),
@@ -629,10 +651,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     Container(
                                       padding: EdgeInsets.all(40),
                                       decoration: BoxDecoration(
-                                        color: Color(0xFF1e293b),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: Color(0xFF334155),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .outline,
                                           width: 1,
                                         ),
                                       ),
@@ -640,13 +666,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         children: [
                                           Icon(Icons.event_busy,
                                               size: 60,
-                                              color: Color(0xFF64748b)),
+                                              color: AppColors.mutedColor(
+                                                  context)),
                                           SizedBox(height: 16),
                                           Text(
                                             'No upcoming events',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              color: Color(0xFF94a3b8),
+                                              color: AppColors.subtitleColor(
+                                                  context),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -672,11 +700,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             child: Container(
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surface,
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                                 border: Border.all(
-                                                  color: Color(0xFF334155),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .outline,
                                                   width: 1,
                                                 ),
                                               ),
@@ -686,7 +718,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     imageUrl: event.bannerUrl,
                                                     height: 60,
                                                     width: 60,
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
                                                   ),
                                                   SizedBox(width: 15),
                                                   Expanded(
@@ -703,19 +737,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
-                                                              color:
-                                                                  Colors.white),
+                                                              color: AppColors
+                                                                  .textColor(
+                                                                      context)),
                                                           maxLines: 2,
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                         ),
-                                                        if (event.startDate != null) ...[
+                                                        if (event.startDate !=
+                                                            null) ...[
                                                           SizedBox(height: 4),
                                                           Text(
-                                                            _formatEventDate(event.startDate!),
+                                                            _formatEventDate(
+                                                                event
+                                                                    .startDate!),
                                                             style: TextStyle(
                                                               fontSize: 13,
-                                                              color: Color(0xFF94a3b8),
+                                                              color: AppColors
+                                                                  .subtitleColor(
+                                                                      context),
                                                             ),
                                                           ),
                                                         ],
@@ -725,7 +765,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   Icon(
                                                     Icons.arrow_forward_ios,
                                                     size: 16,
-                                                    color: Color(0xFF64748b),
+                                                    color: AppColors.mutedColor(
+                                                        context),
                                                   ),
                                                 ],
                                               ),
@@ -775,10 +816,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     Container(
                                       padding: EdgeInsets.all(40),
                                       decoration: BoxDecoration(
-                                        color: Color(0xFF1e293b),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: Color(0xFF334155),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .outline,
                                           width: 1,
                                         ),
                                       ),
@@ -786,13 +831,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         children: [
                                           Icon(Icons.work_off,
                                               size: 60,
-                                              color: Color(0xFF64748b)),
+                                              color: AppColors.mutedColor(
+                                                  context)),
                                           SizedBox(height: 16),
                                           Text(
                                             'No active projects',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              color: Color(0xFF94a3b8),
+                                              color: AppColors.subtitleColor(
+                                                  context),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -824,11 +871,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             child: Container(
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surface,
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                                 border: Border.all(
-                                                  color: Color(0xFF334155),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .outline,
                                                   width: 1,
                                                 ),
                                               ),
@@ -851,11 +902,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       ?.isNotEmpty ??
                                                                   false)
                                                               ? null
-                                                              : Color(
-                                                                  0xFF334155),
+                                                              : Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .surfaceContainer,
                                                           border: Border.all(
-                                                            color: Color(
-                                                                0xFF475469),
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .outline,
                                                             width: 1,
                                                           ),
                                                           image: (project
@@ -870,21 +925,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       .cover)
                                                               : null,
                                                         ),
-                                                        child: (project.imageUrl
-                                                                    ?.isNotEmpty ??
-                                                                false)
-                                                            ? null
-                                                            : Center(
-                                                                child: Icon(
-                                                                  Icons
-                                                                      .card_giftcard_outlined,
-                                                                  size: 30,
-                                                                  color: Color(
-                                                                      0xFF64748b),
-                                                                ),
-                                                              ),
                                                       ),
-                                                      SizedBox(width: 15),
+                                                      SizedBox(width: 12),
                                                       Expanded(
                                                         child: Column(
                                                           crossAxisAlignment:
@@ -898,8 +940,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .w600,
-                                                                  color: Colors
-                                                                      .white),
+                                                                  color: AppColors
+                                                                      .textColor(
+                                                                          context)),
                                                               maxLines: 1,
                                                               overflow:
                                                                   TextOverflow
@@ -916,8 +959,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                 style: TextStyle(
                                                                     fontSize:
                                                                         13,
-                                                                    color: Color(
-                                                                        0xFF94a3b8)),
+                                                                    color: AppColors
+                                                                        .subtitleColor(
+                                                                            context)),
                                                                 maxLines: 2,
                                                                 overflow:
                                                                     TextOverflow
@@ -930,8 +974,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       Icon(
                                                         Icons.arrow_forward_ios,
                                                         size: 16,
-                                                        color:
-                                                            Color(0xFF64748b),
+                                                        color: AppColors
+                                                            .mutedColor(
+                                                                context),
                                                       ),
                                                     ],
                                                   ),
@@ -945,8 +990,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         'Funding Progress',
                                                         style: TextStyle(
                                                           fontSize: 12,
-                                                          color:
-                                                              Color(0xFF94a3b8),
+                                                          color: AppColors
+                                                              .subtitleColor(
+                                                                  context),
                                                           fontWeight:
                                                               FontWeight.w500,
                                                         ),
@@ -971,7 +1017,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                         LinearProgressIndicator(
                                                       value: fundingProgress,
                                                       backgroundColor:
-                                                          Color(0xFF334155),
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .surfaceContainer,
                                                       valueColor:
                                                           AlwaysStoppedAnimation<
                                                                   Color>(
@@ -1040,7 +1088,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   SizedBox(height: 15),
                                   StatCard(
                                     title: 'Year Group Dues',
-                                    value: 'GH¢ ${yearGroupContributions.toStringAsFixed(2)}',
+                                    value:
+                                        'GH¢ ${yearGroupContributions.toStringAsFixed(2)}',
                                     icon: Icons.payments,
                                     subtitle: 'Dues & contributions',
                                     onTap: () {
@@ -1097,10 +1146,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     Container(
                                       padding: EdgeInsets.all(40),
                                       decoration: BoxDecoration(
-                                        color: Color(0xFF1e293b),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: Color(0xFF334155),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .outline,
                                           width: 1,
                                         ),
                                       ),
@@ -1108,13 +1161,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         children: [
                                           Icon(Icons.people_outline,
                                               size: 60,
-                                              color: Color(0xFF64748b)),
+                                              color: AppColors.mutedColor(
+                                                  context)),
                                           SizedBox(height: 16),
                                           Text(
                                             'No classmates found',
                                             style: TextStyle(
                                               fontSize: 16,
-                                              color: Color(0xFF94a3b8),
+                                              color: AppColors.subtitleColor(
+                                                  context),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -1123,7 +1178,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             'Update your graduation year in your profile',
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: Color(0xFF64748b),
+                                              color:
+                                                  AppColors.mutedColor(context),
                                             ),
                                             textAlign: TextAlign.center,
                                           ),
@@ -1138,31 +1194,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         final user = member.user;
                                         final firstName = user?.firstName ?? '';
                                         final lastName = user?.lastName ?? '';
-                                        final fullName = '$firstName $lastName'.trim();
+                                        final fullName =
+                                            '$firstName $lastName'.trim();
                                         final email = user?.email ?? '';
                                         final profileImage = user?.profileImage;
-                                        
+
                                         return Container(
                                           margin: EdgeInsets.only(bottom: 15),
                                           child: InkWell(
                                             onTap: () {
-                                              final memberData = users_model.Data.fromYearGroupMember(member);
+                                              final memberData = users_model
+                                                      .Data
+                                                  .fromYearGroupMember(member);
                                               Navigator.of(context).push(
                                                   MaterialPageRoute(
                                                       builder: (BuildContext
                                                               context) =>
-                                                          MemberDetailPage(data: memberData)));
+                                                          MemberDetailPage(
+                                                              data:
+                                                                  memberData)));
                                             },
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             child: Container(
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surface,
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                                 border: Border.all(
-                                                  color: Color(0xFF334155),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .outline,
                                                   width: 1,
                                                 ),
                                               ),
@@ -1188,11 +1253,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       width: 60,
                                                       decoration: BoxDecoration(
                                                         shape: BoxShape.circle,
-                                                        color:
-                                                            Color(0xFF334155),
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainer,
                                                         border: Border.all(
                                                           color:
-                                                              Color(0xFF475569),
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .outline,
                                                           width: 2,
                                                         ),
                                                       ),
@@ -1203,7 +1271,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                       .substring(
                                                                           0, 1)
                                                                   : '') +
-                                                              (lastName.isNotEmpty
+                                                              (lastName
+                                                                      .isNotEmpty
                                                                   ? lastName
                                                                       .substring(
                                                                           0, 1)
@@ -1213,8 +1282,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
-                                                              color:
-                                                                  Colors.white),
+                                                              color: AppColors
+                                                                  .textColor(
+                                                                      context)),
                                                         ),
                                                       ),
                                                     ),
@@ -1227,24 +1297,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          fullName.isNotEmpty ? fullName : 'Anonymous',
+                                                          fullName.isNotEmpty
+                                                              ? fullName
+                                                              : 'Anonymous',
                                                           style: TextStyle(
                                                               fontSize: 16,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
-                                                              color:
-                                                                  Colors.white),
+                                                              color: AppColors
+                                                                  .textColor(
+                                                                      context)),
                                                         ),
                                                         if (email
-                                                                .isNotEmpty) ...[
+                                                            .isNotEmpty) ...[
                                                           SizedBox(height: 4),
                                                           Text(
                                                             email,
                                                             style: TextStyle(
                                                                 fontSize: 13,
-                                                                color: Color(
-                                                                    0xFF94a3b8)),
+                                                                color: AppColors
+                                                                    .subtitleColor(
+                                                                        context)),
                                                             maxLines: 1,
                                                             overflow:
                                                                 TextOverflow
@@ -1288,7 +1362,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           style: TextStyle(
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.white),
+                                              color:
+                                                  AppColors.textColor(context)),
                                         ),
                                         InkWell(
                                           onTap: () {
@@ -1326,11 +1401,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             child: Container(
                                               padding: EdgeInsets.all(20),
                                               decoration: BoxDecoration(
-                                                color: Color(0xFF1e293b),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surface,
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                                 border: Border.all(
-                                                  color: Color(0xFF334155),
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .outline,
                                                   width: 1,
                                                 ),
                                               ),
@@ -1343,10 +1422,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               10),
-                                                      color: Color(0xFF334155),
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .surfaceContainer,
                                                       border: Border.all(
-                                                        color:
-                                                            Color(0xFF475569),
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .outline,
                                                         width: 1,
                                                       ),
                                                     ),
@@ -1373,8 +1455,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
-                                                              color:
-                                                                  Colors.white),
+                                                              color: AppColors
+                                                                  .textColor(
+                                                                      context)),
                                                           maxLines: 2,
                                                           overflow: TextOverflow
                                                               .ellipsis,
@@ -1390,8 +1473,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                                     .createdTime!),
                                                             style: TextStyle(
                                                                 fontSize: 13,
-                                                                color: Color(
-                                                                    0xFF94a3b8)),
+                                                                color: AppColors
+                                                                    .subtitleColor(
+                                                                        context)),
                                                           ),
                                                         ],
                                                       ],
