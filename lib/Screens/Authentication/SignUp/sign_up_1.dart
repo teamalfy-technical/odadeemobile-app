@@ -24,15 +24,22 @@ class RegisterResult {
 Future<RegisterResult> registerUser(Map<String, dynamic> data) async {
   try {
     final authService = AuthService();
+    
+    // Parse graduation year as integer
+    int graduationYear;
+    if (data['graduationYear'] is int) {
+      graduationYear = data['graduationYear'];
+    } else {
+      graduationYear = int.tryParse(data['graduationYear']?.toString() ?? '') ?? 0;
+    }
+    
     final result = await authService.register(
       email: data['email'],
       password: data['password'],
       firstName: data['firstName'],
       lastName: data['lastName'],
-      yearGroup: data['yearGroup'],
-      middleName: data['middleName'],
-      username: data['username'],
-      country: data['country'],
+      graduationYear: graduationYear,
+      phoneNumber: data['phoneNumber'],
     );
 
     return RegisterResult(success: true, user: result['user']);
@@ -753,16 +760,11 @@ class _SignUp1State extends State<SignUp1> {
                               print("##############");
 
                               var data = {
-                                "username": username,
-                                "yearGroup": yearGroup,
                                 "firstName": firstName,
-                                "middleName": middleName,
                                 "lastName": lastName,
-                                "country": _selectedCountry,
                                 "email": email,
                                 "password": password,
-                                "device_token": "fcm_token",
-                                "logged_from": platformType,
+                                "graduationYear": yearGroup != null ? int.tryParse(yearGroup!) ?? 0 : 0,
                               };
 
                               _futureSignUp = registerUser(data);

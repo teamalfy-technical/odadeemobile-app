@@ -57,10 +57,9 @@ class AuthService {
     required String password,
     required String firstName,
     required String lastName,
-    required String yearGroup,
-    String? middleName,
-    String? username,
-    String? country,
+    required int graduationYear,
+    String? phoneNumber,
+    String? invitationToken,
   }) async {
     try {
       final deviceId = await _getOrCreateDeviceId();
@@ -74,10 +73,9 @@ class AuthService {
           'password': password,
           'firstName': firstName,
           'lastName': lastName,
-          'yearGroup': yearGroup,
-          if (middleName != null) 'middleName': middleName,
-          if (username != null) 'username': username,
-          if (country != null) 'country': country,
+          'graduationYear': graduationYear,
+          if (phoneNumber != null) 'phoneNumber': phoneNumber,
+          if (invitationToken != null) 'invitationToken': invitationToken,
           'deviceInfo': {
             'deviceId': deviceId,
             'deviceName': deviceInfo['deviceName'],
@@ -86,6 +84,7 @@ class AuthService {
             'osName': deviceInfo['osName'],
             'osVersion': deviceInfo['osVersion'],
             'appVersion': ApiConfig.appVersion,
+            'pushNotificationToken': null,
           },
         }),
       );

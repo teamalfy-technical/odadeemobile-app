@@ -1,0 +1,5496 @@
+# PRESEC Alumni Network - Mobile API Documentation
+
+**Version**: 1.0.0  
+**Base URL**: `https://odadee.net/api`  
+**Last Updated**: November 2025
+
+## Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [Mobile App Configuration](#mobile-app-configuration)
+3. [Authentication](#authentication)
+4. [User Management](#user-management)
+5. [Year Groups](#year-groups)
+6. [Dues Management](#dues-management)
+7. [Invitations](#invitations)
+8. [Projects](#projects)
+9. [Contributions & Campaigns](#contributions-campaigns)
+10. [Events](#events)
+11. [Image Handling](#image-handling)
+12. [Shop & Products](#shop-products)
+13. [Orders](#orders)
+14. [Executives](#executives)
+15. [Payments (PayAngel)](#payments)
+16. [Notifications](#notifications)
+17. [Community & Discussions](#community-discussions)
+18. [Early Access Registration](#early-access-registration)
+19. [Data Models](#data-models)
+20. [Error Handling](#error-handling)
+21. [Rate Limiting](#rate-limiting)
+22. [Flutter Examples](#flutter-examples)
+
+---
+
+## Quick Start
+
+### API Configuration
+
+```dart
+class ApiConfig {
+  static const String baseUrl = 'https://odadee.net/api';
+  static const String websocketUrl = 'wss://odadee.net';
+  
+  // Test credentials
+  static const String testEmail = 'superadmin@presec.edu.gh';
+  static const String testPassword = 'Admin@123';
+}
+```
+
+### CORS Configuration
+
+✅ **All API endpoints support universal CORS** (`Access-Control-Allow-Origin: *`)
+
+- **No CORS errors** for Flutter Web, native mobile apps, or any client
+- All standard HTTP methods supported (GET, POST, PUT, PATCH, DELETE, OPTIONS)
+- Authorization header supported
+- No special configuration needed
+- Works seamlessly with JWT authentication
+
+### Authentication Flow
+
+The API supports **dual authentication**:
+- **Session-based** (web browsers with cookies)
+- **JWT-based** (mobile apps with Bearer tokens)
+
+Mobile apps **must use JWT authentication** with two options:
+
+#### Option 1: Password Login
+1. Login with email/password → Receive `accessToken` + `refreshToken`
+2. Store tokens securely (`flutter_secure_storage`)
+3. Include `Authorization: Bearer <accessToken>` header in all authenticated requests
+4. Auto-refresh when access token expires (15 minutes)
+5. Re-login when refresh token expires (30 days)
+
+#### Option 2: Magic Link (Passwordless) ⭐ NEW
+1. Request magic link with email → User receives email
+2. User clicks link → App opens via deep link
+3. Validate magic link token → Creates session cookie
+4. Convert session to JWT → Receive `accessToken` + `refreshToken`
+5. Store tokens and authenticate
+
+**See**: [Flutter Magic Link Implementation Guide](FLUTTER_MAGIC_LINK_GUIDE.md) for complete magic link setup.
+
+---
+
+## Mobile App Configuration
+
+### Get Mobile App Configuration
+
+**Endpoint**: `GET /mobile/config`
+
+**Authentication**: None required (Public endpoint)
+
+**Description**: Retrieves the current mobile app configuration including background assets (videos/images), app version, and update settings. This endpoint should be called when the app starts to fetch the latest configuration.
+
+**Response (200 OK)**:
+```json
+{
+  "mobileHeroVideoUrl": "/assets/Presec hero video mobile_2_1761940038673.mp4",
+  "desktopHeroVideoUrl": "/assets/torch-flame-v2.mp4",
+  "backgroundImageUrl": "/assets/a realistic flaming _1760527281074.png",
+  "appVersion": "1.0.0",
+  "forceUpdate": false,
+  "updateMessage": null
+}
+```
+
+**Response Fields**:
+- `mobileHeroVideoUrl` (string, nullable): URL to the mobile hero/background video
+- `desktopHeroVideoUrl` (string, nullable): URL to the desktop hero/background video  
+- `backgroundImageUrl` (string, nullable): URL to the background watermark image
+- `appVersion` (string): Latest app version available
+- `forceUpdate` (boolean): Whether the app must update to continue (force update)
+- `updateMessage` (string, nullable): Custom message to display when update is available
+
+**Flutter Example**:
+```dart
+class MobileAppConfig {
+  final String? mobileHeroVideoUrl;
+  final String? desktopHeroVideoUrl;
+  final String? backgroundImageUrl;
+  final String appVersion;
+  final bool forceUpdate;
+  final String? updateMessage;
+
+  MobileAppConfig({
+    this.mobileHeroVideoUrl,
+    this.desktopHeroVideoUrl,
+    this.backgroundImageUrl,
+    required this.appVersion,
+    required this.forceUpdate,
+    this.updateMessage,
+  });
+
+  factory MobileAppConfig.fromJson(Map<String, dynamic> json) {
+    return MobileAppConfig(
+      mobileHeroVideoUrl: json['mobileHeroVideoUrl'],
+      desktopHeroVideoUrl: json['desktopHeroVideoUrl'],
+      backgroundImageUrl: json['backgroundImageUrl'],
+      appVersion: json['appVersion'],
+      forceUpdate: json['forceUpdate'],
+      updateMessage: json['updateMessage'],
+    );
+  }
+}
+
+// Fetch configuration
+Future<MobileAppConfig> getMobileConfig() async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/mobile/config'),
+  );
+  
+  if (response.statusCode == 200) {
+    return MobileAppConfig.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load mobile configuration');
+  }
+}
+
+// Usage in app initialization
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  MobileAppConfig? config;
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConfig();
+  }
+
+  Future<void> _loadConfig() async {
+    try {
+      final appConfig = await getMobileConfig();
+      setState(() {
+        config = appConfig;
+        loading = false;
+      });
+      
+      // Check if force update is required
+      if (appConfig.forceUpdate) {
+        _showForceUpdateDialog(appConfig.updateMessage);
+      }
+    } catch (e) {
+      print('Failed to load config: $e');
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  void _showForceUpdateDialog(String? message) {
+    // Show dialog forcing user to update
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    // Use config.mobileHeroVideoUrl for background video
+    return MaterialApp(/* ... */);
+  }
+}
+```
+
+**Use Cases**:
+1. **Dynamic Background Assets**: Change app background videos/images without releasing app updates
+2. **Version Management**: Check if user needs to update the app
+3. **Force Updates**: Require users to update for critical bug fixes or security patches
+4. **A/B Testing**: Serve different background assets to different users
+
+**Notes**:
+- Asset URLs are relative paths that need to be appended to your base URL (e.g., `https://odadee.net/assets/...`)
+- For production apps, consider caching the configuration locally and refreshing periodically
+- Check `forceUpdate` flag on app startup to ensure users are running compatible versions
+- Background assets can be changed by super admins through the web dashboard (coming soon)
+
+---
+
+## Authentication
+
+### 1. Mobile Registration (JWT)
+
+**Endpoint**: `POST /auth/mobile/register`
+
+**Authentication**: None required (Public endpoint)
+
+**Description**: Creates a new user account and returns JWT tokens for immediate authentication. The user is automatically logged in after registration.
+
+**Request Headers**:
+```
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "email": "newuser@example.com",
+  "password": "SecurePassword123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "graduationYear": 2020,
+  "phoneNumber": "+233244123456",
+  "invitationToken": "optional-invitation-token",
+  "deviceInfo": {
+    "deviceId": "unique-device-id-here",
+    "deviceName": "John's iPhone",
+    "deviceType": "iOS",
+    "deviceModel": "iPhone 14 Pro",
+    "osName": "iOS",
+    "osVersion": "17.2",
+    "appVersion": "1.0.0",
+    "pushNotificationToken": "fcm-token-optional"
+  }
+}
+```
+
+**Required Fields**:
+- `email` (string): User's email address
+- `password` (string): Password (minimum 6 characters)
+- `firstName` (string): User's first name
+- `lastName` (string): User's last name
+- `graduationYear` (integer): Year of graduation from PRESEC
+
+**Optional Fields**:
+- `phoneNumber` (string): User's phone number
+- `invitationToken` (string): Invitation token if registering via year group invitation
+- `deviceInfo` (object): Device information for session tracking
+
+**Response (201 Created)**:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "newuser@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "member",
+    "graduationYear": 2020,
+    "phoneNumber": "+233244123456",
+    "isActive": true,
+    "emailVerified": false,
+    "createdAt": "2025-12-19T11:37:36.835Z"
+  }
+}
+```
+
+**Error Responses**:
+
+- **400 Bad Request** (User exists):
+```json
+{
+  "message": "User with this email already exists"
+}
+```
+
+- **400 Bad Request** (Validation error):
+```json
+{
+  "message": "Invalid registration data",
+  "errors": [...]
+}
+```
+
+**Flutter Example**:
+```dart
+Future<Map<String, dynamic>> register({
+  required String email,
+  required String password,
+  required String firstName,
+  required String lastName,
+  required int graduationYear,
+  String? phoneNumber,
+  String? invitationToken,
+}) async {
+  final deviceInfo = await _getDeviceInfo();
+  
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/auth/mobile/register'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'email': email,
+      'password': password,
+      'firstName': firstName,
+      'lastName': lastName,
+      'graduationYear': graduationYear,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
+      if (invitationToken != null) 'invitationToken': invitationToken,
+      'deviceInfo': deviceInfo,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    final data = jsonDecode(response.body);
+    await _storeTokens(data['accessToken'], data['refreshToken']);
+    await _storeUser(data['user']);
+    return data;
+  } else {
+    final error = jsonDecode(response.body);
+    throw Exception(error['message'] ?? 'Registration failed');
+  }
+}
+```
+
+---
+
+### 2. Mobile Login (JWT)
+
+**Endpoint**: `POST /auth/mobile/login`
+
+**Request Headers**:
+```
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "deviceInfo": {
+    "deviceId": "unique-device-id-here",
+    "deviceName": "John's iPhone",
+    "deviceType": "iOS",
+    "deviceModel": "iPhone 14 Pro",
+    "osName": "iOS",
+    "osVersion": "17.2",
+    "appVersion": "1.0.0",
+    "pushNotificationToken": "fcm-token-optional"
+  }
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "member",
+    "phoneNumber": "+233244123456",
+    "graduationYear": 2010,
+    "profession": "Software Engineer",
+    "company": "Tech Corp",
+    "currentRole": "Senior Developer",
+    "location": "Accra, Ghana",
+    "bio": "PRESEC alumnus passionate about technology",
+    "skills": ["Python", "JavaScript", "Flutter"],
+    "profileImage": "uploads/profile.jpg",
+    "coverImage": null,
+    "linkedinUrl": "https://linkedin.com/in/johndoe",
+    "twitterUrl": null,
+    "facebookUrl": null,
+    "websiteUrl": "https://johndoe.dev",
+    "openToMentor": true,
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "lastLoginAt": "2025-11-09T10:30:00.000Z"
+  }
+}
+```
+
+**Error Response (401 Unauthorized)**:
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+**Token Lifespan**:
+- `accessToken`: Expires in **15 minutes**
+- `refreshToken`: Expires in **30 days**
+
+**Flutter Example**:
+```dart
+Future<Map<String, dynamic>> login(String email, String password) async {
+  final deviceInfo = await _getDeviceInfo();
+  
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/auth/mobile/login'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'email': email,
+      'password': password,
+      'deviceInfo': deviceInfo,
+    }),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    await _storeTokens(data['accessToken'], data['refreshToken']);
+    await _storeUser(data['user']);
+    return data;
+  } else {
+    final error = jsonDecode(response.body);
+    throw Exception(error['message'] ?? 'Login failed');
+  }
+}
+```
+
+---
+
+### 3. Refresh Access Token
+
+**Endpoint**: `POST /auth/mobile/refresh`
+
+**Request Body**:
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Error (401 Unauthorized)**:
+```json
+{
+  "message": "Refresh token not found or has been revoked"
+}
+```
+
+---
+
+### 4. Logout (Single Device)
+
+**Endpoint**: `POST /auth/mobile/logout`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+---
+
+### 5. Logout All Devices
+
+**Endpoint**: `POST /auth/mobile/logout-all`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Logged out from all devices successfully",
+  "devicesLoggedOut": 3
+}
+```
+
+---
+
+### 5. Convert Session to JWT (Magic Link Flow)
+
+**Endpoint**: `POST /auth/session-to-jwt`
+
+**Use Case**: Converts a web session cookie (created by magic link validation) into JWT tokens for mobile authentication.
+
+**When to Use**: After a user clicks a magic link in their email and the app validates the token, this endpoint exchanges the resulting session cookie for JWT tokens that mobile apps can use.
+
+**Request Headers**:
+```
+Cookie: connect.sid=<session-cookie>
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "deviceInfo": {
+    "deviceId": "unique-device-id-here",
+    "deviceName": "John's iPhone",
+    "deviceType": "iOS",
+    "deviceModel": "iPhone 14 Pro",
+    "osName": "iOS",
+    "osVersion": "17.2",
+    "appVersion": "1.0.0",
+    "pushNotificationToken": "fcm-token-optional"
+  }
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "member",
+    "phoneNumber": "+233244123456",
+    "graduationYear": 2010,
+    "isActive": true
+  }
+}
+```
+
+**Error Response (401 Unauthorized)**:
+```json
+{
+  "message": "User not found or inactive"
+}
+```
+
+**Complete Magic Link Flow**:
+
+1. **User requests magic link**:
+   ```dart
+   POST /api/auth/magic-link/request
+   Body: { "email": "user@example.com" }
+   ```
+
+2. **User clicks magic link in email**:
+   - App opens via deep link: `https://odadee.net/magic-link/validate/{token}`
+   - OR custom scheme: `presec://magic-link?token={token}`
+
+3. **App validates magic link** (creates session):
+   ```dart
+   GET /api/auth/magic-link/validate/{token}
+   Response: { "user": {...}, "message": "..." }
+   ```
+
+4. **App converts session to JWT** (THIS ENDPOINT):
+   ```dart
+   POST /api/auth/session-to-jwt
+   Body: { "deviceInfo": {...} }
+   Response: { "accessToken": "...", "refreshToken": "...", "user": {...} }
+   ```
+
+5. **App stores JWT tokens** and user is authenticated!
+
+**⚠️ Critical Requirements**:
+1. Session cookie from magic link validation MUST be forwarded to session-to-jwt endpoint
+2. Use `Dio` with `CookieManager` for cookie persistence
+3. Use `flutter_secure_storage` for token storage (NOT SharedPreferences!)
+4. Initialize Dio asynchronously using factory constructor
+5. Include device info using `device_info_plus` package
+
+**Flutter Minimal Working Example**:
+
+```dart
+// pubspec.yaml dependencies:
+// dio: ^5.4.0
+// dio_cookie_manager: ^3.1.1
+// cookie_jar: ^4.0.8
+// flutter_secure_storage: ^9.0.0
+// device_info_plus: ^9.1.0
+
+import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+
+// Minimal ApiService with cookie persistence
+class ApiService {
+  late final Dio _dio;
+  bool _initialized = false;
+  
+  static Future<ApiService> create() async {
+    final service = ApiService._();
+    await service._init();
+    return service;
+  }
+  
+  ApiService._();
+  
+  Future<void> _init() async {
+    if (_initialized) return;
+    _dio = Dio(BaseOptions(baseUrl: 'https://odadee.net/api'));
+    _dio.interceptors.add(CookieManager(CookieJar())); // CRITICAL for session cookie!
+    _initialized = true;
+  }
+  
+  // Request magic link
+  Future<void> requestMagicLink(String email) async {
+    await _dio.post('/auth/magic-link/request', data: {'email': email});
+  }
+  
+  // Validate magic link + convert to JWT
+  Future<Map<String, dynamic>> convertMagicLinkToJWT(String token) async {
+    // Step 1: Validate (creates session cookie)
+    await _dio.get('/auth/magic-link/validate/$token');
+    
+    // Step 2: Convert session to JWT (cookie automatically sent!)
+    final deviceInfo = await _getDeviceInfo();
+    final response = await _dio.post('/auth/session-to-jwt', data: {'deviceInfo': deviceInfo});
+    return response.data;
+  }
+  
+  // Get device info
+  Future<Map<String, dynamic>> _getDeviceInfo() async {
+    final plugin = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final info = await plugin.androidInfo;
+      return {
+        'deviceId': info.id,
+        'deviceName': info.model,
+        'deviceType': 'mobile',
+        'osName': 'Android',
+        'osVersion': info.version.release,
+      };
+    } else if (Platform.isIOS) {
+      final info = await plugin.iosInfo;
+      return {
+        'deviceId': info.identifierForVendor ?? 'unknown',
+        'deviceName': info.name,
+        'deviceType': 'mobile',
+        'osName': 'iOS',
+        'osVersion': info.systemVersion,
+      };
+    }
+    return {'deviceId': 'unknown', 'deviceName': 'Unknown', 'deviceType': 'mobile'};
+  }
+}
+
+// Complete self-contained example
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final apiService = await ApiService.create();
+  final storage = const FlutterSecureStorage();
+  
+  try {
+    // Step 1: Request magic link
+    await apiService.requestMagicLink('user@example.com');
+    print('✅ Magic link sent to email');
+    
+    // Step 2: User clicks link in email, app receives deep link
+    // Extract token from deep link URL: https://odadee.net/magic-link/validate/ABC123
+    final token = 'ABC123'; // Extract this from deep link in production
+    
+    // Step 3: Validate magic link + convert to JWT (automatic cookie handling!)
+    final jwtData = await apiService.convertMagicLinkToJWT(token);
+    print('✅ JWT tokens received');
+    
+    // Step 4: Store tokens securely (encrypted, not accessible to other apps)
+    await storage.write(key: 'access_token', value: jwtData['accessToken']);
+    await storage.write(key: 'refresh_token', value: jwtData['refreshToken']);
+    await storage.write(key: 'user', value: jsonEncode(jwtData['user']));
+    print('✅ Tokens stored securely');
+    
+    // Step 5: User is now authenticated!
+    final user = jwtData['user'];
+    print('✅ Logged in as: ${user['email']}');
+    
+    // Subsequent authenticated API calls:
+    final accessToken = await storage.read(key: 'access_token');
+    final response = await Dio().get(
+      'https://odadee.net/api/users/me',
+      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
+    );
+    
+  } catch (e) {
+    print('❌ Authentication failed: $e');
+    // Handle error (show error message to user)
+  }
+}
+```
+
+**For Complete Production Implementation**:
+
+See [Flutter Magic Link Implementation Guide](FLUTTER_MAGIC_LINK_GUIDE.md) for:
+- Deep linking setup (to handle magic link clicks)
+- Full AuthService orchestration
+- TokenManager for secure storage
+- Error handling and logging
+- Android/iOS configuration
+- Verification and troubleshooting
+
+---
+
+### 6. Register New Account
+
+**Endpoint**: `POST /auth/register`
+
+**Request Body**:
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!",
+  "phoneNumber": "+233244123456",
+  "graduationYear": 2010
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "member",
+    "graduationYear": 2010,
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+**Note**: This endpoint creates a session cookie for web browsers. Mobile apps may register here, then immediately call [Mobile Login](#1-mobile-login-jwt) to obtain JWT tokens.
+
+---
+
+### 6. Magic Link Login (Passwordless) - Web Only
+
+**⚠️ Note**: Magic links use **session-based authentication** and are designed for **web browsers only**. Mobile apps should use the standard [Mobile Login (JWT)](#1-mobile-login-jwt) flow instead.
+
+#### 6.1 Request Magic Link
+
+**Endpoint**: `POST /auth/magic-link/request`
+
+**Request Body**:
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "If an account exists with this email, a magic link has been sent."
+}
+```
+
+#### 6.2 Validate Magic Link (Web Only)
+
+**Endpoint**: `GET /auth/magic-link/validate/:token`
+
+**Response (200 OK)** - Creates session cookie and returns user:
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "member",
+    /* Full user object without password */
+  }
+}
+```
+
+**Note**: This endpoint creates a session cookie (`connect.sid`) for web authentication. **It does not return JWT tokens**. Mobile apps cannot use magic links and should use the [Mobile Login](#1-mobile-login-jwt) endpoint instead.
+
+---
+
+### 7. Password Reset
+
+#### 7.1 Request Password Reset
+
+**Endpoint**: `POST /auth/forgot-password`
+
+**Request Body**:
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "If an account exists with this email, a password reset link has been sent."
+}
+```
+
+#### 7.2 Validate Reset Token
+
+**Endpoint**: `GET /auth/validate-reset-token/:token`
+
+**Response (200 OK)**:
+```json
+{
+  "valid": true,
+  "message": "Reset link is valid"
+}
+```
+
+**Error (400 Bad Request)** if token is expired/used:
+```json
+{
+  "message": "This reset link has expired",
+  "valid": false
+}
+```
+
+#### 7.3 Reset Password
+
+**Endpoint**: `POST /auth/reset-password`
+
+**Request Body**:
+```json
+{
+  "token": "reset-token-from-email",
+  "newPassword": "NewSecurePassword123!"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Password has been reset successfully"
+}
+```
+
+---
+
+### 8. Get Current User (Mobile)
+
+**For Mobile Apps**: Use `GET /users/:id` with your JWT token to fetch current user data. The user ID is returned from the login response.
+
+**Endpoint**: `GET /users/:userId`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "role": "member",
+    "phoneNumber": "+233244123456",
+    "graduationYear": 2010,
+    "profession": "Software Engineer",
+    "company": "Tech Corp",
+    "currentRole": "Senior Developer",
+    "location": "Accra, Ghana",
+    "bio": "PRESEC alumnus passionate about technology",
+    "skills": ["Python", "JavaScript", "Flutter"],
+    "profileImage": "uploads/profile.jpg",
+    "coverImage": null,
+    "linkedinUrl": "https://linkedin.com/in/johndoe",
+    "twitterUrl": null,
+    "facebookUrl": null,
+    "websiteUrl": "https://johndoe.dev",
+    "openToMentor": true,
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "lastLoginAt": "2025-11-09T10:30:00.000Z"
+  }
+}
+```
+
+**Note**: The `/api/auth/me` endpoint is web-only (session-based). Mobile apps should use `/api/users/:userId` with JWT authentication instead.
+
+---
+
+## User Management
+
+### 1. Get User Profile
+
+**Endpoint**: `GET /users/:userId/profile`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phoneNumber": "+233244123456",
+    "profession": "Software Engineer",
+    "company": "Tech Corp",
+    "currentRole": "Senior Developer",
+    "location": "Accra, Ghana",
+    "bio": "PRESEC alumnus passionate about technology",
+    "skills": ["Python", "JavaScript", "Flutter"],
+    "profileImage": "uploads/profile.jpg",
+    "coverImage": null,
+    "linkedinUrl": "https://linkedin.com/in/johndoe",
+    "openToMentor": true,
+    "graduationYear": 2010
+  },
+  "workExperience": [
+    {
+      "id": "work-exp-1",
+      "userId": "550e8400-e29b-41d4-a716-446655440000",
+      "company": "Tech Corp",
+      "position": "Senior Developer",
+      "startDate": "2020-01-01",
+      "endDate": null,
+      "isCurrent": true,
+      "description": "Leading mobile development team"
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "userId": "550e8400-e29b-41d4-a716-446655440000",
+      "institution": "PRESEC Legon",
+      "degree": "WASSCE",
+      "fieldOfStudy": "General Science",
+      "startYear": 2007,
+      "endYear": 2010
+    }
+  ]
+}
+```
+
+---
+
+### 2. Update User Profile
+
+**Endpoint**: `PATCH /users/:userId/profile`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body** (all fields optional):
+```json
+{
+  "bio": "Updated bio",
+  "currentRole": "Lead Developer",
+  "company": "New Tech Corp",
+  "location": "Kumasi, Ghana",
+  "profession": "Full Stack Developer",
+  "skills": ["Python", "JavaScript", "Flutter", "React"],
+  "linkedinUrl": "https://linkedin.com/in/johndoe",
+  "twitterUrl": "https://twitter.com/johndoe",
+  "facebookUrl": null,
+  "websiteUrl": "https://johndoe.dev",
+  "openToMentor": true,
+  "phoneNumber": "+233244123456",
+  "profileImage": "uploads/new-profile.jpg",
+  "coverImage": "uploads/cover.jpg"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "user": {
+    /* Updated user object */
+  }
+}
+```
+
+---
+
+### 3. Search Users
+
+**Endpoint**: `GET /users/search?q={query}`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Query Parameters**:
+- `q` (required): Search query (name, profession, location, skills)
+
+**Response (200 OK)**:
+```json
+{
+  "users": [
+    {
+      "id": "user-1",
+      "firstName": "John",
+      "lastName": "Doe",
+      "profession": "Software Engineer",
+      "location": "Accra, Ghana",
+      "profileImage": "uploads/profile.jpg",
+      "graduationYear": 2010
+    }
+  ]
+}
+```
+
+---
+
+### 4. Add Work Experience
+
+**Endpoint**: `POST /users/:userId/work-experience`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body**:
+```json
+{
+  "company": "Tech Corp",
+  "position": "Senior Developer",
+  "startDate": "2020-01-01",
+  "endDate": null,
+  "isCurrent": true,
+  "description": "Leading mobile development team"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "workExperience": {
+    "id": "work-exp-1",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "company": "Tech Corp",
+    "position": "Senior Developer",
+    "startDate": "2020-01-01",
+    "endDate": null,
+    "isCurrent": true,
+    "description": "Leading mobile development team",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 5. Update Work Experience
+
+**Endpoint**: `PATCH /work-experience/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body** (all fields optional):
+```json
+{
+  "position": "Lead Developer",
+  "isCurrent": false,
+  "endDate": "2023-12-31"
+}
+```
+
+---
+
+### 6. Delete Work Experience
+
+**Endpoint**: `DELETE /work-experience/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Work experience deleted successfully"
+}
+```
+
+---
+
+### 7. Add Education
+
+**Endpoint**: `POST /users/:userId/education`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body**:
+```json
+{
+  "institution": "University of Ghana",
+  "degree": "BSc Computer Science",
+  "fieldOfStudy": "Computer Science",
+  "startYear": 2010,
+  "endYear": 2014,
+  "grade": "First Class Honours"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "education": {
+    "id": "edu-1",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "institution": "University of Ghana",
+    "degree": "BSc Computer Science",
+    "fieldOfStudy": "Computer Science",
+    "startYear": 2010,
+    "endYear": 2014,
+    "grade": "First Class Honours",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 8. Update Education
+
+**Endpoint**: `PATCH /education/:id`
+
+---
+
+### 9. Delete Education
+
+**Endpoint**: `DELETE /education/:id`
+
+---
+
+### 10. Privacy Settings
+
+#### Get Privacy Settings
+
+**Endpoint**: `GET /users/:userId/privacy-settings`
+
+**Response (200 OK)**:
+```json
+{
+  "privacySettings": {
+    "id": "privacy-1",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "profileVisibility": "alumni_only",
+    "emailVisibility": "private",
+    "phoneVisibility": "alumni_only",
+    "locationVisibility": "alumni_only",
+    "workVisibility": "alumni_only",
+    "educationVisibility": "alumni_only",
+    "skillsVisibility": "public",
+    "socialLinksVisibility": "public",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+**Visibility Levels**: `"public"`, `"alumni_only"`, `"private"`
+
+#### Update Privacy Settings
+
+**Endpoint**: `PATCH /users/:userId/privacy-settings`
+
+**Request Body** (all fields optional):
+```json
+{
+  "profileVisibility": "public",
+  "emailVisibility": "private",
+  "phoneVisibility": "alumni_only",
+  "locationVisibility": "alumni_only",
+  "workVisibility": "public",
+  "educationVisibility": "alumni_only",
+  "skillsVisibility": "public",
+  "socialLinksVisibility": "public"
+}
+```
+
+---
+
+## Year Groups
+
+### 1. Get Public Year Groups (No Auth Required)
+
+**Endpoint**: `GET /public/year-groups`
+
+Use this endpoint for registration dropdowns - no authentication required.
+
+**Response (200 OK)**:
+```json
+{
+  "yearGroups": [
+    {
+      "id": "241b8398-8c7e-4998-841d-be49973c1fdf",
+      "year": 2025,
+      "name": "Class of 2025"
+    },
+    {
+      "id": "4fe29af9-2f7b-4a2e-876a-aa1f4b026ac2",
+      "year": 2024,
+      "name": "Class of 2024"
+    }
+  ]
+}
+```
+
+**Flutter Example**:
+```dart
+Future<List<YearGroup>> fetchPublicYearGroups() async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/public/year-groups'),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['yearGroups'] as List)
+        .map((yg) => YearGroup.fromJson(yg))
+        .toList();
+  }
+  throw Exception('Failed to load year groups');
+}
+
+class YearGroup {
+  final String id;
+  final int year;
+  final String name;
+  
+  YearGroup({required this.id, required this.year, required this.name});
+  
+  factory YearGroup.fromJson(Map<String, dynamic> json) {
+    return YearGroup(
+      id: json['id'],
+      year: json['year'],
+      name: json['name'],
+    );
+  }
+}
+```
+
+---
+
+### 2. Get All Year Groups (Authenticated)
+
+**Endpoint**: `GET /year-groups`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "yearGroups": [
+    {
+      "id": "yg-1",
+      "name": "Class of 2010",
+      "year": 2010,
+      "description": "PRESEC Class of 2010",
+      "memberCount": 45,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 3. Get Year Group Details
+
+**Endpoint**: `GET /year-groups/:id`
+
+**Response (200 OK)**:
+```json
+{
+  "yearGroup": {
+    "id": "yg-1",
+    "name": "Class of 2010",
+    "year": 2010,
+    "description": "PRESEC Class of 2010",
+    "memberCount": 45,
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 3. Join Year Group
+
+**Endpoint**: `POST /year-groups/:id/join`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (201 Created)**:
+```json
+{
+  "membership": {
+    "id": "membership-1",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "yearGroupId": "yg-1",
+    "verificationStatus": "pending",
+    "isAdmin": false,
+    "joinedAt": "2025-11-09T10:00:00.000Z"
+  },
+  "message": "Join request sent. Awaiting admin verification."
+}
+```
+
+**Verification Status**:
+- `pending`: Awaiting year group admin approval
+- `verified`: Approved and active member
+- `rejected`: Request denied
+
+---
+
+### 4. Get Year Group Members
+
+**Endpoint**: `GET /year-groups/:yearGroupId/members`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "members": [
+    {
+      "id": "membership-1",
+      "userId": "user-1",
+      "yearGroupId": "yg-1",
+      "isAdmin": false,
+      "verificationStatus": "verified",
+      "joinedAt": "2025-01-01T00:00:00.000Z",
+      "user": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@example.com",
+        "phoneNumber": "+233244123456",
+        "role": "member",
+        "profession": "Software Engineer",
+        "location": "Accra, Ghana",
+        "skills": ["Python", "JavaScript"],
+        "profileImage": "uploads/profile.jpg"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 5. Get Pending Members (Year Group Admin)
+
+**Endpoint**: `GET /year-groups/:yearGroupId/pending-members`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Year Group Admin
+
+**Response (200 OK)**:
+```json
+{
+  "members": [
+    {
+      "id": "membership-2",
+      "userId": "user-2",
+      "yearGroupId": "yg-1",
+      "isAdmin": false,
+      "verificationStatus": "pending",
+      "joinedAt": "2025-11-08T15:00:00.000Z",
+      "user": {
+        "id": "user-2",
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "email": "jane.smith@example.com",
+        "phoneNumber": "+233244789012",
+        "profileImage": "uploads/jane.jpg",
+        "graduationYear": 2010,
+        "profession": "Doctor",
+        "role": "member"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 6. Verify Member (Year Group Admin)
+
+**Endpoint**: `PATCH /year-groups/:yearGroupId/members/:memberId/verify`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Year Group Admin
+
+**Request Body**:
+```json
+{
+  "verificationStatus": "verified"
+}
+```
+
+**Allowed values**: `"pending"`, `"verified"`, `"rejected"`
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Verification status updated successfully"
+}
+```
+
+---
+
+### 7. Update Member Admin Status (Year Group Admin)
+
+**Endpoint**: `PATCH /year-groups/:yearGroupId/members/:memberId`
+
+**Request Body**:
+```json
+{
+  "isAdmin": true
+}
+```
+
+---
+
+### 8. Remove Member (Year Group Admin)
+
+**Endpoint**: `DELETE /year-groups/:yearGroupId/members/:memberId`
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Member removed successfully"
+}
+```
+
+---
+
+### 9. Get Year Group Metrics (Year Group Admin)
+
+**Endpoint**: `GET /year-groups/:yearGroupId/metrics`
+
+**Response (200 OK)**:
+```json
+{
+  "memberCount": 45,
+  "activeMembers": 42,
+  "totalDues": 5000,
+  "paidDues": 3500,
+  "pendingDues": 1500,
+  "announcementCount": 12,
+  "recentActivity": 25
+}
+```
+
+---
+
+### 10. Get Year Group Announcements
+
+**Endpoint**: `GET /year-groups/:yearGroupId/announcements`
+
+**Response (200 OK)**:
+```json
+{
+  "announcements": [
+    {
+      "id": "ann-1",
+      "yearGroupId": "yg-1",
+      "title": "Annual Reunion 2025",
+      "content": "Save the date for our annual reunion...",
+      "type": "year_group",
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-11-01T00:00:00.000Z",
+      "comments": [
+        {
+          "id": "comment-1",
+          "announcementId": "ann-1",
+          "userId": "user-1",
+          "content": "Looking forward to it!",
+          "createdAt": "2025-11-02T10:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 11. Create Announcement (Year Group Admin)
+
+**Endpoint**: `POST /year-groups/:yearGroupId/announcements`
+
+**Request Body**:
+```json
+{
+  "title": "Annual Reunion 2025",
+  "content": "Save the date for our annual reunion on December 25, 2025!"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "announcement": {
+    "id": "ann-1",
+    "yearGroupId": "yg-1",
+    "title": "Annual Reunion 2025",
+    "content": "Save the date for our annual reunion on December 25, 2025!",
+    "type": "year_group",
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 12. Add Comment to Announcement
+
+**Endpoint**: `POST /announcements/:announcementId/comments`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be a verified member of the year group
+
+**Request Body**:
+```json
+{
+  "content": "Looking forward to it!"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "comment": {
+    "id": "comment-1",
+    "announcementId": "ann-1",
+    "userId": "user-1",
+    "content": "Looking forward to it!",
+    "createdAt": "2025-11-09T10:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 13. Delete Comment
+
+**Endpoint**: `DELETE /announcements/comments/:commentId`
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Comment deleted successfully"
+}
+```
+
+---
+
+## Dues Management
+
+### 1. Get Year Group Dues
+
+**Endpoint**: `GET /year-groups/:yearGroupId/dues`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "dues": [
+    {
+      "id": "dues-1",
+      "yearGroupId": "yg-1",
+      "title": "Annual Dues 2025",
+      "description": "Membership dues for 2025",
+      "amount": "100.00",
+      "type": "year_group",
+      "dueDate": "2025-12-31",
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "payments": [
+        {
+          "id": "payment-1",
+          "duesId": "dues-1",
+          "userId": "user-1",
+          "amount": "100.00",
+          "paymentMethod": "Mobile Money",
+          "transactionRef": "TXN123456",
+          "status": "successful",
+          "paidAt": "2025-02-15T10:00:00.000Z",
+          "createdAt": "2025-02-15T10:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 2. Create Dues (Year Group Admin)
+
+**Endpoint**: `POST /year-groups/:yearGroupId/dues`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Year Group Admin
+
+**Request Body**:
+```json
+{
+  "title": "Annual Dues 2025",
+  "description": "Membership dues for 2025",
+  "amount": "100.00",
+  "dueDate": "2025-12-31"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "dues": {
+    "id": "dues-1",
+    "yearGroupId": "yg-1",
+    "title": "Annual Dues 2025",
+    "description": "Membership dues for 2025",
+    "amount": "100.00",
+    "type": "year_group",
+    "dueDate": "2025-12-31",
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 3. Get All Dues (Super Admin)
+
+**Endpoint**: `GET /dues`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Response (200 OK)**:
+```json
+{
+  "dues": [
+    {
+      "id": "dues-1",
+      "yearGroupId": "yg-1",
+      "title": "Annual Dues 2025",
+      "description": "Membership dues for 2025",
+      "amount": "100.00",
+      "type": "year_group",
+      "dueDate": "2025-12-31",
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "creatorName": "Admin User",
+      "yearGroupName": "Class of 2010"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Get Dues Payments
+
+**Endpoint**: `GET /dues/:duesId/payments`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "payments": [
+    {
+      "id": "payment-1",
+      "duesId": "dues-1",
+      "userId": "user-1",
+      "amount": "100.00",
+      "paymentMethod": "Mobile Money",
+      "transactionRef": "TXN123456",
+      "status": "successful",
+      "paidAt": "2025-02-15T10:00:00.000Z",
+      "createdAt": "2025-02-15T10:00:00.000Z",
+      "user": {
+        "firstName": "John",
+        "lastName": "Doe"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 5. Get All Dues Payments (Super Admin)
+
+**Endpoint**: `GET /dues-payments`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+---
+
+### 6. Update Payment Status (Admin)
+
+**Endpoint**: `PATCH /dues/payments/:paymentId`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin or Year Group Admin
+
+**Request Body**:
+```json
+{
+  "status": "successful"
+}
+```
+
+**Allowed values**: `"pending"`, `"successful"`, `"failed"`
+
+**Response (200 OK)**:
+```json
+{
+  "payment": {
+    "id": "payment-1",
+    "duesId": "dues-1",
+    "userId": "user-1",
+    "amount": "100.00",
+    "status": "successful",
+    "paidAt": "2025-02-15T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 7. Get Year Group Dues Collection Summary
+
+**Endpoint**: `GET /year-groups/:yearGroupId/dues-collection`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Authorization**: Any authenticated member can access this endpoint for transparency
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Response (200 OK)**:
+```json
+{
+  "yearGroupId": "yg-uuid-here",
+  "totalCollected": "15000.00",
+  "totalPending": "2500.00",
+  "paymentCount": 45,
+  "currency": "GHS",
+  "payments": [
+    {
+      "id": "payment-uuid",
+      "amount": "100.00",
+      "currency": "GHS",
+      "status": "successful",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "phoneNumber": "+233244123456",
+      "paidAt": "2025-11-15T10:00:00.000Z",
+      "createdAt": "2025-11-15T09:55:00.000Z"
+    }
+  ]
+}
+```
+
+**Error Responses**:
+- `401 Unauthorized`: Not authenticated
+- `500 Internal Server Error`: Server error
+
+---
+
+### Flutter Implementation for Dues Collection
+
+#### Data Models
+
+```dart
+import 'dart:convert';
+
+/// Dues Collection Summary Model
+class DuesCollectionSummary {
+  final String yearGroupId;
+  final double totalCollected;
+  final double totalPending;
+  final int paymentCount;
+  final String currency;
+  final List<DuesPayment> payments;
+
+  DuesCollectionSummary({
+    required this.yearGroupId,
+    required this.totalCollected,
+    required this.totalPending,
+    required this.paymentCount,
+    required this.currency,
+    required this.payments,
+  });
+
+  factory DuesCollectionSummary.fromJson(Map<String, dynamic> json) {
+    return DuesCollectionSummary(
+      yearGroupId: json['yearGroupId'],
+      totalCollected: double.parse(json['totalCollected'].toString()),
+      totalPending: double.parse(json['totalPending'].toString()),
+      paymentCount: json['paymentCount'],
+      currency: json['currency'],
+      payments: (json['payments'] as List)
+          .map((p) => DuesPayment.fromJson(p))
+          .toList(),
+    );
+  }
+
+  /// Get collection rate as percentage
+  double get collectionRate {
+    final total = totalCollected + totalPending;
+    if (total == 0) return 0;
+    return (totalCollected / total) * 100;
+  }
+
+  /// Get formatted total collected string
+  String get formattedTotalCollected => '$currency ${totalCollected.toStringAsFixed(2)}';
+  
+  /// Get formatted total pending string
+  String get formattedTotalPending => '$currency ${totalPending.toStringAsFixed(2)}';
+}
+
+/// Individual Dues Payment Model
+class DuesPayment {
+  final String id;
+  final double amount;
+  final String currency;
+  final String status;
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String? phoneNumber;
+  final DateTime? paidAt;
+  final DateTime createdAt;
+
+  DuesPayment({
+    required this.id,
+    required this.amount,
+    required this.currency,
+    required this.status,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    this.phoneNumber,
+    this.paidAt,
+    required this.createdAt,
+  });
+
+  factory DuesPayment.fromJson(Map<String, dynamic> json) {
+    return DuesPayment(
+      id: json['id'],
+      amount: double.parse(json['amount'].toString()),
+      currency: json['currency'],
+      status: json['status'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      email: json['email'],
+      phoneNumber: json['phoneNumber'],
+      paidAt: json['paidAt'] != null ? DateTime.parse(json['paidAt']) : null,
+      createdAt: DateTime.parse(json['createdAt']),
+    );
+  }
+
+  /// Get payer full name
+  String get fullName => '$firstName $lastName';
+
+  /// Get formatted amount string
+  String get formattedAmount => '$currency ${amount.toStringAsFixed(2)}';
+
+  /// Check if payment is successful
+  bool get isSuccessful => status == 'successful';
+
+  /// Check if payment is pending
+  bool get isPending => status == 'pending';
+}
+```
+
+#### Dues Collection Service
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class DuesCollectionService {
+  final String baseUrl;
+  final String accessToken;
+
+  DuesCollectionService({
+    required this.baseUrl,
+    required this.accessToken,
+  });
+
+  Map<String, String> get _headers => {
+    'Authorization': 'Bearer $accessToken',
+    'Content-Type': 'application/json',
+  };
+
+  /// Fetch dues collection summary for a year group
+  /// Available to all authenticated members
+  Future<DuesCollectionSummary> getYearGroupDuesCollection(String yearGroupId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/year-groups/$yearGroupId/dues-collection'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return DuesCollectionSummary.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Authentication required. Please log in again.');
+    }
+    throw Exception('Failed to fetch dues collection: ${response.body}');
+  }
+
+  /// Get only successful payments
+  Future<List<DuesPayment>> getSuccessfulPayments(String yearGroupId) async {
+    final summary = await getYearGroupDuesCollection(yearGroupId);
+    return summary.payments.where((p) => p.isSuccessful).toList();
+  }
+
+  /// Get only pending payments
+  Future<List<DuesPayment>> getPendingPayments(String yearGroupId) async {
+    final summary = await getYearGroupDuesCollection(yearGroupId);
+    return summary.payments.where((p) => p.isPending).toList();
+  }
+
+  /// Calculate collection statistics
+  Future<Map<String, dynamic>> getCollectionStats(String yearGroupId) async {
+    final summary = await getYearGroupDuesCollection(yearGroupId);
+    return {
+      'totalCollected': summary.totalCollected,
+      'totalPending': summary.totalPending,
+      'totalAmount': summary.totalCollected + summary.totalPending,
+      'paymentCount': summary.paymentCount,
+      'collectionRate': summary.collectionRate,
+      'currency': summary.currency,
+    };
+  }
+}
+```
+
+#### Usage Examples
+
+```dart
+// Initialize the service
+final duesService = DuesCollectionService(
+  baseUrl: 'https://odadee.net/api',
+  accessToken: yourJwtAccessToken,
+);
+
+// Example 1: Fetch complete dues collection summary
+Future<void> fetchDuesCollection() async {
+  try {
+    final collection = await duesService.getYearGroupDuesCollection('your-year-group-id');
+    
+    print('Year Group: ${collection.yearGroupId}');
+    print('Total Collected: ${collection.formattedTotalCollected}');
+    print('Total Pending: ${collection.formattedTotalPending}');
+    print('Payment Count: ${collection.paymentCount}');
+    print('Collection Rate: ${collection.collectionRate.toStringAsFixed(1)}%');
+    
+    // List all payments
+    for (final payment in collection.payments) {
+      print('${payment.fullName}: ${payment.formattedAmount} (${payment.status})');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
+// Example 2: Display collection stats in a dashboard
+Future<Widget> buildDuesCollectionDashboard(String yearGroupId) async {
+  final collection = await duesService.getYearGroupDuesCollection(yearGroupId);
+  
+  return Column(
+    children: [
+      // Summary Cards
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildStatCard(
+            title: 'Total Collected',
+            value: collection.formattedTotalCollected,
+            color: Colors.green,
+          ),
+          _buildStatCard(
+            title: 'Pending',
+            value: collection.formattedTotalPending,
+            color: Colors.orange,
+          ),
+          _buildStatCard(
+            title: 'Payments',
+            value: '${collection.paymentCount}',
+            color: Colors.blue,
+          ),
+        ],
+      ),
+      
+      // Collection Progress Bar
+      LinearProgressIndicator(
+        value: collection.collectionRate / 100,
+        backgroundColor: Colors.grey[200],
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+      ),
+      Text('${collection.collectionRate.toStringAsFixed(1)}% Collected'),
+      
+      // Payment List
+      Expanded(
+        child: ListView.builder(
+          itemCount: collection.payments.length,
+          itemBuilder: (context, index) {
+            final payment = collection.payments[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundColor: payment.isSuccessful ? Colors.green : Colors.orange,
+                child: Icon(
+                  payment.isSuccessful ? Icons.check : Icons.pending,
+                  color: Colors.white,
+                ),
+              ),
+              title: Text(payment.fullName),
+              subtitle: Text(payment.email),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    payment.formattedAmount,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: payment.isSuccessful ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                  Text(
+                    payment.status.toUpperCase(),
+                    style: TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _buildStatCard({
+  required String title,
+  required String value,
+  required Color color,
+}) {
+  return Card(
+    child: Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(title, style: TextStyle(fontSize: 12, color: Colors.grey)),
+          SizedBox(height: 4),
+          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
+    ),
+  );
+}
+
+// Example 3: Filter and search payments
+Future<List<DuesPayment>> searchPayments(String yearGroupId, String query) async {
+  final collection = await duesService.getYearGroupDuesCollection(yearGroupId);
+  
+  return collection.payments.where((payment) {
+    final searchLower = query.toLowerCase();
+    return payment.fullName.toLowerCase().contains(searchLower) ||
+           payment.email.toLowerCase().contains(searchLower) ||
+           (payment.phoneNumber?.contains(query) ?? false);
+  }).toList();
+}
+
+// Example 4: Export data for reporting
+Future<Map<String, dynamic>> exportDuesReport(String yearGroupId) async {
+  final collection = await duesService.getYearGroupDuesCollection(yearGroupId);
+  
+  return {
+    'reportDate': DateTime.now().toIso8601String(),
+    'yearGroupId': collection.yearGroupId,
+    'summary': {
+      'totalCollected': collection.totalCollected,
+      'totalPending': collection.totalPending,
+      'paymentCount': collection.paymentCount,
+      'collectionRate': collection.collectionRate,
+      'currency': collection.currency,
+    },
+    'payments': collection.payments.map((p) => {
+      'name': p.fullName,
+      'email': p.email,
+      'phone': p.phoneNumber,
+      'amount': p.amount,
+      'status': p.status,
+      'date': p.paidAt?.toIso8601String() ?? p.createdAt.toIso8601String(),
+    }).toList(),
+  };
+}
+```
+
+#### Provider Pattern (for State Management)
+
+```dart
+import 'package:flutter/material.dart';
+
+class DuesCollectionProvider extends ChangeNotifier {
+  final DuesCollectionService _service;
+  
+  DuesCollectionSummary? _collection;
+  bool _isLoading = false;
+  String? _error;
+
+  DuesCollectionProvider(this._service);
+
+  DuesCollectionSummary? get collection => _collection;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  Future<void> loadDuesCollection(String yearGroupId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _collection = await _service.getYearGroupDuesCollection(yearGroupId);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void clear() {
+    _collection = null;
+    _error = null;
+    notifyListeners();
+  }
+}
+```
+
+#### Important Notes
+
+1. **Authorization**: This endpoint is available to all authenticated members for transparency. Any logged-in user can view the dues collection summary for their year group.
+
+2. **Currency Handling**: All amounts are returned as strings to preserve decimal precision. The Flutter models convert them to doubles for calculations.
+
+3. **Payment Status**: Payments can be `successful`, `pending`, or `failed`. Only `successful` payments count toward `totalCollected`.
+
+4. **Calculated Fields**:
+   - `totalCollected`: Sum of all successful payment amounts
+   - `totalPending`: Sum of all pending payment amounts
+   - `paymentCount`: Number of successful payments only
+   - `collectionRate`: Calculated as `(totalCollected / (totalCollected + totalPending)) * 100`
+
+5. **Error Handling**: Always wrap API calls in try-catch blocks to handle network errors and authentication issues gracefully.
+
+---
+
+## Invitations
+
+### 1. Get Invitation Details (Public)
+
+**Endpoint**: `GET /invitations/:token/details`
+
+**No authentication required**
+
+**Response (200 OK)**:
+```json
+{
+  "invitation": {
+    "id": "inv-1",
+    "yearGroupId": "yg-1",
+    "email": "newmember@example.com",
+    "firstName": "New",
+    "lastName": "Member",
+    "role": "member",
+    "status": "pending",
+    "sentBy": "admin-user-id",
+    "expiresAt": "2025-12-31T23:59:59.000Z",
+    "createdAt": "2025-11-01T00:00:00.000Z"
+  },
+  "yearGroup": {
+    "id": "yg-1",
+    "name": "Class of 2010",
+    "year": 2010
+  },
+  "sender": {
+    "firstName": "Admin",
+    "lastName": "User"
+  }
+}
+```
+
+---
+
+### 2. Accept Invitation (Public)
+
+**Endpoint**: `POST /invitations/accept/:token`
+
+**No authentication required**
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Invitation accepted successfully",
+  "invitation": {
+    "id": "inv-1",
+    "status": "accepted",
+    "acceptedAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+**Error (400 Bad Request)** if already accepted:
+```json
+{
+  "message": "Invitation already accepted"
+}
+```
+
+**Error (400 Bad Request)** if expired:
+```json
+{
+  "message": "Invitation has expired"
+}
+```
+
+---
+
+## Projects
+
+### 1. Get All Projects
+
+**Endpoint**: `GET /projects`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "projects": [
+    {
+      "id": "proj-1",
+      "title": "New Library Construction",
+      "description": "Building a modern library facility",
+      "targetAmount": "50000.00",
+      "currentAmount": "25000.00",
+      "status": "active",
+      "priority": "high",
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-31",
+      "imageUrl": "uploads/library.jpg",
+      "yearGroupId": null,
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Single Project
+
+**Endpoint**: `GET /projects/:id`
+
+**Response (200 OK)**:
+```json
+{
+  "project": {
+    "id": "proj-1",
+    "title": "New Library Construction",
+    "description": "Building a modern library facility",
+    "targetAmount": "50000.00",
+    "currentAmount": "25000.00",
+    "status": "active",
+    "priority": "high",
+    "startDate": "2025-01-01",
+    "endDate": "2025-12-31",
+    "imageUrl": "uploads/library.jpg",
+    "yearGroupId": null,
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 3. Get Year Group Projects
+
+**Endpoint**: `GET /year-groups/:yearGroupId/projects`
+
+**Response (200 OK)**:
+```json
+{
+  "projects": [
+    {
+      "id": "proj-2",
+      "title": "Class of 2010 Scholarship Fund",
+      "description": "Supporting needy students",
+      "targetAmount": "10000.00",
+      "currentAmount": "5000.00",
+      "status": "active",
+      "yearGroupId": "yg-1",
+      "createdAt": "2025-03-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Create Year Group Project (Year Group Admin)
+
+**Endpoint**: `POST /year-groups/:yearGroupId/projects`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Year Group Admin
+
+**Request Body**:
+```json
+{
+  "title": "Class of 2010 Scholarship Fund",
+  "description": "Supporting needy students from our year group",
+  "targetAmount": "10000.00",
+  "status": "active",
+  "priority": "medium",
+  "startDate": "2025-03-01",
+  "endDate": "2025-12-31",
+  "imageUrl": "uploads/scholarship.jpg"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "project": {
+    "id": "proj-2",
+    "title": "Class of 2010 Scholarship Fund",
+    "description": "Supporting needy students from our year group",
+    "targetAmount": "10000.00",
+    "currentAmount": "0.00",
+    "status": "active",
+    "priority": "medium",
+    "yearGroupId": "yg-1",
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+**Note**: Creating a project automatically sends email notifications to all verified members of the year group.
+
+---
+
+### 5. Update Year Group Project (Year Group Admin)
+
+**Endpoint**: `PATCH /year-groups/:yearGroupId/projects/:id`
+
+**Request Body** (all fields optional):
+```json
+{
+  "title": "Updated Scholarship Fund",
+  "description": "Updated description",
+  "targetAmount": "15000.00",
+  "status": "active"
+}
+```
+
+---
+
+### 6. Delete Year Group Project (Year Group Admin)
+
+**Endpoint**: `DELETE /year-groups/:yearGroupId/projects/:id`
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Project deleted successfully"
+}
+```
+
+---
+
+### 7. Update Project (Super Admin)
+
+**Endpoint**: `PATCH /projects/:id`
+
+**Required**: Must be Super Admin
+
+---
+
+### 8. Delete Project (Super Admin)
+
+**Endpoint**: `DELETE /projects/:id`
+
+**Required**: Must be Super Admin
+
+---
+
+### 9. Get Project Updates
+
+**Endpoint**: `GET /projects/:projectId/updates`
+
+**Response (200 OK)**:
+```json
+{
+  "updates": [
+    {
+      "id": "update-1",
+      "projectId": "proj-1",
+      "title": "Construction Progress",
+      "content": "Foundation work completed, 30% progress",
+      "imageUrl": "uploads/progress.jpg",
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-06-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 10. Create Project Update (Super Admin)
+
+**Endpoint**: `POST /projects/:projectId/updates`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "title": "Construction Progress",
+  "content": "Foundation work completed, 30% progress",
+  "imageUrl": "uploads/progress.jpg"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "update": {
+    "id": "update-1",
+    "projectId": "proj-1",
+    "title": "Construction Progress",
+    "content": "Foundation work completed, 30% progress",
+    "imageUrl": "uploads/progress.jpg",
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 11. Get Project Payments
+
+**Endpoint**: `GET /projects/:projectId/payments`
+
+**Response (200 OK)**:
+```json
+{
+  "payments": [
+    {
+      "id": "payment-1",
+      "projectId": "proj-1",
+      "userId": "user-1",
+      "donorName": "John Doe",
+      "amount": "500.00",
+      "paymentMethod": "Mobile Money (PayAngel)",
+      "notes": null,
+      "recordedBy": "user-1",
+      "paidAt": "2025-02-15T10:00:00.000Z",
+      "createdAt": "2025-02-15T10:00:00.000Z",
+      "isOnlinePayment": true
+    },
+    {
+      "id": "manual-payment-1",
+      "projectId": "proj-1",
+      "userId": null,
+      "donorName": "Anonymous Donor",
+      "amount": "1000.00",
+      "paymentMethod": "Bank Transfer",
+      "notes": "Corporate donation",
+      "recordedBy": "admin-user-id",
+      "paidAt": "2025-03-01T00:00:00.000Z",
+      "createdAt": "2025-03-01T00:00:00.000Z",
+      "isOnlinePayment": false
+    }
+  ]
+}
+```
+
+**Note**: Returns both manual payments (recorded by admins) and online payments via PayAngel.
+
+---
+
+### 12. Record Manual Payment (Super Admin)
+
+**Endpoint**: `POST /projects/:projectId/payments`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "donorName": "Anonymous Donor",
+  "amount": "1000.00",
+  "paymentMethod": "Bank Transfer",
+  "notes": "Corporate donation",
+  "paidAt": "2025-03-01T00:00:00.000Z"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "payment": {
+    "id": "manual-payment-1",
+    "projectId": "proj-1",
+    "donorName": "Anonymous Donor",
+    "amount": "1000.00",
+    "paymentMethod": "Bank Transfer",
+    "notes": "Corporate donation",
+    "recordedBy": "admin-user-id",
+    "paidAt": "2025-03-01T00:00:00.000Z",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+## Contributions & Campaigns
+
+### 1. Get All Contributions
+
+**Endpoint**: `GET /contributions`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "contributions": [
+    {
+      "id": "contrib-1",
+      "title": "PRESEC 100th Anniversary Fund",
+      "description": "Celebrating 100 years of excellence",
+      "targetAmount": "100000.00",
+      "currentAmount": "45000.00",
+      "status": "active",
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-31",
+      "imageUrl": "uploads/anniversary.jpg",
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Alias**: `GET /campaigns` returns the same data
+
+---
+
+### 2. Get Single Contribution
+
+**Endpoint**: `GET /contributions/:id`
+
+**Response (200 OK)**:
+```json
+{
+  "contribution": {
+    "id": "contrib-1",
+    "title": "PRESEC 100th Anniversary Fund",
+    "description": "Celebrating 100 years of excellence",
+    "targetAmount": "100000.00",
+    "currentAmount": "45000.00",
+    "status": "active",
+    "startDate": "2025-01-01",
+    "endDate": "2025-12-31",
+    "imageUrl": "uploads/anniversary.jpg",
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Alias**: `GET /campaigns/:id`
+
+---
+
+### 3. Create Contribution (Super Admin)
+
+**Endpoint**: `POST /contributions`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "title": "PRESEC 100th Anniversary Fund",
+  "description": "Celebrating 100 years of excellence",
+  "targetAmount": "100000.00",
+  "status": "active",
+  "startDate": "2025-01-01",
+  "endDate": "2025-12-31",
+  "imageUrl": "uploads/anniversary.jpg"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "contribution": {
+    "id": "contrib-1",
+    "title": "PRESEC 100th Anniversary Fund",
+    "description": "Celebrating 100 years of excellence",
+    "targetAmount": "100000.00",
+    "currentAmount": "0.00",
+    "status": "active",
+    "startDate": "2025-01-01",
+    "endDate": "2025-12-31",
+    "imageUrl": "uploads/anniversary.jpg",
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+**Alias**: `POST /campaigns`
+
+---
+
+### 4. Update Contribution (Super Admin)
+
+**Endpoint**: `PATCH /contributions/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body** (all fields optional):
+```json
+{
+  "title": "Updated Title",
+  "targetAmount": "150000.00",
+  "status": "active"
+}
+```
+
+---
+
+### 5. Donate to Contribution
+
+**Endpoint**: `POST /contributions/:id/donate`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body**:
+```json
+{
+  "amount": "500.00",
+  "isAnonymous": false,
+  "message": "Proud to support PRESEC!",
+  "paymentMethod": "Mobile Money",
+  "transactionRef": "TXN789012",
+  "paidAt": "2025-11-09T10:00:00.000Z"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "donation": {
+    "id": "donation-1",
+    "contributionId": "contrib-1",
+    "userId": "user-1",
+    "amount": "500.00",
+    "isAnonymous": false,
+    "message": "Proud to support PRESEC!",
+    "paymentMethod": "Mobile Money",
+    "transactionRef": "TXN789012",
+    "status": "successful",
+    "paidAt": "2025-11-09T10:00:00.000Z",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 6. Get Contribution Donations
+
+**Endpoint**: `GET /contributions/:id/donations`
+
+**Response (200 OK)**:
+```json
+{
+  "donations": [
+    {
+      "id": "donation-1",
+      "contributionId": "contrib-1",
+      "userId": "user-1",
+      "amount": "500.00",
+      "isAnonymous": false,
+      "message": "Proud to support PRESEC!",
+      "paymentMethod": "Mobile Money",
+      "transactionRef": "TXN789012",
+      "status": "successful",
+      "paidAt": "2025-11-09T10:00:00.000Z",
+      "createdAt": "2025-11-09T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Events
+
+### 1. Get Public Upcoming Events (No Auth)
+
+**Endpoint**: `GET /public/events`
+
+**No authentication required**
+
+**Response (200 OK)**:
+```json
+{
+  "events": [
+    {
+      "id": "event-1",
+      "title": "PRESEC Alumni Homecoming 2025",
+      "description": "Annual homecoming event",
+      "type": "global",
+      "status": "upcoming",
+      "startDate": "2025-12-20T09:00:00.000Z",
+      "endDate": "2025-12-20T18:00:00.000Z",
+      "venue": "PRESEC Campus",
+      "location": "Legon, Accra",
+      "ticketPrice": "50.00",
+      "maxAttendees": 500,
+      "currentAttendees": 125,
+      "imageUrl": "uploads/homecoming.jpg",
+      "requiresRegistration": true,
+      "createdAt": "2025-10-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Note**: Returns up to 4 upcoming global events for landing page display.
+
+---
+
+### 2. Public Event Registration (No Auth)
+
+**Endpoint**: `POST /public/events/:id/register`
+
+**No authentication required**
+
+**Request Body**:
+```json
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "phone": "+233244123456",
+  "yearGroup": "2010"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "registration": {
+    "id": "reg-1",
+    "eventId": "event-1",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "+233244123456",
+    "yearGroup": "2010",
+    "userId": null,
+    "ticketsPurchased": 1,
+    "totalAmount": null,
+    "paymentStatus": "pending",
+    "transactionRef": null,
+    "checkedIn": false,
+    "checkedInAt": null,
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  },
+  "message": "Registration successful! You'll receive a reminder email before the event."
+}
+```
+
+**Note**: This endpoint creates a public registration, sends admin notification email, and creates a year group activity announcement.
+
+---
+
+### 3. Get All Events
+
+**Endpoint**: `GET /events`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "events": [
+    {
+      "id": "event-1",
+      "title": "PRESEC Alumni Homecoming 2025",
+      "description": "Annual homecoming event for all PRESEC alumni",
+      "type": "global",
+      "status": "upcoming",
+      "startDate": "2025-12-20T09:00:00.000Z",
+      "endDate": "2025-12-20T18:00:00.000Z",
+      "venue": "PRESEC Campus",
+      "location": "Legon, Accra",
+      "ticketPrice": "50.00",
+      "maxAttendees": 500,
+      "currentAttendees": 125,
+      "imageUrl": "uploads/homecoming.jpg",
+      "requiresRegistration": true,
+      "yearGroupId": null,
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-10-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Get Single Event
+
+**Endpoint**: `GET /events/:id`
+
+**Response (200 OK)**:
+```json
+{
+  "event": {
+    "id": "event-1",
+    "title": "PRESEC Alumni Homecoming 2025",
+    "description": "Annual homecoming event for all PRESEC alumni",
+    "type": "global",
+    "status": "upcoming",
+    "startDate": "2025-12-20T09:00:00.000Z",
+    "endDate": "2025-12-20T18:00:00.000Z",
+    "venue": "PRESEC Campus",
+    "location": "Legon, Accra",
+    "ticketPrice": "50.00",
+    "maxAttendees": 500,
+    "currentAttendees": 125,
+    "imageUrl": "uploads/homecoming.jpg",
+    "requiresRegistration": true,
+    "createdAt": "2025-10-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 5. Create Event (Super Admin)
+
+**Endpoint**: `POST /events`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "title": "PRESEC Alumni Homecoming 2025",
+  "description": "Annual homecoming event for all PRESEC alumni",
+  "type": "global",
+  "status": "upcoming",
+  "startDate": "2025-12-20T09:00:00.000Z",
+  "endDate": "2025-12-20T18:00:00.000Z",
+  "venue": "PRESEC Campus",
+  "location": "Legon, Accra",
+  "ticketPrice": "50.00",
+  "maxAttendees": 500,
+  "imageUrl": "uploads/homecoming.jpg",
+  "requiresRegistration": true
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "event": {
+    "id": "event-1",
+    "title": "PRESEC Alumni Homecoming 2025",
+    /* ... full event object ... */
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 6. Update Event (Super Admin)
+
+**Endpoint**: `PATCH /events/:id`
+
+**Required**: Must be Super Admin
+
+---
+
+### 7. Delete Event (Super Admin)
+
+**Endpoint**: `DELETE /events/:id`
+
+**Required**: Must be Super Admin
+
+---
+
+### 8. Register for Event (Authenticated)
+
+**Endpoint**: `POST /events/:id/register`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body**:
+```json
+{
+  "ticketsPurchased": 2,
+  "totalAmount": "100.00"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "registration": {
+    "id": "reg-2",
+    "eventId": "event-1",
+    "userId": "user-1",
+    "name": null,
+    "email": null,
+    "phone": null,
+    "yearGroup": null,
+    "ticketsPurchased": 2,
+    "totalAmount": "100.00",
+    "paymentStatus": "pending",
+    "transactionRef": null,
+    "checkedIn": false,
+    "checkedInAt": null,
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 9. Get Event Registrations (Super Admin)
+
+**Endpoint**: `GET /events/:id/registrations`
+
+**Required**: Must be Super Admin
+
+**Response (200 OK)**:
+```json
+{
+  "registrations": [
+    {
+      "id": "reg-1",
+      "eventId": "event-1",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "phone": "+233244123456",
+      "yearGroup": "2010",
+      "userId": null,
+      "ticketsPurchased": 1,
+      "paymentStatus": "pending",
+      "checkedIn": false,
+      "createdAt": "2025-11-05T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 10. Check-in Attendee (Super Admin)
+
+**Endpoint**: `POST /events/:eventId/registrations/:registrationId/checkin`
+
+**Required**: Must be Super Admin
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Attendee checked in successfully",
+  "registration": {
+    "id": "reg-1",
+    "checkedIn": true,
+    "checkedInAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+## Image Handling
+
+This section explains how to work with images in the PRESEC Alumni mobile app, including displaying images from API responses and uploading new images.
+
+### Image URL Formats
+
+The API returns images in two formats depending on the source:
+
+1. **Object Storage Images** (internal uploads): Relative paths like `uploads/uuid` or `uploads/profile.jpg`
+2. **External URLs**: Full URLs starting with `http://` or `https://`
+
+**Important**: All API responses now return **full image URLs** for mobile app compatibility. You'll receive URLs like:
+- `https://odadee.net/api/images/uploads/1ea04f3c-bcd3-4396-a1fd-1b4a8379b8b0`
+- `https://images.unsplash.com/photo-xyz` (external images)
+
+### Displaying Images
+
+#### Flutter Image Widget Helper
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+class ApiImage extends StatelessWidget {
+  final String? imageUrl;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final Widget? placeholder;
+  final Widget? errorWidget;
+
+  const ApiImage({
+    Key? key,
+    this.imageUrl,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.placeholder,
+    this.errorWidget,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl == null || imageUrl!.isEmpty) {
+      return errorWidget ?? _defaultErrorWidget();
+    }
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl!,
+      width: width,
+      height: height,
+      fit: fit,
+      placeholder: (context, url) => placeholder ?? _defaultPlaceholder(),
+      errorWidget: (context, url, error) => errorWidget ?? _defaultErrorWidget(),
+    );
+  }
+
+  Widget _defaultPlaceholder() {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.grey[200],
+      child: const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+
+  Widget _defaultErrorWidget() {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.grey[300],
+      child: const Icon(Icons.image_not_supported, color: Colors.grey),
+    );
+  }
+}
+```
+
+#### Usage Examples
+
+```dart
+// Display event banner
+ApiImage(
+  imageUrl: event.bannerUrl,  // Already full URL from API
+  width: double.infinity,
+  height: 200,
+  fit: BoxFit.cover,
+)
+
+// Display profile picture with circular avatar
+ClipOval(
+  child: ApiImage(
+    imageUrl: user.profileImage,
+    width: 80,
+    height: 80,
+    errorWidget: CircleAvatar(
+      radius: 40,
+      child: Text(user.firstName[0]),
+    ),
+  ),
+)
+
+// Display project image in a card
+Card(
+  child: Column(
+    children: [
+      ApiImage(
+        imageUrl: project.imageUrl,
+        height: 150,
+        width: double.infinity,
+      ),
+      Padding(
+        padding: EdgeInsets.all(16),
+        child: Text(project.title),
+      ),
+    ],
+  ),
+)
+```
+
+---
+
+### Image Serving Endpoint
+
+**Endpoint**: `GET /images/:path`
+
+**No authentication required** (public images only)
+
+**Description**: Serves public images from object storage. This endpoint handles all internally uploaded images.
+
+**Example Request**:
+```
+GET https://odadee.net/api/images/uploads/1ea04f3c-bcd3-4396-a1fd-1b4a8379b8b0
+```
+
+**Response**: Binary image data with appropriate `Content-Type` header (e.g., `image/png`, `image/jpeg`)
+
+**Response Headers**:
+```
+Content-Type: image/png
+Content-Length: 595416
+Cache-Control: public, max-age=3600
+Access-Control-Allow-Origin: *
+```
+
+**Error Responses**:
+- `404`: Image not found
+- `403`: Image is not public
+- `500`: Server error
+
+---
+
+### Uploading Images (Authenticated Users)
+
+Image uploads use a **two-step signed URL process** for security and efficiency:
+
+#### Step 1: Get Upload URL
+
+**Endpoint**: `POST /objects/upload-public`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "uploadURL": "https://storage.googleapis.com/bucket-name/public/uploads/uuid?X-Goog-Signature=...",
+  "publicURL": "https://storage.googleapis.com/bucket-name/public/uploads/uuid"
+}
+```
+
+#### Step 2: Upload File to Signed URL
+
+```dart
+// Upload the file directly to the signed URL
+final uploadResponse = await http.put(
+  Uri.parse(uploadURL),
+  body: fileBytes,
+  headers: {
+    'Content-Type': mimeType,  // e.g., 'image/jpeg', 'image/png'
+  },
+);
+
+if (uploadResponse.statusCode != 200) {
+  throw Exception('Upload failed');
+}
+```
+
+#### Step 3: Set Public ACL
+
+**Endpoint**: `POST /objects/set-public-acl`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "publicURL": "https://storage.googleapis.com/bucket-name/public/uploads/uuid"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "objectPath": "uploads/uuid"
+}
+```
+
+The `objectPath` is the relative path to use when saving to the database (e.g., when creating/updating events or projects).
+
+---
+
+### Complete Flutter Image Upload Service
+
+```dart
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
+import 'dart:convert';
+
+class ImageUploadService {
+  final String baseUrl = 'https://odadee.net/api';
+  final String accessToken;
+
+  ImageUploadService({required this.accessToken});
+
+  /// Pick and upload an image, returns the object path for database storage
+  Future<String?> pickAndUploadImage({
+    ImageSource source = ImageSource.gallery,
+    int maxWidth = 1200,
+    int maxHeight = 1200,
+    int quality = 85,
+  }) async {
+    try {
+      // 1. Pick image
+      final picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: maxWidth.toDouble(),
+        maxHeight: maxHeight.toDouble(),
+        imageQuality: quality,
+      );
+
+      if (pickedFile == null) return null;
+
+      // 2. Read file bytes
+      final Uint8List fileBytes = await pickedFile.readAsBytes();
+      final String? mimeType = lookupMimeType(pickedFile.path) ?? 'image/jpeg';
+
+      // 3. Upload and return path
+      return await uploadImage(fileBytes, mimeType);
+    } catch (e) {
+      print('Image pick/upload error: $e');
+      rethrow;
+    }
+  }
+
+  /// Upload image bytes and return the object path
+  Future<String> uploadImage(Uint8List fileBytes, String mimeType) async {
+    // Step 1: Get signed upload URL
+    final uploadUrlResponse = await http.post(
+      Uri.parse('$baseUrl/objects/upload-public'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (uploadUrlResponse.statusCode == 401) {
+      throw Exception('Authentication required. Please sign in again.');
+    }
+
+    if (uploadUrlResponse.statusCode != 200) {
+      throw Exception('Failed to get upload URL');
+    }
+
+    final uploadData = jsonDecode(uploadUrlResponse.body);
+    final String uploadURL = uploadData['uploadURL'];
+    final String publicURL = uploadData['publicURL'];
+
+    // Step 2: Upload file to signed URL
+    final uploadResponse = await http.put(
+      Uri.parse(uploadURL),
+      body: fileBytes,
+      headers: {
+        'Content-Type': mimeType,
+      },
+    );
+
+    if (uploadResponse.statusCode != 200) {
+      throw Exception('Failed to upload image');
+    }
+
+    // Step 3: Set public ACL
+    final aclResponse = await http.post(
+      Uri.parse('$baseUrl/objects/set-public-acl'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'publicURL': publicURL}),
+    );
+
+    if (aclResponse.statusCode == 401) {
+      throw Exception('Session expired. Please sign in again.');
+    }
+
+    if (aclResponse.statusCode != 200) {
+      throw Exception('Failed to set image permissions');
+    }
+
+    final aclData = jsonDecode(aclResponse.body);
+    return aclData['objectPath'];  // e.g., "uploads/uuid"
+  }
+
+  /// Get the full displayable URL for an image path
+  String getFullImageUrl(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return '';
+    }
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    return '$baseUrl/images/$imagePath';
+  }
+}
+```
+
+---
+
+### Usage: Upload Event Banner
+
+```dart
+class CreateEventScreen extends StatefulWidget {
+  @override
+  _CreateEventScreenState createState() => _CreateEventScreenState();
+}
+
+class _CreateEventScreenState extends State<CreateEventScreen> {
+  String? bannerPath;
+  Uint8List? bannerPreview;
+  bool isUploading = false;
+
+  Future<void> _pickBanner() async {
+    setState(() => isUploading = true);
+
+    try {
+      final service = ImageUploadService(accessToken: AuthService.accessToken!);
+      final path = await service.pickAndUploadImage(
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 90,
+      );
+
+      if (path != null) {
+        setState(() => bannerPath = path);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Banner uploaded successfully')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: $e')),
+      );
+    } finally {
+      setState(() => isUploading = false);
+    }
+  }
+
+  Future<void> _createEvent() async {
+    final response = await http.post(
+      Uri.parse('https://odadee.net/api/events'),
+      headers: {
+        'Authorization': 'Bearer ${AuthService.accessToken}',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'title': 'My Event',
+        'description': 'Event description',
+        'startDate': '2025-12-01T09:00:00.000Z',
+        'venue': 'PRESEC Campus',
+        'location': 'Legon, Accra',
+        'bannerUrl': bannerPath,  // Use the uploaded path
+        // ... other fields
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Create Event')),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Banner upload section
+            GestureDetector(
+              onTap: isUploading ? null : _pickBanner,
+              child: Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[400]!),
+                ),
+                child: isUploading
+                    ? Center(child: CircularProgressIndicator())
+                    : bannerPath != null
+                        ? ApiImage(
+                            imageUrl: ImageUploadService(
+                              accessToken: AuthService.accessToken!,
+                            ).getFullImageUrl(bannerPath),
+                            fit: BoxFit.cover,
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate, size: 48),
+                              SizedBox(height: 8),
+                              Text('Tap to add banner image'),
+                            ],
+                          ),
+              ),
+            ),
+            SizedBox(height: 24),
+            // ... other form fields
+            ElevatedButton(
+              onPressed: _createEvent,
+              child: Text('Create Event'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+---
+
+### Upload Profile Picture
+
+```dart
+Future<void> updateProfilePicture() async {
+  final service = ImageUploadService(accessToken: AuthService.accessToken!);
+  
+  try {
+    // Pick and upload image
+    final imagePath = await service.pickAndUploadImage(
+      maxWidth: 500,
+      maxHeight: 500,
+      quality: 85,
+    );
+
+    if (imagePath == null) return;
+
+    // Update user profile with new image path
+    final response = await http.patch(
+      Uri.parse('https://odadee.net/api/users/me'),
+      headers: {
+        'Authorization': 'Bearer ${AuthService.accessToken}',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'profileImage': imagePath,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Refresh user data
+      await AuthService.refreshUserProfile();
+    }
+  } catch (e) {
+    print('Profile picture update failed: $e');
+  }
+}
+```
+
+---
+
+### Image Size Recommendations
+
+| Image Type | Max Width | Max Height | Quality | Format |
+|------------|-----------|------------|---------|--------|
+| Profile Picture | 500px | 500px | 85% | JPEG/PNG |
+| Cover Image | 1920px | 600px | 90% | JPEG |
+| Event Banner | 1920px | 1080px | 90% | JPEG/PNG |
+| Project Image | 1200px | 800px | 85% | JPEG/PNG |
+| Product Image | 800px | 800px | 90% | JPEG/PNG |
+
+---
+
+### Error Handling
+
+```dart
+try {
+  final path = await imageService.uploadImage(bytes, mimeType);
+  // Success - use path
+} on Exception catch (e) {
+  if (e.toString().contains('Authentication required') ||
+      e.toString().contains('Session expired')) {
+    // Token expired - redirect to login
+    Navigator.pushReplacementNamed(context, '/login');
+  } else {
+    // Show error to user
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Upload failed: ${e.toString()}')),
+    );
+  }
+}
+```
+
+---
+
+### Dependencies (pubspec.yaml)
+
+```yaml
+dependencies:
+  http: ^1.1.0
+  image_picker: ^1.0.4
+  cached_network_image: ^3.3.0
+  mime: ^1.0.4
+```
+
+---
+
+## Shop & Products
+
+### 1. Get All Products (Public)
+
+**Endpoint**: `GET /products`
+
+**No authentication required**
+
+**Response (200 OK)**:
+```json
+{
+  "products": [
+    {
+      "id": "prod-1",
+      "name": "PRESEC Alumni T-Shirt",
+      "description": "Official PRESEC alumni t-shirt - navy blue with gold emblem",
+      "price": "75.00",
+      "category": "apparel",
+      "imageUrl": "uploads/tshirt.jpg",
+      "stock": 150,
+      "createdBy": "admin-user-id",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Single Product
+
+**Endpoint**: `GET /products/:id`
+
+**Response (200 OK)**:
+```json
+{
+  "product": {
+    "id": "prod-1",
+    "name": "PRESEC Alumni T-Shirt",
+    "description": "Official PRESEC alumni t-shirt - navy blue with gold emblem",
+    "price": "75.00",
+    "category": "apparel",
+    "imageUrl": "uploads/tshirt.jpg",
+    "stock": 150,
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 3. Create Product (Super Admin)
+
+**Endpoint**: `POST /products`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "name": "PRESEC Alumni T-Shirt",
+  "description": "Official PRESEC alumni t-shirt - navy blue with gold emblem",
+  "price": "75.00",
+  "category": "apparel",
+  "imageUrl": "uploads/tshirt.jpg",
+  "stock": 150
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "product": {
+    "id": "prod-1",
+    "name": "PRESEC Alumni T-Shirt",
+    "description": "Official PRESEC alumni t-shirt - navy blue with gold emblem",
+    "price": "75.00",
+    "category": "apparel",
+    "imageUrl": "uploads/tshirt.jpg",
+    "stock": 150,
+    "createdBy": "admin-user-id",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 4. Update Product (Super Admin)
+
+**Endpoint**: `PATCH /products/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body** (all fields optional):
+```json
+{
+  "price": "80.00",
+  "stock": 200
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "product": {
+    /* Updated product object */
+  }
+}
+```
+
+---
+
+### 5. Delete Product (Super Admin)
+
+**Endpoint**: `DELETE /products/:id`
+
+**Required**: Must be Super Admin
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Product deleted successfully"
+}
+```
+
+---
+
+## Orders
+
+### 1. Create Order
+
+**Endpoint**: `POST /orders`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body**:
+```json
+{
+  "totalAmount": "150.00",
+  "shippingAddress": "123 Main St, Accra, Ghana",
+  "paymentMethod": "Mobile Money",
+  "items": [
+    {
+      "productId": "prod-1",
+      "quantity": 2,
+      "priceAtPurchase": "75.00"
+    }
+  ]
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "order": {
+    "id": "order-1",
+    "userId": "user-1",
+    "totalAmount": "150.00",
+    "status": "pending",
+    "shippingAddress": "123 Main St, Accra, Ghana",
+    "paymentMethod": "Mobile Money",
+    "paymentStatus": "pending",
+    "transactionRef": null,
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+**Note**: Automatically sends order confirmation notification to the user.
+
+---
+
+### 2. Get Orders
+
+**Endpoint**: `GET /orders`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "orders": [
+    {
+      "id": "order-1",
+      "userId": "user-1",
+      "totalAmount": "150.00",
+      "status": "pending",
+      "shippingAddress": "123 Main St, Accra, Ghana",
+      "paymentMethod": "Mobile Money",
+      "paymentStatus": "pending",
+      "transactionRef": null,
+      "createdAt": "2025-11-09T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Note**: Super admins see all orders, regular users see only their own.
+
+---
+
+### 3. Get Single Order
+
+**Endpoint**: `GET /orders/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "order": {
+    "id": "order-1",
+    "userId": "user-1",
+    "totalAmount": "150.00",
+    "status": "pending",
+    "shippingAddress": "123 Main St, Accra, Ghana",
+    "paymentMethod": "Mobile Money",
+    "paymentStatus": "pending",
+    "transactionRef": null,
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  },
+  "items": [
+    {
+      "id": "item-1",
+      "orderId": "order-1",
+      "productId": "prod-1",
+      "quantity": 2,
+      "priceAtPurchase": "75.00"
+    }
+  ]
+}
+```
+
+---
+
+### 4. Update Order Status (Super Admin)
+
+**Endpoint**: `PATCH /orders/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "status": "shipped"
+}
+```
+
+**Allowed values**: `"pending"`, `"processing"`, `"shipped"`, `"delivered"`, `"cancelled"`
+
+**Response (200 OK)**:
+```json
+{
+  "order": {
+    "id": "order-1",
+    "status": "shipped",
+    /* ... other fields ... */
+  }
+}
+```
+
+---
+
+## Executives
+
+### 1. Get All Executives (Super Admin)
+
+**Endpoint**: `GET /executives`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Response (200 OK)**:
+```json
+{
+  "executives": [
+    {
+      "id": "exec-1",
+      "name": "Dr. John Doe",
+      "position": "President",
+      "bio": "Experienced leader with 20 years in education",
+      "imageUrl": "uploads/executives/john.jpg",
+      "order": 1,
+      "linkedinUrl": "https://linkedin.com/in/johndoe",
+      "email": "president@presec-alumni.org"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Create Executive (Super Admin)
+
+**Endpoint**: `POST /executives`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Required**: Must be Super Admin
+
+**Request Body**:
+```json
+{
+  "name": "Dr. John Doe",
+  "position": "President",
+  "bio": "Experienced leader with 20 years in education",
+  "imageUrl": "uploads/executives/john.jpg",
+  "order": 1,
+  "linkedinUrl": "https://linkedin.com/in/johndoe",
+  "email": "president@presec-alumni.org"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "executive": {
+    "id": "exec-1",
+    "name": "Dr. John Doe",
+    "position": "President",
+    "bio": "Experienced leader with 20 years in education",
+    "imageUrl": "uploads/executives/john.jpg",
+    "order": 1,
+    "linkedinUrl": "https://linkedin.com/in/johndoe",
+    "email": "president@presec-alumni.org",
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 3. Update Executive (Super Admin)
+
+**Endpoint**: `PATCH /executives/:id`
+
+**Required**: Must be Super Admin
+
+**Request Body** (all fields optional):
+```json
+{
+  "position": "Vice President",
+  "order": 2
+}
+```
+
+---
+
+### 4. Delete Executive (Super Admin)
+
+**Endpoint**: `DELETE /executives/:id`
+
+**Required**: Must be Super Admin
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Executive deleted successfully"
+}
+```
+
+---
+
+## Payments
+
+### 1. Create Payment
+
+**Endpoint**: `POST /payments`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request Body**:
+```json
+{
+  "amount": "100.00",
+  "paymentType": "dues",
+  "duesId": "dues-1",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phoneNumber": "0244123456",
+  "description": "Annual Dues 2025"
+}
+```
+
+**Payment Types**: `"dues"`, `"project"`, `"contribution"`, `"event"`, `"product"`
+
+**Response (200 OK)**:
+```json
+{
+  "payment": {
+    "id": "payment-1",
+    "userId": "user-1",
+    "amount": "100.00",
+    "currency": "GHS",
+    "paymentType": "dues",
+    "status": "pending",
+    "duesId": "dues-1",
+    "projectId": null,
+    "contributionId": null,
+    "eventId": null,
+    "orderId": null,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "phoneNumber": "0244123456",
+    "description": "Annual Dues 2025",
+    "paymentUrl": "https://payment.payangel.com/...",
+    "transactionRef": null,
+    "createdAt": "2025-11-09T10:00:00.000Z"
+  },
+  "redirectUrl": "https://payment.payangel.com/..."
+}
+```
+
+**Note**: Returns a PayAngel payment URL. User must complete payment in WebView/browser.
+
+---
+
+### 2. PayAngel Success Callback
+
+**Endpoint**: `POST /payments/payangel/success`
+
+**This endpoint is called by PayAngel** after successful payment.
+
+**Request Body** (from PayAngel):
+```json
+{
+  "transaction_id": "TXN123456789",
+  "transaction_reference": "payment-1",
+  "amount": "100.00",
+  "status": "successful"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "message": "Payment processed successfully"
+}
+```
+
+---
+
+### 3. PayAngel Failure Callback
+
+**Endpoint**: `POST /payments/payangel/failure`
+
+**This endpoint is called by PayAngel** after failed payment.
+
+---
+
+### 4. Get User Payment History
+
+**Endpoint**: `GET /payments/history`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "payments": [
+    {
+      "id": "payment-1",
+      "userId": "user-1",
+      "amount": "100.00",
+      "currency": "GHS",
+      "paymentType": "dues",
+      "status": "successful",
+      "duesId": "dues-1",
+      "transactionRef": "TXN123456789",
+      "description": "Annual Dues 2025",
+      "paidAt": "2025-11-09T10:15:00.000Z",
+      "createdAt": "2025-11-09T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Notifications
+
+### 1. WebSocket Connection
+
+**WebSocket URL**: `wss://odadee.net`
+
+**Connection**:
+```dart
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+final channel = WebSocketChannel.connect(
+  Uri.parse('wss://odadee.net?userId=user-123&token=jwt-access-token')
+);
+
+channel.stream.listen((message) {
+  final data = jsonDecode(message);
+  print('Notification: ${data['title']}');
+});
+```
+
+**Message Format**:
+```json
+{
+  "id": "notif-1",
+  "userId": "user-1",
+  "type": "payment_success",
+  "title": "Payment Successful",
+  "message": "Your payment of GHS 100.00 was successful",
+  "isRead": false,
+  "metadata": "{\"amount\":\"100.00\",\"paymentType\":\"dues\"}",
+  "createdAt": "2025-11-09T10:00:00.000Z"
+}
+```
+
+---
+
+### 2. Get Notifications
+
+**Endpoint**: `GET /notifications`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Query Parameters**:
+- `unreadOnly` (optional): `true` to get only unread notifications
+
+**Response (200 OK)**:
+```json
+{
+  "notifications": [
+    {
+      "id": "notif-1",
+      "userId": "user-1",
+      "type": "payment_success",
+      "title": "Payment Successful",
+      "message": "Your payment of GHS 100.00 was successful",
+      "isRead": false,
+      "metadata": "{\"amount\":\"100.00\",\"paymentType\":\"dues\"}",
+      "createdAt": "2025-11-09T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 3. Mark Notification as Read
+
+**Endpoint**: `PATCH /notifications/:id/read`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "notification": {
+    "id": "notif-1",
+    "isRead": true,
+    "readAt": "2025-11-09T10:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 4. Mark All as Read
+
+**Endpoint**: `POST /notifications/mark-all-read`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "All notifications marked as read",
+  "updatedCount": 5
+}
+```
+
+---
+
+### 5. Delete Notification
+
+**Endpoint**: `DELETE /notifications/:id`
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Notification deleted successfully"
+}
+```
+
+---
+
+## Community & Discussions
+
+The Discussions API allows alumni to create discussion posts, comment on posts, and engage with the community. All endpoints require JWT authentication.
+
+### Data Models
+
+```dart
+/// Discussion Post Model
+class DiscussionPost {
+  final String id;
+  final String title;
+  final String content;
+  final String category;
+  final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final Author? author;
+
+  DiscussionPost({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.category,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.author,
+  });
+
+  factory DiscussionPost.fromJson(Map<String, dynamic> json) {
+    return DiscussionPost(
+      id: json['id'],
+      title: json['title'],
+      content: json['content'],
+      category: json['category'],
+      userId: json['userId'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      author: json['author'] != null ? Author.fromJson(json['author']) : null,
+    );
+  }
+}
+
+/// Discussion Comment Model
+class DiscussionComment {
+  final String id;
+  final String postId;
+  final String userId;
+  final String content;
+  final DateTime createdAt;
+  final Author? author;
+
+  DiscussionComment({
+    required this.id,
+    required this.postId,
+    required this.userId,
+    required this.content,
+    required this.createdAt,
+    this.author,
+  });
+
+  factory DiscussionComment.fromJson(Map<String, dynamic> json) {
+    return DiscussionComment(
+      id: json['id'],
+      postId: json['postId'],
+      userId: json['userId'],
+      content: json['content'],
+      createdAt: DateTime.parse(json['createdAt']),
+      author: json['author'] != null ? Author.fromJson(json['author']) : null,
+    );
+  }
+}
+
+/// Author Model (for discussion/comment authors)
+class Author {
+  final String id;
+  final String firstName;
+  final String lastName;
+  final String? profileImage;
+
+  Author({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    this.profileImage,
+  });
+
+  factory Author.fromJson(Map<String, dynamic> json) {
+    return Author(
+      id: json['id'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      profileImage: json['profileImage'],
+    );
+  }
+  
+  String get fullName => '$firstName $lastName';
+}
+```
+
+---
+
+### 1. Get All Discussion Posts
+
+**Endpoint**: `GET /discussions`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Response (200 OK)**:
+```json
+{
+  "discussions": [
+    {
+      "id": "uuid-here",
+      "title": "Career Advice for New Graduates",
+      "content": "I recently graduated and looking for career guidance...",
+      "category": "career",
+      "userId": "user-uuid",
+      "createdAt": "2025-11-30T10:00:00.000Z",
+      "updatedAt": "2025-11-30T10:00:00.000Z",
+      "author": {
+        "id": "user-uuid",
+        "firstName": "John",
+        "lastName": "Doe",
+        "profileImage": "/uploads/profiles/john.jpg"
+      }
+    }
+  ]
+}
+```
+
+**Flutter Implementation**:
+```dart
+Future<List<DiscussionPost>> getDiscussions() async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/discussions'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['discussions'] as List)
+        .map((json) => DiscussionPost.fromJson(json))
+        .toList();
+  }
+  throw Exception('Failed to fetch discussions: ${response.body}');
+}
+```
+
+---
+
+### 2. Get Single Discussion Post
+
+**Endpoint**: `GET /discussions/:id`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Response (200 OK)**:
+```json
+{
+  "post": {
+    "id": "uuid-here",
+    "title": "Career Advice for New Graduates",
+    "content": "I recently graduated and looking for career guidance...",
+    "category": "career",
+    "userId": "user-uuid",
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T10:00:00.000Z"
+  }
+}
+```
+
+**Flutter Implementation**:
+```dart
+Future<DiscussionPost> getDiscussion(String id) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$id'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return DiscussionPost.fromJson(data['post']);
+  } else if (response.statusCode == 404) {
+    throw Exception('Discussion not found');
+  }
+  throw Exception('Failed to fetch discussion: ${response.body}');
+}
+```
+
+---
+
+### 3. Create Discussion Post
+
+**Endpoint**: `POST /discussions`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "title": "Career Advice for New Graduates",
+  "content": "I recently graduated and looking for career guidance in the tech industry...",
+  "category": "career"
+}
+```
+
+**Categories**: `general`, `mentorship`, `career`, `networking`, `announcements`
+
+**Response (201 Created)**:
+```json
+{
+  "post": {
+    "id": "new-uuid",
+    "title": "Career Advice for New Graduates",
+    "content": "I recently graduated and looking for career guidance...",
+    "category": "career",
+    "userId": "current-user-uuid",
+    "createdAt": "2025-11-30T12:00:00.000Z",
+    "updatedAt": "2025-11-30T12:00:00.000Z"
+  }
+}
+```
+
+**Flutter Implementation**:
+```dart
+Future<DiscussionPost> createDiscussion({
+  required String title,
+  required String content,
+  required String category,
+}) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/discussions'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'title': title,
+      'content': content,
+      'category': category,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    final data = jsonDecode(response.body);
+    return DiscussionPost.fromJson(data['post']);
+  } else if (response.statusCode == 400) {
+    throw Exception('Invalid discussion data');
+  }
+  throw Exception('Failed to create discussion: ${response.body}');
+}
+```
+
+---
+
+### 4. Update Discussion Post (Author Only)
+
+**Endpoint**: `PATCH /discussions/:id`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Authorization**: Only the original author can update their post
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body** (all fields optional):
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content...",
+  "category": "mentorship"
+}
+```
+
+**Response (200 OK)**:
+```json
+{
+  "post": {
+    "id": "uuid-here",
+    "title": "Updated Title",
+    "content": "Updated content...",
+    "category": "mentorship",
+    "userId": "user-uuid",
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T14:00:00.000Z"
+  }
+}
+```
+
+**Error Responses**:
+- `403 Forbidden`: "You can only update your own posts"
+- `404 Not Found`: "Discussion not found"
+
+**Flutter Implementation**:
+```dart
+Future<DiscussionPost> updateDiscussion(String id, {
+  String? title,
+  String? content,
+  String? category,
+}) async {
+  final body = <String, dynamic>{};
+  if (title != null) body['title'] = title;
+  if (content != null) body['content'] = content;
+  if (category != null) body['category'] = category;
+  
+  final response = await http.patch(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$id'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(body),
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return DiscussionPost.fromJson(data['post']);
+  } else if (response.statusCode == 403) {
+    throw Exception('You can only update your own posts');
+  } else if (response.statusCode == 404) {
+    throw Exception('Discussion not found');
+  }
+  throw Exception('Failed to update discussion: ${response.body}');
+}
+```
+
+---
+
+### 5. Delete Discussion Post (Author Only)
+
+**Endpoint**: `DELETE /discussions/:id`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Authorization**: Only the original author can delete their post
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Discussion post deleted successfully"
+}
+```
+
+**Error Responses**:
+- `403 Forbidden`: "You can only delete your own posts"
+- `404 Not Found`: "Discussion not found"
+
+**Flutter Implementation**:
+```dart
+Future<void> deleteDiscussion(String id) async {
+  final response = await http.delete(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$id'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    return; // Success
+  } else if (response.statusCode == 403) {
+    throw Exception('You can only delete your own posts');
+  } else if (response.statusCode == 404) {
+    throw Exception('Discussion not found');
+  }
+  throw Exception('Failed to delete discussion: ${response.body}');
+}
+```
+
+---
+
+### 6. Get Comments for Discussion
+
+**Endpoint**: `GET /discussions/:id/comments`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Response (200 OK)**:
+```json
+{
+  "comments": [
+    {
+      "id": "comment-uuid",
+      "postId": "discussion-uuid",
+      "userId": "user-uuid",
+      "content": "Great question! I'd recommend starting with...",
+      "createdAt": "2025-11-30T11:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Flutter Implementation**:
+```dart
+Future<List<DiscussionComment>> getComments(String postId) async {
+  final response = await http.get(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$postId/comments'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return (data['comments'] as List)
+        .map((json) => DiscussionComment.fromJson(json))
+        .toList();
+  }
+  throw Exception('Failed to fetch comments: ${response.body}');
+}
+```
+
+---
+
+### 7. Add Comment to Discussion
+
+**Endpoint**: `POST /discussions/:id/comments`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Authorization**: Requires **verified membership** - user must be a verified member of a year group to comment
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "content": "Great question! I'd recommend starting with networking events..."
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "comment": {
+    "id": "new-comment-uuid",
+    "postId": "discussion-uuid",
+    "userId": "current-user-uuid",
+    "content": "Great question! I'd recommend starting with networking events...",
+    "createdAt": "2025-11-30T12:30:00.000Z"
+  }
+}
+```
+
+**Error Responses**:
+- `400 Bad Request`: Invalid comment data
+- `403 Forbidden`: User is not a verified member (membership not verified)
+- `404 Not Found`: Discussion not found
+
+**Flutter Implementation**:
+```dart
+Future<DiscussionComment> addComment(String postId, String content) async {
+  final response = await http.post(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$postId/comments'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'content': content,
+    }),
+  );
+  
+  if (response.statusCode == 201) {
+    final data = jsonDecode(response.body);
+    return DiscussionComment.fromJson(data['comment']);
+  } else if (response.statusCode == 403) {
+    throw Exception('Only verified members can comment on discussions');
+  } else if (response.statusCode == 400) {
+    throw Exception('Invalid comment data');
+  }
+  throw Exception('Failed to add comment: ${response.body}');
+}
+```
+
+---
+
+### 8. Delete Comment (Author Only)
+
+**Endpoint**: `DELETE /discussions/:id/comments/:commentId`
+
+**Authentication**: Required (JWT Bearer token)
+
+**Authorization**: Only the comment author can delete their comment
+
+**Request Headers**:
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK)**:
+```json
+{
+  "message": "Comment deleted successfully"
+}
+```
+
+**Error Responses**:
+- `403 Forbidden`: "You can only delete your own comments"
+- `404 Not Found`: "Comment not found"
+
+**Flutter Implementation**:
+```dart
+Future<void> deleteComment(String postId, String commentId) async {
+  final response = await http.delete(
+    Uri.parse('${ApiConfig.baseUrl}/discussions/$postId/comments/$commentId'),
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+  
+  if (response.statusCode == 200) {
+    return; // Success
+  } else if (response.statusCode == 403) {
+    throw Exception('You can only delete your own comments');
+  } else if (response.statusCode == 404) {
+    throw Exception('Comment not found');
+  }
+  throw Exception('Failed to delete comment: ${response.body}');
+}
+```
+
+---
+
+### Complete Discussion Service Example
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class DiscussionService {
+  final String baseUrl;
+  final String accessToken;
+  
+  DiscussionService({
+    required this.baseUrl,
+    required this.accessToken,
+  });
+  
+  Map<String, String> get _headers => {
+    'Authorization': 'Bearer $accessToken',
+    'Content-Type': 'application/json',
+  };
+  
+  // Get all discussions
+  Future<List<DiscussionPost>> getDiscussions() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/discussions'),
+      headers: _headers,
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['discussions'] as List)
+          .map((json) => DiscussionPost.fromJson(json))
+          .toList();
+    }
+    throw Exception('Failed to fetch discussions');
+  }
+  
+  // Get single discussion
+  Future<DiscussionPost> getDiscussion(String id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/discussions/$id'),
+      headers: _headers,
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return DiscussionPost.fromJson(data['post']);
+    }
+    throw Exception('Discussion not found');
+  }
+  
+  // Create discussion
+  Future<DiscussionPost> createDiscussion({
+    required String title,
+    required String content,
+    required String category,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/discussions'),
+      headers: _headers,
+      body: jsonEncode({
+        'title': title,
+        'content': content,
+        'category': category,
+      }),
+    );
+    
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return DiscussionPost.fromJson(data['post']);
+    }
+    throw Exception('Failed to create discussion');
+  }
+  
+  // Update discussion
+  Future<DiscussionPost> updateDiscussion(String id, {
+    String? title,
+    String? content,
+    String? category,
+  }) async {
+    final body = <String, dynamic>{};
+    if (title != null) body['title'] = title;
+    if (content != null) body['content'] = content;
+    if (category != null) body['category'] = category;
+    
+    final response = await http.patch(
+      Uri.parse('$baseUrl/discussions/$id'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return DiscussionPost.fromJson(data['post']);
+    }
+    throw Exception('Failed to update discussion');
+  }
+  
+  // Delete discussion
+  Future<void> deleteDiscussion(String id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/discussions/$id'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+    
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete discussion');
+    }
+  }
+  
+  // Get comments
+  Future<List<DiscussionComment>> getComments(String postId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/discussions/$postId/comments'),
+      headers: _headers,
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['comments'] as List)
+          .map((json) => DiscussionComment.fromJson(json))
+          .toList();
+    }
+    throw Exception('Failed to fetch comments');
+  }
+  
+  // Add comment
+  Future<DiscussionComment> addComment(String postId, String content) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/discussions/$postId/comments'),
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    );
+    
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return DiscussionComment.fromJson(data['comment']);
+    } else if (response.statusCode == 403) {
+      throw Exception('Only verified members can comment');
+    }
+    throw Exception('Failed to add comment');
+  }
+  
+  // Delete comment
+  Future<void> deleteComment(String postId, String commentId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/discussions/$postId/comments/$commentId'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+    
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete comment');
+    }
+  }
+}
+```
+
+---
+
+### Usage Example in Flutter
+
+```dart
+// Initialize the service
+final discussionService = DiscussionService(
+  baseUrl: 'https://odadee.net/api',
+  accessToken: yourAccessToken,
+);
+
+// Fetch all discussions
+final discussions = await discussionService.getDiscussions();
+
+// Create a new discussion
+final newPost = await discussionService.createDiscussion(
+  title: 'Networking Tips',
+  content: 'What are your best networking tips for young alumni?',
+  category: 'networking',
+);
+
+// Get comments for a discussion
+final comments = await discussionService.getComments(newPost.id);
+
+// Add a comment (requires verified membership)
+final comment = await discussionService.addComment(
+  newPost.id,
+  'Great topic! I recommend attending alumni events regularly.',
+);
+
+// Delete your own comment
+await discussionService.deleteComment(newPost.id, comment.id);
+```
+
+---
+
+### Important Notes
+
+1. **Authentication**: All discussion endpoints require JWT authentication via `Authorization: Bearer <token>` header
+
+2. **Commenting Requirement**: Only **verified members** (users with verified year group membership) can post comments. Regular authenticated users who haven't been verified cannot comment.
+
+3. **Author-Only Actions**: 
+   - Only the original author can update or delete their discussion posts
+   - Only the comment author can delete their comments
+
+4. **Categories**: Available categories are `general`, `mentorship`, `career`, `networking`, `announcements`
+
+5. **Error Codes**:
+   - `401 Unauthorized`: Not authenticated or token expired
+   - `403 Forbidden`: Not authorized (not author or not verified member)
+   - `404 Not Found`: Discussion or comment not found
+   - `400 Bad Request`: Invalid request data
+
+---
+
+## Early Access Registration
+
+### Early Access Registration (Public)
+
+**Endpoint**: `POST /early-access`
+
+**No authentication required**
+
+**Request Body**:
+```json
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "phone": "+233244123456",
+  "yearGroup": "2010",
+  "interest": "networking"
+}
+```
+
+**Response (201 Created)**:
+```json
+{
+  "success": true,
+  "message": "Thank you for registering! We'll be in touch soon with your early access details."
+}
+```
+
+**Error (400 Bad Request)** if email already registered:
+```json
+{
+  "message": "This email is already registered for early access."
+}
+```
+
+---
+
+## Data Models
+
+### User
+
+```typescript
+{
+  id: string (UUID);
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string (hashed, never returned);
+  role: "super_admin" | "year_group_admin" | "member";
+  phoneNumber: string | null;
+  graduationYear: number | null;
+  profession: string | null;
+  company: string | null;
+  currentRole: string | null;
+  location: string | null;
+  bio: string | null;
+  skills: string[] | null;
+  profileImage: string | null;
+  coverImage: string | null;
+  linkedinUrl: string | null;
+  twitterUrl: string | null;
+  facebookUrl: string | null;
+  websiteUrl: string | null;
+  openToMentor: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  lastLoginAt: Date | null;
+}
+```
+
+### Year Group
+
+```typescript
+{
+  id: string (UUID);
+  name: string;
+  year: number;
+  description: string | null;
+  createdAt: Date;
+}
+```
+
+### Year Group Membership
+
+```typescript
+{
+  id: string (UUID);
+  userId: string;
+  yearGroupId: string;
+  verificationStatus: "pending" | "verified" | "rejected";
+  isAdmin: boolean;
+  joinedAt: Date;
+}
+```
+
+### Project
+
+```typescript
+{
+  id: string (UUID);
+  title: string;
+  description: string;
+  targetAmount: string (decimal);
+  currentAmount: string (decimal);
+  status: "active" | "completed" | "paused";
+  priority: "low" | "medium" | "high";
+  startDate: Date;
+  endDate: Date | null;
+  imageUrl: string | null;
+  yearGroupId: string | null;
+  createdBy: string;
+  createdAt: Date;
+}
+```
+
+### Event
+
+```typescript
+{
+  id: string (UUID);
+  title: string;
+  description: string;
+  type: "global" | "year_group";
+  status: "upcoming" | "ongoing" | "completed" | "cancelled";
+  startDate: Date;
+  endDate: Date;
+  venue: string | null;
+  location: string | null;
+  ticketPrice: string | null;
+  maxAttendees: number | null;
+  currentAttendees: number;
+  imageUrl: string | null;
+  requiresRegistration: boolean;
+  yearGroupId: string | null;
+  createdBy: string;
+  createdAt: Date;
+}
+```
+
+### Payment
+
+```typescript
+{
+  id: string (UUID);
+  userId: string;
+  amount: string (decimal);
+  currency: "GHS";
+  paymentType: "dues" | "project" | "contribution" | "event" | "product";
+  status: "pending" | "successful" | "failed" | "cancelled";
+  duesId: string | null;
+  projectId: string | null;
+  contributionId: string | null;
+  eventId: string | null;
+  orderId: string | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  description: string | null;
+  paymentUrl: string | null;
+  transactionRef: string | null;
+  paidAt: Date | null;
+  createdAt: Date;
+}
+```
+
+---
+
+## Error Handling
+
+### Standard Error Response
+
+```json
+{
+  "message": "Error description",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email format"
+    }
+  ]
+}
+```
+
+### Common HTTP Status Codes
+
+| Code | Meaning | Description |
+|------|---------|-------------|
+| 200 | OK | Request successful |
+| 201 | Created | Resource created successfully |
+| 400 | Bad Request | Invalid request data |
+| 401 | Unauthorized | Authentication required or failed |
+| 403 | Forbidden | Insufficient permissions |
+| 404 | Not Found | Resource not found |
+| 429 | Too Many Requests | Rate limit exceeded |
+| 500 | Internal Server Error | Server error |
+
+---
+
+## Rate Limiting
+
+**Rate Limits**:
+- API endpoints: **100 requests per 15 minutes** per IP address
+- Public endpoints (no auth): **20 requests per 15 minutes** per IP address
+
+**Rate Limit Headers**:
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1699545600
+```
+
+**Rate Limit Exceeded Response (429)**:
+```json
+{
+  "message": "Too many requests from this IP, please try again after 15 minutes"
+}
+```
+
+---
+
+## Flutter Examples
+
+### Complete API Service
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class ApiService {
+  static const String baseUrl = 'https://odadee.net/api';
+  final storage = const FlutterSecureStorage();
+  
+  // Auto-refresh token interceptor
+  Future<http.Response> authenticatedRequest(
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
+    String? accessToken = await storage.read(key: 'access_token');
+    
+    var response = await _makeRequest(method, endpoint, accessToken, body);
+    
+    // If 401, try refreshing token
+    if (response.statusCode == 401) {
+      try {
+        accessToken = await _refreshToken();
+        response = await _makeRequest(method, endpoint, accessToken, body);
+      } catch (e) {
+        // Refresh failed, logout user
+        await _logout();
+        throw Exception('Session expired, please login again');
+      }
+    }
+    
+    return response;
+  }
+  
+  Future<http.Response> _makeRequest(
+    String method,
+    String endpoint,
+    String? token,
+    Map<String, dynamic>? body,
+  ) async {
+    final headers = {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+    
+    final uri = Uri.parse('$baseUrl$endpoint');
+    
+    switch (method.toUpperCase()) {
+      case 'GET':
+        return http.get(uri, headers: headers);
+      case 'POST':
+        return http.post(uri, headers: headers, body: jsonEncode(body));
+      case 'PATCH':
+        return http.patch(uri, headers: headers, body: jsonEncode(body));
+      case 'DELETE':
+        return http.delete(uri, headers: headers);
+      default:
+        throw Exception('Unsupported HTTP method: $method');
+    }
+  }
+  
+  Future<String> _refreshToken() async {
+    final refreshToken = await storage.read(key: 'refresh_token');
+    
+    if (refreshToken == null) {
+      throw Exception('No refresh token available');
+    }
+    
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/mobile/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final newAccessToken = data['accessToken'];
+      await storage.write(key: 'access_token', value: newAccessToken);
+      return newAccessToken;
+    } else {
+      throw Exception('Token refresh failed');
+    }
+  }
+  
+  Future<void> _logout() async {
+    await storage.delete(key: 'access_token');
+    await storage.delete(key: 'refresh_token');
+    await storage.delete(key: 'user');
+    // Navigate to login screen
+  }
+}
+```
+
+### Usage Examples
+
+```dart
+final apiService = ApiService();
+
+// Get year groups
+final response = await apiService.authenticatedRequest('GET', '/year-groups');
+if (response.statusCode == 200) {
+  final data = jsonDecode(response.body);
+  final yearGroups = data['yearGroups'];
+}
+
+// Create announcement
+final response = await apiService.authenticatedRequest(
+  'POST',
+  '/year-groups/yg-1/announcements',
+  body: {
+    'title': 'Annual Reunion',
+    'content': 'Save the date for December 25!',
+  },
+);
+```
+
+---
+
+## Support
+
+For API issues or questions, contact:
+- **Email**: support@presec-alumni.org
+- **Documentation**: https://odadee.net/api-docs (Super Admin only)
+
+**API Status**: https://odadee.net/status
