@@ -23,6 +23,11 @@ The design incorporates styled cards with rounded corners, blue-accented buttons
 ### Technical Implementations
 Built with Flutter 3.32.0 and Dart 3.8.0, the project targets the web platform with a modular structure comprising `components`, feature-specific `Screens`, and utility files. Authentication is managed via `flutter_secure_storage` and `AuthService`, ensuring secure token management and API communication.
 
+**Performance Optimizations:**
+-   **Year Group Caching:** `YearGroupService` caches year group data for 10 minutes and caches the user's year group to avoid redundant API calls during a session.
+-   **Discussion Loading:** Removed N+1 comment fetching loop - discussions now load without individually fetching comments for each post, significantly improving load time.
+-   **Parallel API Calls:** Dashboard uses `Future.wait` to fetch all data simultaneously rather than sequentially.
+
 **Key Features Implemented:**
 -   **Payment Integration:** Utilizes PayAngel, adapting implementation for web (via `url_launcher` and manual confirmation) and mobile (via `webview_flutter` with automatic callback detection).
 -   **Profile Management:** A full-featured user profile system with `UserService` for API calls, image handling (CORS-workaround via `AuthenticatedImage`), data normalization, and comprehensive form validation for profile updates. All profile image fallbacks use `oda_logo.png`.
