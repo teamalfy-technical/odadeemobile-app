@@ -32,17 +32,9 @@ class DiscussionService {
           }
         }
         
-        final List<DiscussionPost> postsWithCounts = [];
-        for (final post in posts) {
-          try {
-            final comments = await getComments(post.id);
-            postsWithCounts.add(post.copyWith(commentsCount: comments.length));
-          } catch (e) {
-            postsWithCounts.add(post);
-          }
-        }
-        
-        return postsWithCounts;
+        // Return posts directly without fetching comments for each
+        // Comments count should come from the API response or be fetched lazily when needed
+        return posts;
       }
       
       String errorMessage = 'Failed to load discussions';

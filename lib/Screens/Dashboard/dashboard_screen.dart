@@ -177,6 +177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<List<YearGroupMember>> _fetchYearGroupMembers() async {
     try {
       final yearGroupService = YearGroupService();
+      // Use cached getUserYearGroup which now has caching to avoid redundant calls
       final yearGroup = await yearGroupService.getUserYearGroup();
       if (yearGroup == null) {
         return [];
@@ -191,6 +192,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<double> _fetchYearGroupContributions() async {
     try {
       final yearGroupService = YearGroupService();
+      // Use cached getUserYearGroup which now has caching to avoid redundant calls
       final yearGroup = await yearGroupService.getUserYearGroup();
       if (yearGroup == null) {
         return 0.0;

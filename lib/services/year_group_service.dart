@@ -11,6 +11,15 @@ class YearGroupService {
   YearGroupService._internal();
 
   final AuthService _authService = AuthService();
+  
+  // Cache for year groups to avoid redundant API calls
+  static List<YearGroup>? _cachedYearGroups;
+  static DateTime? _cacheTime;
+  static const Duration _cacheDuration = Duration(minutes: 10);
+  
+  // Cache for user's year group
+  static YearGroup? _cachedUserYearGroup;
+  static String? _cachedUserYearGroupId;
 
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
@@ -20,7 +29,14 @@ class YearGroupService {
     return 0.0;
   }
 
-  Future<List<YearGroup>> getAllYearGroups() async {
+  Future<List<YearGroup>> getAllYearGroups({bool forceRefresh = false}) async {
+    // Return cached data if available and not expired
+    if (!forceRefresh && _cachedYearGroups != null && _cacheTime != null) {
+      if (DateTime.now().difference(_cacheTime!) < _cacheDuration) {
+        return _cachedYearGroups!;
+      }
+    }
+    
     try {
       final response = await _authService.authenticatedRequest(
         'GET',
@@ -30,12 +46,31 @@ class YearGroupService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> groupsJson = data['yearGroups'] ?? [];
-        return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
+        final groups = groupsJson.map((g) => YearGroup.fromJson(g)).toList();
+        
+        // Cache the result
+        _cachedYearGroups = groups;
+        _cacheTime = DateTime.now();
+        
+        return groups;
       }
       throw Exception('Failed to load year groups');
     } catch (e) {
       rethrow;
     }
+  }
+  
+  /// Fast method to get user's year group ID
+  /// Returns cached ID if available, otherwise falls back to getUserYearGroup()
+  Future<String?> getUserYearGroupIdFast() async {
+    // Return cached ID if available (this is the real year group ID, not graduation year)
+    if (_cachedUserYearGroupId != null) {
+      return _cachedUserYearGroupId;
+    }
+    
+    // If no cached ID, call getUserYearGroup which will populate the cache
+    final yearGroup = await getUserYearGroup();
+    return yearGroup?.id;
   }
 
   /// Fetches year groups for registration/sign-up flows
@@ -146,13 +181,18 @@ class YearGroupService {
   }
 
   Future<YearGroup?> getUserYearGroup() async {
+    // Return cached user year group if available
+    if (_cachedUserYearGroup != null) {
+      return _cachedUserYearGroup;
+    }
+    
     try {
       Map<String, dynamic>? userData = await _authService.getCachedUser();
-      if (userData == null) {
-        userData = await _authService.getCurrentUser();
-      }
+      userData ??= await _authService.getCurrentUser();
 
-      final graduationYearRaw = userData['graduationYear'];
+      final graduationYearRaw = userData['graduationYear'] ??
+          userData['yearGroup'] ??
+          userData['year_group'];
 
       if (graduationYearRaw == null) return null;
 
@@ -169,6 +209,10 @@ class YearGroupService {
         orElse: () =>
             throw Exception('Year group not found for year $graduationYear'),
       );
+      
+      // Cache the result including the real year group ID
+      _cachedUserYearGroup = matchingGroup;
+      _cachedUserYearGroupId = matchingGroup.id;
 
       return matchingGroup;
     } catch (e) {
