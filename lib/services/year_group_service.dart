@@ -38,8 +38,8 @@ class YearGroupService {
     }
   }
 
-  /// Fetches year groups from the public API endpoint (no authentication required)
-  /// Use this for registration/sign-up flows
+  /// Fetches year groups for registration/sign-up flows
+  /// Falls back to generated year list if public API endpoint is unavailable
   Future<List<YearGroup>> getPublicYearGroups() async {
     try {
       final response = await http.get(
@@ -47,14 +47,37 @@ class YearGroupService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> groupsJson = data['yearGroups'] ?? [];
-        return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
+        final contentType = response.headers['content-type'] ?? '';
+        if (contentType.contains('application/json')) {
+          final data = jsonDecode(response.body);
+          final List<dynamic> groupsJson = data['yearGroups'] ?? [];
+          if (groupsJson.isNotEmpty) {
+            return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
+          }
+        }
       }
-      throw Exception('Failed to load public year groups');
+      return _generateFallbackYearGroups();
     } catch (e) {
-      rethrow;
+      return _generateFallbackYearGroups();
     }
+  }
+
+  /// Generate a list of year groups from 1960 to current year
+  /// Used as fallback when the public API endpoint is unavailable
+  List<YearGroup> _generateFallbackYearGroups() {
+    final currentYear = DateTime.now().year;
+    final List<YearGroup> groups = [];
+    for (int year = currentYear; year >= 1960; year--) {
+      groups.add(YearGroup(
+        id: year.toString(),
+        year: year,
+        name: 'Class of $year',
+        description: 'PRESEC graduating class of $year',
+        memberCount: 0,
+        createdAt: DateTime.now(),
+      ));
+    }
+    return groups;
   }
 
   Future<YearGroup> getYearGroupDetails(String yearGroupId) async {
