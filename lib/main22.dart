@@ -1,23 +1,9 @@
 // @dart=2.12
-import 'dart:developer';
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:odadee/Screens/Articles/all_news_screen.dart';
-import 'package:odadee/Screens/Authentication/ForgetPassword/forgot_password.dart';
-import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
-import 'package:odadee/Screens/Authentication/SignUp/sign_up_1.dart';
-import 'package:odadee/Screens/Authentication/SignUp/sign_up_2.dart';
-import 'package:odadee/Screens/Authentication/SignUp/sign_up_3.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
-import 'package:odadee/Screens/Events/events_list.dart';
-import 'package:odadee/Screens/Profile/user_profile_screen.dart';
 
-import 'package:odadee/Screens/Radio/playing_screen.dart';
-import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/Screens/SplashScreen/splash_screen.dart';
 
 import 'package:odadee/constants.dart';

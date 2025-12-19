@@ -16,7 +16,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -584,7 +584,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               CupertinoSwitch(
                 value: _notificationsEnabled,
                 onChanged: _updateNotificationStatus,
-                activeColor: odaSecondary,
+                activeTrackColor: odaSecondary,
               ),
             ],
           ),
@@ -631,7 +631,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   CupertinoSwitch(
                     value: themeService.isDarkMode,
                     onChanged: (value) => themeService.setDarkMode(value),
-                    activeColor: odaSecondary,
+                    activeTrackColor: odaSecondary,
                   ),
                 ],
               ),

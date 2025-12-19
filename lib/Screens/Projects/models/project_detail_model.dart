@@ -1,5 +1,3 @@
-import '../../../utils/image_url_helper.dart';
-
 class ProjectDetailModel {
   Projects? projects;
 
@@ -7,14 +5,14 @@ class ProjectDetailModel {
 
   ProjectDetailModel.fromJson(Map<String, dynamic> json) {
     projects = json['projects'] != null
-        ? new Projects.fromJson(json['projects'])
+        ? Projects.fromJson(json['projects'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.projects != null) {
-      data['projects'] = this.projects!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (projects != null) {
+      data['projects'] = projects!.toJson();
     }
     return data;
   }
@@ -71,7 +69,7 @@ class Projects {
     endDate = json['endDate'];
     userId = json['userId'];
     yeargroup = json['yeargroup'];
-    image = ImageUrlHelper.normalizeImageUrl(json['image']);
+    image = json['image'];
     fundingTarget = json['fundingTarget'];
     fundingTargetDollar = json['fundingTargetDollar'];
     currentFunding = json['currentFunding'];
@@ -82,25 +80,25 @@ class Projects {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['title'] = this.title;
-    data['slug'] = this.slug;
-    data['categoryId'] = this.categoryId;
-    data['content'] = this.content;
-    data['status'] = this.status;
-    data['startDate'] = this.startDate;
-    data['endDate'] = this.endDate;
-    data['userId'] = this.userId;
-    data['yeargroup'] = this.yeargroup;
-    data['image'] = this.image;
-    data['fundingTarget'] = this.fundingTarget;
-    data['fundingTargetDollar'] = this.fundingTargetDollar;
-    data['currentFunding'] = this.currentFunding;
-    data['progress'] = this.progress;
-    data['homePage'] = this.homePage;
-    data['forumId'] = this.forumId;
-    data['createdTime'] = this.createdTime;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['title'] = title;
+    data['slug'] = slug;
+    data['categoryId'] = categoryId;
+    data['content'] = content;
+    data['status'] = status;
+    data['startDate'] = startDate;
+    data['endDate'] = endDate;
+    data['userId'] = userId;
+    data['yeargroup'] = yeargroup;
+    data['image'] = image;
+    data['fundingTarget'] = fundingTarget;
+    data['fundingTargetDollar'] = fundingTargetDollar;
+    data['currentFunding'] = currentFunding;
+    data['progress'] = progress;
+    data['homePage'] = homePage;
+    data['forumId'] = forumId;
+    data['createdTime'] = createdTime;
     return data;
   }
 }

@@ -1,5 +1,3 @@
-import '../../../utils/image_url_helper.dart';
-
 class AllArticlesModel {
   News? news;
 
@@ -19,9 +17,9 @@ class AllArticlesModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.news != null) {
-      data['news'] = this.news!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (news != null) {
+      data['news'] = news!.toJson();
     }
     return data;
   }
@@ -62,7 +60,7 @@ class News {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
     firstPageUrl = json['first_page_url'];
@@ -72,7 +70,7 @@ class News {
     if (json['links'] != null) {
       links = <Links>[];
       json['links'].forEach((v) {
-        links!.add(new Links.fromJson(v));
+        links!.add(Links.fromJson(v));
       });
     }
     nextPageUrl = json['next_page_url'];
@@ -84,24 +82,24 @@ class News {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['current_page'] = this.currentPage;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['current_page'] = currentPage;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    data['first_page_url'] = this.firstPageUrl;
-    data['from'] = this.from;
-    data['last_page'] = this.lastPage;
-    data['last_page_url'] = this.lastPageUrl;
-    if (this.links != null) {
-      data['links'] = this.links!.map((v) => v.toJson()).toList();
+    data['first_page_url'] = firstPageUrl;
+    data['from'] = from;
+    data['last_page'] = lastPage;
+    data['last_page_url'] = lastPageUrl;
+    if (links != null) {
+      data['links'] = links!.map((v) => v.toJson()).toList();
     }
-    data['next_page_url'] = this.nextPageUrl;
-    data['path'] = this.path;
-    data['per_page'] = this.perPage;
-    data['prev_page_url'] = this.prevPageUrl;
-    data['to'] = this.to;
-    data['total'] = this.total;
+    data['next_page_url'] = nextPageUrl;
+    data['path'] = path;
+    data['per_page'] = perPage;
+    data['prev_page_url'] = prevPageUrl;
+    data['to'] = to;
+    data['total'] = total;
     return data;
   }
 }
@@ -145,7 +143,7 @@ class Data {
     content = json['content'];
     summary = json['summary'];
     video = json['video'];
-    image = ImageUrlHelper.normalizeImageUrl(json['image']);
+    image = json['image'];
     userId = json['userId'];
     yeargroup = json['yeargroup'];
     yearmonth = json['yearmonth'];
@@ -156,21 +154,21 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['title'] = this.title;
-    data['slug'] = this.slug;
-    data['content'] = this.content;
-    data['summary'] = this.summary;
-    data['video'] = this.video;
-    data['image'] = this.image;
-    data['userId'] = this.userId;
-    data['yeargroup'] = this.yeargroup;
-    data['yearmonth'] = this.yearmonth;
-    data['admin'] = this.admin;
-    data['sticky'] = this.sticky;
-    data['homePage'] = this.homePage;
-    data['createdTime'] = this.createdTime;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['title'] = title;
+    data['slug'] = slug;
+    data['content'] = content;
+    data['summary'] = summary;
+    data['video'] = video;
+    data['image'] = image;
+    data['userId'] = userId;
+    data['yeargroup'] = yeargroup;
+    data['yearmonth'] = yearmonth;
+    data['admin'] = admin;
+    data['sticky'] = sticky;
+    data['homePage'] = homePage;
+    data['createdTime'] = createdTime;
     return data;
   }
 }
@@ -189,10 +187,10 @@ class Links {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['url'] = this.url;
-    data['label'] = this.label;
-    data['active'] = this.active;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['url'] = url;
+    data['label'] = label;
+    data['active'] = active;
     return data;
   }
 }

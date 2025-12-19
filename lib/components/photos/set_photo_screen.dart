@@ -1,4 +1,4 @@
-import 'dart:io' if (dart.library.html) 'dart:html' as html;
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -31,7 +31,8 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Camera is not available on web. Please use gallery instead.'),
+              content: Text(
+                  'Camera is not available on web. Please use gallery instead.'),
               duration: Duration(seconds: 3),
             ),
           );
@@ -42,7 +43,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
 
       final image = await ImagePicker().pickImage(source: source);
       if (image == null) return;
-      
+
       if (kIsWeb) {
         // On web, just use the XFile directly
         if (mounted) {
@@ -67,7 +68,8 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pick image: ${e.message ?? "Unknown error"}'),
+            content:
+                Text('Failed to pick image: ${e.message ?? "Unknown error"}'),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -79,7 +81,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
   Future<File?> _cropImage({required File imageFile}) async {
     // Image cropper might not work on web, skip cropping
     if (kIsWeb) return imageFile;
-    
+
     CroppedFile? croppedImage =
         await ImageCropper().cropImage(sourcePath: imageFile.path);
     if (croppedImage == null) return null;
@@ -117,7 +119,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
       body: SafeArea(
         child: Padding(
           padding:
-          const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
+              const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -139,7 +141,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
                       ),
                       Text(
                         'Photos make your profile more engaging',
-                       // style: kHeadSubtitleTextStyle,
+                        // style: kHeadSubtitleTextStyle,
                       ),
                     ],
                   ),
@@ -167,16 +169,17 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
                           child: Center(
                             child: _image == null && _pickedFile == null
                                 ? const Text(
-                              'No image selected',
-                              style: TextStyle(fontSize: 20),
-                            )
+                                    'No image selected',
+                                    style: TextStyle(fontSize: 20),
+                                  )
                                 : kIsWeb && _pickedFile != null
                                     ? FutureBuilder<Uint8List>(
                                         future: _pickedFile!.readAsBytes(),
                                         builder: (context, snapshot) {
                                           if (snapshot.hasData) {
                                             return CircleAvatar(
-                                              backgroundImage: MemoryImage(snapshot.data!),
+                                              backgroundImage:
+                                                  MemoryImage(snapshot.data!),
                                               radius: 200.0,
                                             );
                                           }

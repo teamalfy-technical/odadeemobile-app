@@ -14,11 +14,9 @@ ThemeData theme() {
       primary: odaPrimary,
       secondary: odaSecondary,
       surface: odaCardBackground,
-      background: odaBackground,
       onPrimary: Colors.white,
       onSecondary: odaBackground,
       onSurface: bodyText1,
-      onBackground: bodyText1,
     ),
     cardTheme: const CardThemeData(
       color: odaCardBackground,

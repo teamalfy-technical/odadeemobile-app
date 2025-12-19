@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/Screens/AllUsers/user_detail_screen.dart';
 import 'package:odadee/Screens/Profile/user_profile_screen.dart';

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:radio_player/radio_player.dart';
 
 class RadioScreen extends StatefulWidget {
-  const RadioScreen({Key? key}) : super(key: key);
+  const RadioScreen({super.key});
 
   @override
   State<RadioScreen> createState() => _RadioScreenState();
 }
 
 class _RadioScreenState extends State<RadioScreen> {
-  RadioPlayer _radioPlayer = RadioPlayer();
+  final RadioPlayer _radioPlayer = RadioPlayer();
   bool isPlaying = false;
   List<String>? metadata;
 
@@ -64,12 +64,12 @@ class _RadioScreenState extends State<RadioScreen> {
                         fit: BoxFit.cover,
                       );
                     }
-                    return Container(
+                    return SizedBox(
                       height: 180,
                       width: 180,
                       child: ClipRRect(
-                        child: artwork,
                         borderRadius: BorderRadius.circular(10.0),
+                        child: artwork,
                       ),
                     );
                   },

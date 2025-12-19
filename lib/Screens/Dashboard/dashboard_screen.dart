@@ -3,22 +3,17 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:odadee/Screens/AllUsers/all_users_screen.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart'
     as users_model;
 import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
-import 'package:odadee/Screens/Articles/all_news_screen.dart';
 import 'package:odadee/Screens/Members/members_screen.dart';
 import 'package:odadee/Screens/Articles/models/all_articles_model.dart'
     as articles_model;
-import 'package:odadee/Screens/Articles/news_details.dart';
 import 'package:odadee/Screens/Events/event_details.dart';
 import 'package:odadee/Screens/Events/events_list.dart';
-import 'package:odadee/Screens/Profile/user_profile_screen.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Projects/project_details.dart';
 import 'package:odadee/Screens/Projects/projects_screen.dart';
-import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/Screens/Discussions/discussions_screen.dart';
 import 'package:odadee/Screens/YearGroup/year_group_screen.dart';
 import 'package:odadee/components/stat_card.dart';
@@ -461,33 +456,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final articlesData =
                   snapshot.data![3] as articles_model.AllArticlesModel?;
 
-              final statsData = snapshot.data![4] as Map<String, dynamic>?;
-
               final yearGroupMembers =
                   snapshot.data![5] as List<YearGroupMember>;
 
               final yearGroupContributions = snapshot.data![6] as double;
 
               // Check if critical data is null (users, events, projects are required)
-              if (userData == null ||
-                  eventsData == null ||
-                  projectsData == null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red, size: 60),
-                      SizedBox(height: 20),
-                      Text('Error: Unable to load required data'),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () => setState(() {}),
-                        child: Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
+              // Data is guaranteed to be present if we get here
 
               final int usersCount = userData.users?.data?.length ?? 0;
               final int eventsCount = eventsData.length;

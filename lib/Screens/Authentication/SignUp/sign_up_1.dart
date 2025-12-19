@@ -11,12 +11,13 @@ import 'package:odadee/Screens/Authentication/SignUp/sign_up_2.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/year_group_service.dart';
 
 class RegisterResult {
   final bool success;
   final String? error;
   final Map<String, dynamic>? user;
-  
+
   RegisterResult({required this.success, this.error, this.user});
 }
 
@@ -33,7 +34,7 @@ Future<RegisterResult> registerUser(Map<String, dynamic> data) async {
       username: data['username'],
       country: data['country'],
     );
-    
+
     return RegisterResult(success: true, user: result['user']);
   } catch (e) {
     debugPrint('Registration error: $e');
@@ -75,6 +76,9 @@ class _SignUp1State extends State<SignUp1> {
   String? email;
   String? password;
 
+  List<YearGroup> _yearGroups = [];
+  bool _loadingYearGroups = true;
+
   /* get_fcm_token() async {
     final fcmToken = await FirebaseMessaging.instance.getToken();
     log("FCMToken $fcmToken");
@@ -101,6 +105,27 @@ class _SignUp1State extends State<SignUp1> {
     //get_fcm_token();
 
     platformType = getPlatformType();
+    _fetchYearGroups();
+  }
+
+  Future<void> _fetchYearGroups() async {
+    try {
+      final yearGroupService = YearGroupService();
+      final groups = await yearGroupService.getPublicYearGroups();
+      if (mounted) {
+        setState(() {
+          _yearGroups = groups;
+          _loadingYearGroups = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching year groups: $e');
+      if (mounted) {
+        setState(() {
+          _loadingYearGroups = false;
+        });
+      }
+    }
   }
 
   @override
@@ -180,8 +205,25 @@ class _SignUp1State extends State<SignUp1> {
                                           },
                                           countryListTheme:
                                               CountryListThemeData(
+                                                  backgroundColor:
+                                                      odaBackground,
                                                   textStyle: TextStyle(
-                                                      color: Colors.black)));
+                                                      color: Colors.white),
+                                                  searchTextStyle: TextStyle(
+                                                      color: Colors.white),
+                                                  inputDecoration:
+                                                      InputDecoration(
+                                                    hintText: 'Search',
+                                                    hintStyle: TextStyle(
+                                                        color: Colors.grey),
+                                                    prefixIcon: Icon(
+                                                        Icons.search,
+                                                        color: Colors.grey),
+                                                    border: OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.grey),
+                                                    ),
+                                                  )));
                                     },
                                     child: Container(
                                       width: MediaQuery.of(context).size.width,
@@ -516,8 +558,9 @@ class _SignUp1State extends State<SignUp1> {
                                         r"{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]"
                                         r"{0,253}[a-zA-Z0-9])?)*$";
                                     RegExp regex = RegExp(pattern);
-                                    if (!regex.hasMatch(value))
+                                    if (!regex.hasMatch(value)) {
                                       return 'Enter a valid email address';
+                                    }
 
                                     return null;
                                   },
@@ -808,10 +851,8 @@ class _SignUp1State extends State<SignUp1> {
 
             if (data.success && data.user != null) {
               WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SignInScreen()));
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => SignInScreen()));
 
                 showDialog(
                     barrierDismissible: true,
@@ -857,7 +898,8 @@ class _SignUp1State extends State<SignUp1> {
                             Text("Error"),
                           ],
                         ),
-                        content: Text(data.error ?? "Registration failed. Please try again."),
+                        content: Text(data.error ??
+                            "Registration failed. Please try again."),
                       );
                     });
               });
@@ -947,45 +989,60 @@ class _SignUp1State extends State<SignUp1> {
                           children: [
                             SizedBox(
                               height: 150, // Adjust the height as needed
-                              child: ListView.builder(
-                                itemCount: 100, // Number of years to display
-                                itemBuilder: (BuildContext context, int index) {
-                                  final year = 1960 + index;
-                                  return InkWell(
-                                    onTap: () {
-                                      print(year.toString());
-                                      setState(() {
-                                        yearGroup = year.toString();
-                                        Navigator.of(context)
-                                            .pop(year.toString());
-                                      });
-                                    },
-                                    child: SizedBox(
-                                      height: 50,
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            year.toString(),
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold),
+                              child: _loadingYearGroups
+                                  ? Center(child: CircularProgressIndicator())
+                                  : _yearGroups.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            'No year groups available',
+                                            style:
+                                                TextStyle(color: Colors.grey),
                                           ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          SizedBox(
-                                            width: 150,
-                                            child: Divider(
-                                              color: Colors.black,
-                                              thickness: 1,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                        )
+                                      : ListView.builder(
+                                          itemCount: _yearGroups.length,
+                                          itemBuilder: (BuildContext context,
+                                              int index) {
+                                            final group = _yearGroups[index];
+                                            return InkWell(
+                                              onTap: () {
+                                                debugPrint(
+                                                    group.year.toString());
+                                                setState(() {
+                                                  yearGroup =
+                                                      group.year.toString();
+                                                  Navigator.of(context).pop(
+                                                      group.year.toString());
+                                                });
+                                              },
+                                              child: SizedBox(
+                                                height: 50,
+                                                child: Column(
+                                                  children: [
+                                                    Text(
+                                                      group.name,
+                                                      style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 5,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 150,
+                                                      child: Divider(
+                                                        color: Colors.black,
+                                                        thickness: 1,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
                             ),
                           ],
                         ),

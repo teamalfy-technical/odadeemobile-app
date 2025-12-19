@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/models/project.dart';
 import 'package:odadee/models/event.dart';
@@ -32,6 +33,25 @@ class YearGroupService {
         return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
       }
       throw Exception('Failed to load year groups');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Fetches year groups from the public API endpoint (no authentication required)
+  /// Use this for registration/sign-up flows
+  Future<List<YearGroup>> getPublicYearGroups() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://odadee.net/api/public/year-groups'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> groupsJson = data['yearGroups'] ?? [];
+        return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
+      }
+      throw Exception('Failed to load public year groups');
     } catch (e) {
       rethrow;
     }
@@ -125,24 +145,25 @@ class YearGroupService {
       if (userData == null) {
         userData = await _authService.getCurrentUser();
       }
-      
+
       final graduationYearRaw = userData['graduationYear'];
-      
+
       if (graduationYearRaw == null) return null;
-      
-      final int? graduationYear = graduationYearRaw is int 
-          ? graduationYearRaw 
+
+      final int? graduationYear = graduationYearRaw is int
+          ? graduationYearRaw
           : int.tryParse(graduationYearRaw.toString());
-      
+
       if (graduationYear == null) return null;
-      
+
       final yearGroups = await getAllYearGroups();
-      
+
       final matchingGroup = yearGroups.firstWhere(
         (g) => g.year == graduationYear,
-        orElse: () => throw Exception('Year group not found for year $graduationYear'),
+        orElse: () =>
+            throw Exception('Year group not found for year $graduationYear'),
       );
-      
+
       return matchingGroup;
     } catch (e) {
       return null;
@@ -170,14 +191,15 @@ class YearGroupService {
     try {
       final duesCollection = await getDuesCollectionSummary(yearGroupId);
       if (duesCollection != null) {
-        return duesCollection.totalCollectedAmount + duesCollection.totalPendingAmount;
+        return duesCollection.totalCollectedAmount +
+            duesCollection.totalPendingAmount;
       }
-      
+
       final stats = await getYearGroupStats(yearGroupId);
       if (stats != null) {
         return stats.totalAmount;
       }
-      
+
       final response = await _authService.authenticatedRequest(
         'GET',
         '/api/year-groups/$yearGroupId',
@@ -186,16 +208,19 @@ class YearGroupService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final yearGroup = data['yearGroup'] ?? data;
-        
+
         final totalDues = _parseDouble(yearGroup['totalDues']);
-        final membershipFees = _parseDouble(yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees']);
-        final collections = _parseDouble(yearGroup['totalCollections'] ?? yearGroup['collections']);
-        
+        final membershipFees = _parseDouble(
+            yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees']);
+        final collections = _parseDouble(
+            yearGroup['totalCollections'] ?? yearGroup['collections']);
+
         if (totalDues > 0 || membershipFees > 0 || collections > 0) {
           return totalDues + membershipFees + collections;
         }
-        
-        return _parseDouble(yearGroup['totalAmount'] ?? yearGroup['totalContributions']);
+
+        return _parseDouble(
+            yearGroup['totalAmount'] ?? yearGroup['totalContributions']);
       }
       return 0.0;
     } catch (e) {
@@ -203,7 +228,8 @@ class YearGroupService {
     }
   }
 
-  Future<DuesCollectionSummary?> getDuesCollectionSummary(String yearGroupId) async {
+  Future<DuesCollectionSummary?> getDuesCollectionSummary(
+      String yearGroupId) async {
     try {
       final response = await _authService.authenticatedRequest(
         'GET',
@@ -214,11 +240,11 @@ class YearGroupService {
         final data = jsonDecode(response.body);
         return DuesCollectionSummary.fromJson(data);
       }
-      
+
       if (response.statusCode == 403) {
         return null;
       }
-      
+
       return null;
     } catch (e) {
       return null;
@@ -245,16 +271,22 @@ class YearGroupStats {
 
   factory YearGroupStats.fromJson(Map<String, dynamic> json) {
     return YearGroupStats(
-      totalContributions: (json['totalContributions'] ?? json['total_contributions'] ?? 0).toDouble(),
+      totalContributions:
+          (json['totalContributions'] ?? json['total_contributions'] ?? 0)
+              .toDouble(),
       totalDues: (json['totalDues'] ?? json['total_dues'] ?? 0).toDouble(),
-      totalMembershipFees: (json['totalMembershipFees'] ?? json['membership_fees'] ?? 0).toDouble(),
-      totalCollections: (json['totalCollections'] ?? json['collections'] ?? 0).toDouble(),
+      totalMembershipFees:
+          (json['totalMembershipFees'] ?? json['membership_fees'] ?? 0)
+              .toDouble(),
+      totalCollections:
+          (json['totalCollections'] ?? json['collections'] ?? 0).toDouble(),
       membersCount: json['membersCount'] ?? json['members_count'] ?? 0,
       projectsCount: json['projectsCount'] ?? json['projects_count'] ?? 0,
     );
   }
 
-  double get totalAmount => totalContributions + totalDues + totalMembershipFees + totalCollections;
+  double get totalAmount =>
+      totalContributions + totalDues + totalMembershipFees + totalCollections;
 }
 
 class DuesCollectionSummary {
@@ -286,11 +318,13 @@ class DuesCollectionSummary {
   double get totalCollectedAmount => double.tryParse(totalCollected) ?? 0.0;
   double get totalPendingAmount => double.tryParse(totalPending) ?? 0.0;
   double get totalAmount => totalCollectedAmount + totalPendingAmount;
-  
-  String get formattedTotalCollected => '$currency ${totalCollectedAmount.toStringAsFixed(2)}';
-  String get formattedTotalPending => '$currency ${totalPendingAmount.toStringAsFixed(2)}';
+
+  String get formattedTotalCollected =>
+      '$currency ${totalCollectedAmount.toStringAsFixed(2)}';
+  String get formattedTotalPending =>
+      '$currency ${totalPendingAmount.toStringAsFixed(2)}';
   String get formattedTotal => '$currency ${totalAmount.toStringAsFixed(2)}';
-  
+
   double get collectionRate {
     if (totalAmount == 0) return 0;
     return (totalCollectedAmount / totalAmount) * 100;
@@ -329,13 +363,19 @@ class DuesPayment {
       phoneNumber: json['phoneNumber'],
       amount: YearGroupService._parseDouble(json['amount']),
       status: json['status'] ?? 'pending',
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'])
+          : null,
     );
   }
 
   String get fullName => '$firstName $lastName';
-  bool get isSuccessful => status.toLowerCase() == 'successful' || status.toLowerCase() == 'completed';
+  bool get isSuccessful =>
+      status.toLowerCase() == 'successful' ||
+      status.toLowerCase() == 'completed';
   bool get isPending => status.toLowerCase() == 'pending';
 }
 
@@ -358,8 +398,9 @@ class YearGroup {
 
   factory YearGroup.fromJson(Map<String, dynamic> json) {
     final yearRaw = json['year'];
-    final int year = yearRaw is int ? yearRaw : int.tryParse(yearRaw?.toString() ?? '') ?? 0;
-    
+    final int year =
+        yearRaw is int ? yearRaw : int.tryParse(yearRaw?.toString() ?? '') ?? 0;
+
     return YearGroup(
       id: json['id'] ?? '',
       name: json['name'] ?? 'Class of $year',
@@ -430,7 +471,7 @@ class MemberUser {
   factory MemberUser.fromJson(Map<String, dynamic> json) {
     String? rawProfileImage = json['profileImage'];
     String? profileImage = ImageUrlHelper.normalizeImageUrl(rawProfileImage);
-    
+
     return MemberUser(
       id: json['id'],
       firstName: json['firstName'] ?? '',
@@ -440,9 +481,7 @@ class MemberUser {
       profession: json['profession'],
       location: json['location'],
       profileImage: profileImage,
-      skills: json['skills'] != null
-          ? List<String>.from(json['skills'])
-          : null,
+      skills: json['skills'] != null ? List<String>.from(json['skills']) : null,
     );
   }
 

@@ -5,7 +5,7 @@ import 'package:odadee/components/pay_dues_modal.dart';
 import 'package:odadee/services/auth_service.dart';
 
 class PayDuesScreen extends StatefulWidget {
-  const PayDuesScreen({Key? key}) : super(key: key);
+  const PayDuesScreen({super.key});
 
   @override
   State<PayDuesScreen> createState() => _PayDuesScreenState();

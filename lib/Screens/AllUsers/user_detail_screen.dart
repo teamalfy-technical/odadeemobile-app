@@ -14,7 +14,7 @@ import '../Radio/playing_screen.dart';
 
 class UserDetailScreen extends StatefulWidget {
   final Data data;
-  const UserDetailScreen({Key? key, required this.data}) : super(key: key);
+  const UserDetailScreen({super.key, required this.data});
 
   @override
   State<UserDetailScreen> createState() => _UserDetailScreenState();
@@ -229,7 +229,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                               left: 0,
                                               right: 0,
 
-                                              child: Container(
+                                              child: SizedBox(
                                                 //color: Colors.red,
                                                 width: MediaQuery.of(context).size.width,
                                                 child: Row(
@@ -520,7 +520,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("Nick Name:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -535,7 +535,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("url:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -551,7 +551,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("email:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -569,7 +569,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("PIN:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -585,7 +585,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("Skype ID:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -623,7 +623,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("Profession:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -639,7 +639,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("Job Title:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -656,7 +656,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("Place of work:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -672,7 +672,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("House:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -688,7 +688,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("City:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -705,7 +705,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 Row(
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
+                    SizedBox(
                         width: 150,
                         child: Text("Status:", style: TextStyle(fontSize: 18, color: Colors.grey.withOpacity(0.9)),)),
 
@@ -732,14 +732,13 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   Widget _status(){
     return  Column(
       children: [
-        Container(
+        SizedBox(
           height: MediaQuery.of(context).size.height,
           child: widget.data.userStatus != null && widget.data.userStatus!.isNotEmpty
               ? ListView.builder(
             itemCount: widget.data.userStatus!.length,
               itemBuilder: (context, index){
                 final statusItem = widget.data.userStatus![index];
-                if (statusItem == null) return SizedBox.shrink();
                 
                 return Padding(
                   padding: const EdgeInsets.all(10.0),

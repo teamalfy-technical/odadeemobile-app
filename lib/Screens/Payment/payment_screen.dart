@@ -7,7 +7,7 @@ import 'package:odadee/constants.dart';
 class PaymentScreen extends StatefulWidget {
   final String paymentUrl;
 
-  const PaymentScreen({Key? key, required this.paymentUrl}) : super(key: key);
+  const PaymentScreen({super.key, required this.paymentUrl});
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();

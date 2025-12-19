@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../utils/image_url_helper.dart';
 
 class EventImageWidget extends StatefulWidget {
   final String? imageUrl;
@@ -11,14 +10,14 @@ class EventImageWidget extends StatefulWidget {
   final BorderRadius? borderRadius;
 
   const EventImageWidget({
-    Key? key,
+    super.key,
     required this.imageUrl,
-    this.placeholderImage = 'assets/images/oda_logo.png',
+    this.placeholderImage = 'assets/images/event_placeholder.png',
     this.height = 200,
     this.width = double.infinity,
     this.fit = BoxFit.cover,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   State<EventImageWidget> createState() => _EventImageWidgetState();
@@ -44,12 +43,13 @@ class _EventImageWidgetState extends State<EventImageWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // If no image URL is provided, show placeholder
     if (widget.imageUrl == null || widget.imageUrl!.isEmpty) {
       return _buildPlaceholder();
     }
 
-    final String? normalizedUrl = ImageUrlHelper.normalizeImageUrl(widget.imageUrl);
-    if (normalizedUrl == null) {
+    // Check if URL is a valid HTTP/HTTPS URL
+    if (!widget.imageUrl!.startsWith('http://') && !widget.imageUrl!.startsWith('https://')) {
       return _buildPlaceholder();
     }
 
@@ -77,7 +77,7 @@ class _EventImageWidgetState extends State<EventImageWidget> {
             borderRadius: widget.borderRadius ?? BorderRadius.zero,
             child: Image(
               image: NetworkImage(
-                normalizedUrl,
+                widget.imageUrl!,
                 headers: headers,
               ),
               fit: widget.fit,

@@ -45,7 +45,7 @@ Future<RadiosModel> getRadioStations() async {
 
 
 class RadioScreen extends StatefulWidget {
-  const RadioScreen({Key? key}) : super(key: key);
+  const RadioScreen({super.key});
 
   @override
   State<RadioScreen> createState() => _RadioScreenState();
@@ -56,7 +56,7 @@ class _RadioScreenState extends State<RadioScreen> {
 
   Future<RadiosModel>? _futureGetAllStations;
 
-  RadioPlayer _radioPlayer = RadioPlayer();
+  final RadioPlayer _radioPlayer = RadioPlayer();
   bool isPlaying = false;
 
 
@@ -116,7 +116,7 @@ class _RadioScreenState extends State<RadioScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              body: Container(
+              body: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -413,7 +413,7 @@ class _RadioScreenState extends State<RadioScreen> {
           }
 
           return Scaffold(
-            body: Container(
+            body: SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,

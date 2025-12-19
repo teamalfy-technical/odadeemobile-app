@@ -7,15 +7,15 @@ class RadiosModel {
   RadiosModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     response = json['response'] != null
-        ? new Response.fromJson(json['response'])
+        ? Response.fromJson(json['response'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    if (this.response != null) {
-      data['response'] = this.response!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    if (response != null) {
+      data['response'] = response!.toJson();
     }
     return data;
   }
@@ -31,18 +31,18 @@ class Response {
     if (json['hits'] != null) {
       hits = <Hits>[];
       json['hits'].forEach((v) {
-        hits!.add(new Hits.fromJson(v));
+        hits!.add(Hits.fromJson(v));
       });
     }
     total = json['total'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.hits != null) {
-      data['hits'] = this.hits!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (hits != null) {
+      data['hits'] = hits!.map((v) => v.toJson()).toList();
     }
-    data['total'] = this.total;
+    data['total'] = total;
     return data;
   }
 }
@@ -85,17 +85,17 @@ class Hits {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['key'] = this.key;
-    data['name'] = this.name;
-    data['stream'] = this.stream;
-    data['website'] = this.website;
-    data['genre'] = this.genre;
-    data['logo'] = this.logo;
-    data['language'] = this.language;
-    data['country'] = this.country;
-    data['city'] = this.city;
-    data['description'] = this.description;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['key'] = key;
+    data['name'] = name;
+    data['stream'] = stream;
+    data['website'] = website;
+    data['genre'] = genre;
+    data['logo'] = logo;
+    data['language'] = language;
+    data['country'] = country;
+    data['city'] = city;
+    data['description'] = description;
     return data;
   }
 }

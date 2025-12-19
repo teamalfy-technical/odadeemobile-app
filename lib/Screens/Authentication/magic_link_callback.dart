@@ -7,8 +7,7 @@ import 'package:odadee/constants.dart';
 class MagicLinkCallbackScreen extends StatefulWidget {
   final String token;
 
-  const MagicLinkCallbackScreen({Key? key, required this.token})
-      : super(key: key);
+  const MagicLinkCallbackScreen({super.key, required this.token});
 
   @override
   State<MagicLinkCallbackScreen> createState() =>

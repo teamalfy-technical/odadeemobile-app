@@ -7,15 +7,15 @@ class UpdateImageModel {
   UpdateImageModel.fromJson(Map<String, dynamic> json) {
     message = json['message'];
     userData = json['userData'] != null
-        ? new UserData.fromJson(json['userData'])
+        ? UserData.fromJson(json['userData'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    if (this.userData != null) {
-      data['userData'] = this.userData!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    if (userData != null) {
+      data['userData'] = userData!.toJson();
     }
     return data;
   }
@@ -53,15 +53,15 @@ class UserData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['firstName'] = this.firstName;
-    data['lastName'] = this.lastName;
-    data['email'] = this.email;
-    data['yearGroup'] = this.yearGroup;
-    data['image'] = this.image;
-    data['is_verified'] = this.isVerified;
-    data['has_image'] = this.hasImage;
-    data['has_bio'] = this.hasBio;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['firstName'] = firstName;
+    data['lastName'] = lastName;
+    data['email'] = email;
+    data['yearGroup'] = yearGroup;
+    data['image'] = image;
+    data['is_verified'] = isVerified;
+    data['has_image'] = hasImage;
+    data['has_bio'] = hasBio;
     return data;
   }
 }

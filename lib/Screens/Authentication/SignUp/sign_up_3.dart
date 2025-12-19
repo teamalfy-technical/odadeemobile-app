@@ -7,14 +7,14 @@ import 'package:odadee/constants.dart';
 class SignUp3 extends StatefulWidget {
   final data;
 
-  const SignUp3({Key? key, required this.data}) : super(key: key);
+  const SignUp3({super.key, required this.data});
 
   @override
   State<SignUp3> createState() => _SignUp3State();
 }
 
 class _SignUp3State extends State<SignUp3> {
-  TextEditingController? _controller = TextEditingController();
+  final TextEditingController? _controller = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
   List<String> interests = [];
@@ -247,6 +247,10 @@ class _SignUp3State extends State<SignUp3> {
                                     return Container(
                                       padding: EdgeInsets.all(8),
                                       margin: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        color: odaBorder,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
@@ -276,10 +280,6 @@ class _SignUp3State extends State<SignUp3> {
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: odaBorder,
-                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                     );
                                   }).toList(),
@@ -314,7 +314,7 @@ class _SignUp3State extends State<SignUp3> {
                                   //widget.data['shortBio'] = shortBio;
                                   //widget.data['interests'] = interests.toString();
 
-                                  var _data = {
+                                  var data = {
                                     "shortBio": shortBio,
                                     "interests[]": interests,
                                   };
@@ -324,7 +324,7 @@ class _SignUp3State extends State<SignUp3> {
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (BuildContext context) =>
                                           SignUp4(
-                                              data: _data,
+                                              data: data,
                                               user_data: widget.data)));
                                 }
 

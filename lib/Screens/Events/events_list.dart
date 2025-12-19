@@ -17,6 +17,8 @@ import 'package:odadee/components/event_image_widget.dart';
 import 'package:http/http.dart' as http;
 
 class EventsScreen extends StatefulWidget {
+  const EventsScreen({super.key});
+
   @override
   _EventsScreenState createState() => _EventsScreenState();
 }

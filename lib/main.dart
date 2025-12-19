@@ -12,7 +12,6 @@ import 'package:odadee/services/migration_helper.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/theme_service.dart';
 
-import 'components/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -7,8 +7,8 @@ import 'package:odadee/constants.dart';
 
 class ResetPassword extends StatefulWidget {
   const ResetPassword({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ResetPassword> createState() => _ResetPasswordState();
@@ -245,18 +245,18 @@ class _ResetPasswordState extends State<ResetPassword> {
 
                                 print("##############");
 
-                                var _data = {
+                                var data = {
                                   "yearGroup": yearGroup,
                                   "fullName": fullName,
                                   "email": email,
                                   "password": password,
                                 };
 
-                                print(_data);
+                                print(data);
 
                                 Navigator.of(context).push(MaterialPageRoute(
                                     builder: (BuildContext context) =>
-                                        SignUp2(data: _data)));
+                                        SignUp2(data: data)));
                               }
                             },
                             child: Align(
@@ -319,7 +319,7 @@ class _ResetPasswordState extends State<ResetPassword> {
       backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
           height: 300,
           child: Stack(
             children: [
@@ -363,7 +363,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                       SizedBox(
                         height: 40,
                       ),
-                      Container(
+                      SizedBox(
                         //color: Colors.red,
                         width: MediaQuery.of(context).size.width,
                         child: Column(
@@ -386,7 +386,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                             .pop(year.toString());
                                       });
                                     },
-                                    child: Container(
+                                    child: SizedBox(
                                       height: 50,
                                       child: Column(
                                         children: [
@@ -397,7 +397,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                           SizedBox(
                                             height: 5,
                                           ),
-                                          Container(
+                                          SizedBox(
                                             width: 150,
                                             child: Divider(
                                               color: Colors.black,

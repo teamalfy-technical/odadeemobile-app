@@ -11,7 +11,7 @@ import '../SignIn/sgin_in_screen.dart';
 
 Future<UpdateBioModel> updateBio(bio, interests, user) async {
   final response = await http.post(
-    Uri.parse(hostName + "/api/update-bio"),
+    Uri.parse("$hostName/api/update-bio"),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
       'Accept': 'application/json'
@@ -49,8 +49,7 @@ class SignUp4 extends StatefulWidget {
   final data;
   final user_data;
 
-  const SignUp4({Key? key, required this.data, required this.user_data})
-      : super(key: key);
+  const SignUp4({super.key, required this.data, required this.user_data});
 
   @override
   State<SignUp4> createState() => _SignUp4State();
@@ -227,7 +226,7 @@ class _SignUp4State extends State<SignUp4> {
                                   ),
                                   Container(
                                     child: Wrap(
-                                      children: _interests!
+                                      children: _interests
                                           .asMap()
                                           .entries
                                           .map((entry) {
@@ -236,16 +235,16 @@ class _SignUp4State extends State<SignUp4> {
                                         return Container(
                                           padding: EdgeInsets.all(8),
                                           margin: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            color: odaBorder,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(interest),
                                             ],
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: odaBorder,
-                                            borderRadius:
-                                                BorderRadius.circular(10),
                                           ),
                                         );
                                       }).toList(),
@@ -340,7 +339,7 @@ class _SignUp4State extends State<SignUp4> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              body: Container(
+              body: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -481,6 +480,7 @@ class _SignUp4State extends State<SignUp4> {
         });
   }
 
+  @override
   void dispose() {
     super.dispose();
   }

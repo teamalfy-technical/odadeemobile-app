@@ -12,6 +12,8 @@ import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
 
 class ProjectsScreen extends StatefulWidget {
+  const ProjectsScreen({super.key});
+
   @override
   _ProjectsScreenState createState() => _ProjectsScreenState();
 }
@@ -21,7 +23,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   int currentPage = 1;
   int lastPage = 1;
   bool isLoading = false;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {

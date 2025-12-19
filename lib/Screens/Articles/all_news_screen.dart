@@ -13,6 +13,8 @@ import 'package:odadee/services/auth_service.dart';
 import 'news_details.dart';
 
 class AllNewsScreen extends StatefulWidget {
+  const AllNewsScreen({super.key});
+
   @override
   _AllNewsScreenState createState() => _AllNewsScreenState();
 }
@@ -22,7 +24,7 @@ class _AllNewsScreenState extends State<AllNewsScreen> {
   int currentPage = 1;
   int lastPage = 1;
   bool isLoading = false;
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {

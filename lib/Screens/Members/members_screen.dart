@@ -6,11 +6,9 @@ import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/services/auth_service.dart';
-import 'package:odadee/utils/semantic_search_helper.dart';
-import 'package:odadee/utils/image_url_helper.dart';
 
 class MembersScreen extends StatefulWidget {
-  const MembersScreen({Key? key}) : super(key: key);
+  const MembersScreen({super.key});
 
   @override
   State<MembersScreen> createState() => _MembersScreenState();
@@ -80,42 +78,39 @@ class _MembersScreenState extends State<MembersScreen> {
     }
   }
   
-  bool _hasProfileImage(dynamic member) {
-    final profileImage = member['profileImage'] ?? member['image'];
-    return profileImage != null && profileImage.toString().isNotEmpty;
-  }
-
-  List<dynamic> _sortByImageFirst(List<dynamic> memberList) {
-    final withImages = memberList.where((m) => _hasProfileImage(m)).toList();
-    final withoutImages = memberList.where((m) => !_hasProfileImage(m)).toList();
-    return [...withImages, ...withoutImages];
-  }
-
   void _filterMembers(String? query) {
     if (query == null || query.isEmpty) {
       setState(() {
-        members = _sortByImageFirst(allMembers);
+        members = allMembers;
         isLoading = false;
       });
       return;
     }
     
-    final scoredResults = SemanticSearchHelper.searchMembers(
-      query.trim(),
-      allMembers,
-      minScore: 0.15,
-    );
-    
-    final filtered = scoredResults.map((result) => result['member']).toList();
+    final searchLower = query.toLowerCase();
+    final filtered = allMembers.where((member) {
+      final firstName = (member['firstName'] ?? '').toString().toLowerCase();
+      final lastName = (member['lastName'] ?? '').toString().toLowerCase();
+      final email = (member['email'] ?? '').toString().toLowerCase();
+      final year = (member['graduationYear'] ?? '').toString();
+      final role = (member['currentRole'] ?? '').toString().toLowerCase();
+      final company = (member['company'] ?? '').toString().toLowerCase();
+      
+      return firstName.contains(searchLower) ||
+             lastName.contains(searchLower) ||
+             email.contains(searchLower) ||
+             year.contains(searchLower) ||
+             role.contains(searchLower) ||
+             company.contains(searchLower);
+    }).toList();
     
     setState(() {
-      members = _sortByImageFirst(filtered);
+      members = filtered;
       isLoading = false;
     });
   }
 
   void _performSearch() {
-    if (isLoading || allMembers.isEmpty) return;
     _filterMembers(searchController.text);
   }
 
@@ -154,7 +149,7 @@ class _MembersScreenState extends State<MembersScreen> {
                 controller: searchController,
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Search by name, year, role, company...',
+                  hintText: 'Search members...',
                   hintStyle: TextStyle(color: Colors.white54),
                   prefixIcon: IconButton(
                     icon: Icon(Icons.search, color: odaSecondary),
@@ -178,7 +173,6 @@ class _MembersScreenState extends State<MembersScreen> {
                 onSubmitted: (_) => _performSearch(),
                 onChanged: (value) {
                   setState(() {});
-                  _performSearch();
                 },
               ),
             ),
@@ -334,12 +328,19 @@ class _MembersScreenState extends State<MembersScreen> {
     final firstName = member['firstName'] ?? '';
     final lastName = member['lastName'] ?? '';
     final email = member['email'] ?? '';
-    final profileImage = member['profileImage'] ?? member['image'];
+    final profileImage = member['profileImage'];
     final graduationYear = member['graduationYear']?.toString() ?? '';
     final currentRole = member['currentRole'] ?? '';
     final userId = member['id'];
 
-    String? imageUrl = ImageUrlHelper.normalizeImageUrl(profileImage);
+    String imageUrl = '';
+    if (profileImage != null && profileImage.toString().isNotEmpty) {
+      if (profileImage.startsWith('http')) {
+        imageUrl = profileImage;
+      } else {
+        imageUrl = '${ApiConfig.baseUrl}/$profileImage';
+      }
+    }
 
     return GestureDetector(
       onTap: () {
@@ -370,7 +371,7 @@ class _MembersScreenState extends State<MembersScreen> {
                 color: odaSecondary.withOpacity(0.2),
               ),
               child: ClipOval(
-                child: imageUrl != null && imageUrl.isNotEmpty
+                child: imageUrl.isNotEmpty
                     ? AuthenticatedImage(
                         imageUrl: imageUrl,
                         width: 80,

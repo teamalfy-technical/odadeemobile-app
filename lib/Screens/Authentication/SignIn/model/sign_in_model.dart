@@ -11,17 +11,17 @@ class SignInModel {
     message = json['message'];
     error = json['error'];
     userData = json['userData'] != null
-        ? new UserData.fromJson(json['userData'])
+        ? UserData.fromJson(json['userData'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['token'] = this.token;
-    data['message'] = this.message;
-    data['error'] = this.error;
-    if (this.userData != null) {
-      data['userData'] = this.userData!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['token'] = token;
+    data['message'] = message;
+    data['error'] = error;
+    if (userData != null) {
+      data['userData'] = userData!.toJson();
     }
     return data;
   }
@@ -65,17 +65,17 @@ class UserData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['firstName'] = this.firstName;
-    data['middleName'] = this.middleName;
-    data['lastName'] = this.lastName;
-    data['nickName'] = this.nickName;
-    data['yearGroup'] = this.yearGroup;
-    data['email'] = this.email;
-    data['createdTime'] = this.createdTime;
-    data['is_verified'] = this.isVerified;
-    data['has_image'] = this.hasImage;
-    data['has_bio'] = this.hasBio;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['firstName'] = firstName;
+    data['middleName'] = middleName;
+    data['lastName'] = lastName;
+    data['nickName'] = nickName;
+    data['yearGroup'] = yearGroup;
+    data['email'] = email;
+    data['createdTime'] = createdTime;
+    data['is_verified'] = isVerified;
+    data['has_image'] = hasImage;
+    data['has_bio'] = hasBio;
     return data;
   }
 }

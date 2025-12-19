@@ -35,7 +35,7 @@ Future<RadiosModel> getRadioStations() async {
 }
 
 class RadioScreen22 extends StatefulWidget {
-  const RadioScreen22({Key? key}) : super(key: key);
+  const RadioScreen22({super.key});
 
   @override
   State<RadioScreen22> createState() => _RadioScreen22State();
@@ -71,7 +71,7 @@ class _RadioScreen22State extends State<RadioScreen22> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              body: Container(
+              body: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -187,7 +187,7 @@ class _RadioScreen22State extends State<RadioScreen22> {
                                       SizedBox(
                                         height: 15,
                                       ),
-                                      Container(
+                                      SizedBox(
                                         height: 300,
                                         width:
                                             MediaQuery.of(context).size.width,
@@ -284,7 +284,7 @@ class _RadioScreen22State extends State<RadioScreen22> {
                                               ]),
                                         ],
                                       ),
-                                      Container(
+                                      SizedBox(
                                         height: 300,
                                         width:
                                             MediaQuery.of(context).size.width,
@@ -483,7 +483,7 @@ class _RadioScreen22State extends State<RadioScreen22> {
           }
 
           return Scaffold(
-            body: Container(
+            body: SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,

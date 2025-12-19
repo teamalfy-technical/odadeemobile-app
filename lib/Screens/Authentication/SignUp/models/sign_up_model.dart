@@ -14,18 +14,18 @@ class SignUpModel {
     username = json['username'];
     email = json['email'];
     userData = json['userData'] != null
-        ? new UserData.fromJson(json['userData'])
+        ? UserData.fromJson(json['userData'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['successTopMessage'] = this.successTopMessage;
-    data['successMessage'] = this.successMessage;
-    data['username'] = this.username;
-    data['email'] = this.email;
-    if (this.userData != null) {
-      data['userData'] = this.userData!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['successTopMessage'] = successTopMessage;
+    data['successMessage'] = successMessage;
+    data['username'] = username;
+    data['email'] = email;
+    if (userData != null) {
+      data['userData'] = userData!.toJson();
     }
     return data;
   }
@@ -60,14 +60,14 @@ class UserData {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['firstName'] = this.firstName;
-    data['middleName'] = this.middleName;
-    data['lastName'] = this.lastName;
-    data['email'] = this.email;
-    data['yearGroup'] = this.yearGroup;
-    data['about'] = this.about;
-    data['createdTime'] = this.createdTime;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['firstName'] = firstName;
+    data['middleName'] = middleName;
+    data['lastName'] = lastName;
+    data['email'] = email;
+    data['yearGroup'] = yearGroup;
+    data['about'] = about;
+    data['createdTime'] = createdTime;
     return data;
   }
 }

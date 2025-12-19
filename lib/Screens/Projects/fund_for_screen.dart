@@ -7,7 +7,7 @@ import 'package:simple_gradient_text/simple_gradient_text.dart';
 import '../Radio/playing_screen.dart';
 
 class FundForScreen extends StatefulWidget {
-  const FundForScreen({Key? key}) : super(key: key);
+  const FundForScreen({super.key});
 
   @override
   State<FundForScreen> createState() => _FundForScreenState();
@@ -340,7 +340,7 @@ class _FundForScreenState extends State<FundForScreen> {
       backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
           height: 250,
           child: Stack(
             children: [

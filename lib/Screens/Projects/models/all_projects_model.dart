@@ -1,5 +1,3 @@
-import '../../../utils/image_url_helper.dart';
-
 class AllProjectsModel {
   Projects? projects;
 
@@ -19,9 +17,9 @@ class AllProjectsModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.projects != null) {
-      data['projects'] = this.projects!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (projects != null) {
+      data['projects'] = projects!.toJson();
     }
     return data;
   }
@@ -62,7 +60,7 @@ class Projects {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
     firstPageUrl = json['first_page_url'];
@@ -72,7 +70,7 @@ class Projects {
     if (json['links'] != null) {
       links = <Links>[];
       json['links'].forEach((v) {
-        links!.add(new Links.fromJson(v));
+        links!.add(Links.fromJson(v));
       });
     }
     nextPageUrl = json['next_page_url'];
@@ -84,24 +82,24 @@ class Projects {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['current_page'] = this.currentPage;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['current_page'] = currentPage;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    data['first_page_url'] = this.firstPageUrl;
-    data['from'] = this.from;
-    data['last_page'] = this.lastPage;
-    data['last_page_url'] = this.lastPageUrl;
-    if (this.links != null) {
-      data['links'] = this.links!.map((v) => v.toJson()).toList();
+    data['first_page_url'] = firstPageUrl;
+    data['from'] = from;
+    data['last_page'] = lastPage;
+    data['last_page_url'] = lastPageUrl;
+    if (links != null) {
+      data['links'] = links!.map((v) => v.toJson()).toList();
     }
-    data['next_page_url'] = this.nextPageUrl;
-    data['path'] = this.path;
-    data['per_page'] = this.perPage;
-    data['prev_page_url'] = this.prevPageUrl;
-    data['to'] = this.to;
-    data['total'] = this.total;
+    data['next_page_url'] = nextPageUrl;
+    data['path'] = path;
+    data['per_page'] = perPage;
+    data['prev_page_url'] = prevPageUrl;
+    data['to'] = to;
+    data['total'] = total;
     return data;
   }
 }
@@ -159,7 +157,7 @@ class Data {
     endDate = json['endDate'];
     userId = json['userId'];
     yeargroup = json['yeargroup'];
-    image = ImageUrlHelper.normalizeImageUrl(json['image']);
+    image = json['image'];
     fundingTarget = json['fundingTarget'];
     fundingTargetDollar = json['fundingTargetDollar'];
     currentFunding = json['currentFunding'];
@@ -171,26 +169,26 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['title'] = this.title;
-    data['slug'] = this.slug;
-    data['categoryId'] = this.categoryId;
-    data['content'] = this.content;
-    data['status'] = this.status;
-    data['startDate'] = this.startDate;
-    data['endDate'] = this.endDate;
-    data['userId'] = this.userId;
-    data['yeargroup'] = this.yeargroup;
-    data['image'] = this.image;
-    data['fundingTarget'] = this.fundingTarget;
-    data['fundingTargetDollar'] = this.fundingTargetDollar;
-    data['currentFunding'] = this.currentFunding;
-    data['progress'] = this.progress;
-    data['currency'] = this.currency;
-    data['homePage'] = this.homePage;
-    data['forumId'] = this.forumId;
-    data['createdTime'] = this.createdTime;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['title'] = title;
+    data['slug'] = slug;
+    data['categoryId'] = categoryId;
+    data['content'] = content;
+    data['status'] = status;
+    data['startDate'] = startDate;
+    data['endDate'] = endDate;
+    data['userId'] = userId;
+    data['yeargroup'] = yeargroup;
+    data['image'] = image;
+    data['fundingTarget'] = fundingTarget;
+    data['fundingTargetDollar'] = fundingTargetDollar;
+    data['currentFunding'] = currentFunding;
+    data['progress'] = progress;
+    data['currency'] = currency;
+    data['homePage'] = homePage;
+    data['forumId'] = forumId;
+    data['createdTime'] = createdTime;
     return data;
   }
 }
@@ -209,10 +207,10 @@ class Links {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['url'] = this.url;
-    data['label'] = this.label;
-    data['active'] = this.active;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['url'] = url;
+    data['label'] = label;
+    data['active'] = active;
     return data;
   }
 }

@@ -10,8 +10,7 @@ import 'package:odadee/components/authenticated_image.dart';
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
 
-  const EditProfileScreen({Key? key, required this.currentUser})
-      : super(key: key);
+  const EditProfileScreen({super.key, required this.currentUser});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -430,7 +429,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           _openToMentor = value;
                         });
                       },
-                      activeColor: odaSecondary,
+                      activeThumbColor: odaSecondary,
                     ),
                   ],
                 ),

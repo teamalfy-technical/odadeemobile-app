@@ -18,11 +18,11 @@ import '../Radio/playing_screen.dart';
 import 'package:http/http.dart' as http;
 
 
-Future<CommentModel> getAllComments(comment_id) async {
+Future<CommentModel> getAllComments(commentId) async {
   try {
-    print('===== FETCHING COMMENTS FOR ARTICLE $comment_id =====');
+    print('===== FETCHING COMMENTS FOR ARTICLE $commentId =====');
     final authService = AuthService();
-    final response = await authService.authenticatedRequest('GET', "/api/comments/${comment_id.toString()}");
+    final response = await authService.authenticatedRequest('GET', "/api/comments/${commentId.toString()}");
 
     print('Comments API Status: ${response.statusCode}');
     print('Comments API Response: ${response.body}');
@@ -46,7 +46,7 @@ Future<CommentModel> getAllComments(comment_id) async {
 class NewsDetailsScreen extends StatefulWidget {
   final data;
 
-  const NewsDetailsScreen({Key? key, required this.data}) : super(key: key);
+  const NewsDetailsScreen({super.key, required this.data});
 
   @override
   State<NewsDetailsScreen> createState() => _NewsDetailsScreenState();
@@ -89,7 +89,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              body: Container(
+              body: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -374,7 +374,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                                               height: 10,
                                             ),
 
-                                            Container(
+                                            SizedBox(
                                               height: 350,
                                               child:       ListView.builder(
                                                   //shrinkWrap: true,
@@ -566,7 +566,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
           }
 
           return Scaffold(
-            body: Container(
+            body: SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -594,11 +594,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     var token = await getApiPref();
 
     final response = await http.post(
-      Uri.parse(hostName + "/api/comments"),
+      Uri.parse("$hostName/api/comments"),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Accept': 'application/json',
-        'Authorization': 'Bearer ' + token.toString(),
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode({
         "comment": commentText,
