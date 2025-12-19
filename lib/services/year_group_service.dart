@@ -39,27 +39,10 @@ class YearGroupService {
   }
 
   /// Fetches year groups for registration/sign-up flows
-  /// Falls back to generated year list if public API endpoint is unavailable
+  /// Always returns fallback list since public API endpoint is not available
   Future<List<YearGroup>> getPublicYearGroups() async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://odadee.net/api/public/year-groups'),
-      );
-
-      if (response.statusCode == 200) {
-        final contentType = response.headers['content-type'] ?? '';
-        if (contentType.contains('application/json')) {
-          final data = jsonDecode(response.body);
-          final List<dynamic> groupsJson = data['yearGroups'] ?? [];
-          if (groupsJson.isNotEmpty) {
-            return groupsJson.map((g) => YearGroup.fromJson(g)).toList();
-          }
-        }
-      }
-      return _generateFallbackYearGroups();
-    } catch (e) {
-      return _generateFallbackYearGroups();
-    }
+    // Public year groups endpoint is not available, use fallback directly
+    return _generateFallbackYearGroups();
   }
 
   /// Generate a list of year groups from 1960 to current year
