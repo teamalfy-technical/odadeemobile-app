@@ -90,6 +90,11 @@ class AuthService {
         }),
       );
 
+      final contentType = response.headers['content-type'] ?? '';
+      if (!contentType.contains('application/json')) {
+        throw Exception('Server error. Please try again later.');
+      }
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         if (data['accessToken'] != null && data['refreshToken'] != null) {
