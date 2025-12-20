@@ -27,6 +27,8 @@ import 'package:odadee/services/project_service.dart';
 import 'package:odadee/models/event.dart';
 import 'package:odadee/models/project.dart';
 import 'package:odadee/services/year_group_service.dart';
+import 'package:odadee/utils/image_url_helper.dart';
+import 'package:odadee/components/authenticated_image.dart';
 
 import '../Authentication/SignIn/sgin_in_screen.dart';
 
@@ -326,6 +328,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildMemberAvatar(
+    BuildContext context,
+    String? profileImage,
+    String firstName,
+    String lastName,
+    double size,
+  ) {
+    final normalizedUrl = profileImage != null && profileImage.isNotEmpty
+        ? ImageUrlHelper.normalizeImageUrl(profileImage)
+        : null;
+
+    final initials = (firstName.isNotEmpty ? firstName.substring(0, 1) : '') +
+        (lastName.isNotEmpty ? lastName.substring(0, 1) : '');
+
+    final initialsWidget = Container(
+      height: size,
+      width: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline,
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initials.isNotEmpty ? initials.toUpperCase() : '?',
+          style: TextStyle(
+            fontSize: size * 0.35,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textColor(context),
+          ),
+        ),
+      ),
+    );
+
+    if (normalizedUrl == null) {
+      return initialsWidget;
+    }
+
+    return Container(
+      height: size,
+      width: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline,
+          width: 2,
+        ),
+      ),
+      child: ClipOval(
+        child: AuthenticatedImage(
+          imageUrl: normalizedUrl,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorWidget: initialsWidget,
+        ),
+      ),
     );
   }
 
@@ -1210,62 +1275,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               ),
                                               child: Row(
                                                 children: [
-                                                  if (profileImage != null &&
-                                                      profileImage
-                                                          .isNotEmpty) ...[
-                                                    Container(
-                                                      height: 60,
-                                                      width: 60,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        image: DecorationImage(
-                                                            image: NetworkImage(
-                                                                profileImage),
-                                                            fit: BoxFit.cover),
-                                                      ),
-                                                    ),
-                                                  ] else ...[
-                                                    Container(
-                                                      height: 60,
-                                                      width: 60,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .surfaceContainer,
-                                                        border: Border.all(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .outline,
-                                                          width: 2,
-                                                        ),
-                                                      ),
-                                                      child: Center(
-                                                        child: Text(
-                                                          (firstName.isNotEmpty
-                                                                  ? firstName
-                                                                      .substring(
-                                                                          0, 1)
-                                                                  : '') +
-                                                              (lastName
-                                                                      .isNotEmpty
-                                                                  ? lastName
-                                                                      .substring(
-                                                                          0, 1)
-                                                                  : ''),
-                                                          style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color: AppColors
-                                                                  .textColor(
-                                                                      context)),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
+                                                  _buildMemberAvatar(
+                                                    context,
+                                                    profileImage,
+                                                    firstName,
+                                                    lastName,
+                                                    60,
+                                                  ),
                                                   SizedBox(width: 15),
                                                   Expanded(
                                                     child: Column(
