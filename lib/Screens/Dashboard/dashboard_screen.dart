@@ -338,14 +338,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String lastName,
     double size,
   ) {
-    final normalizedUrl = profileImage != null && profileImage.isNotEmpty
-        ? ImageUrlHelper.normalizeImageUrl(profileImage)
-        : null;
+    final trimmedImage = profileImage?.trim() ?? '';
+    String? normalizedUrl;
+    if (trimmedImage.isNotEmpty) {
+      final url = ImageUrlHelper.normalizeImageUrl(trimmedImage);
+      if (url != null && url.isNotEmpty && Uri.tryParse(url) != null) {
+        normalizedUrl = url;
+      }
+    }
 
     final initials = (firstName.isNotEmpty ? firstName.substring(0, 1) : '') +
         (lastName.isNotEmpty ? lastName.substring(0, 1) : '');
 
-    final initialsWidget = Container(
+    final initialsChild = Center(
+      child: Text(
+        initials.isNotEmpty ? initials.toUpperCase() : '?',
+        style: TextStyle(
+          fontSize: size * 0.35,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textColor(context),
+        ),
+      ),
+    );
+
+    return Container(
       height: size,
       width: size,
       decoration: BoxDecoration(
@@ -356,40 +372,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           width: 2,
         ),
       ),
-      child: Center(
-        child: Text(
-          initials.isNotEmpty ? initials.toUpperCase() : '?',
-          style: TextStyle(
-            fontSize: size * 0.35,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textColor(context),
-          ),
-        ),
-      ),
-    );
-
-    if (normalizedUrl == null) {
-      return initialsWidget;
-    }
-
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-          width: 2,
-        ),
-      ),
       child: ClipOval(
-        child: AuthenticatedImage(
-          imageUrl: normalizedUrl,
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorWidget: initialsWidget,
-        ),
+        child: normalizedUrl != null
+            ? AuthenticatedImage(
+                imageUrl: normalizedUrl,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorWidget: Container(
+                  width: size,
+                  height: size,
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  child: initialsChild,
+                ),
+              )
+            : initialsChild,
       ),
     );
   }
