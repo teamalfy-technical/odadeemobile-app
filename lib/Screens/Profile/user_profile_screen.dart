@@ -6,6 +6,7 @@ import 'package:odadee/components/footer_nav.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/services/user_service.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/utils/image_url_helper.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -291,11 +292,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final firstName = _userData!['firstName'] ?? '';
     final lastName = _userData!['lastName'] ?? '';
     final profileImagePath = _userData!['profileImage'];
-    // Convert relative path to full URL
+    // Use centralized image URL normalization
     final profileImage = profileImagePath != null && profileImagePath.toString().isNotEmpty
-        ? (profileImagePath.toString().startsWith('http')
-            ? profileImagePath.toString()
-            : 'https://odadee-connect.replit.app/$profileImagePath')
+        ? ImageUrlHelper.normalizeImageUrl(profileImagePath.toString())
         : null;
     final graduationYear = _userData!['graduationYear'];
 

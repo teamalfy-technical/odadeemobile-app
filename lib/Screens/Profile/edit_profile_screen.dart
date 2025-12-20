@@ -6,6 +6,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/user_service.dart';
 import 'package:odadee/components/authenticated_image.dart';
+import 'package:odadee/utils/image_url_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -69,10 +70,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (profileImagePath == null || profileImagePath.toString().trim().isEmpty) {
       return null;
     }
-    // Convert relative path to full URL
-    return profileImagePath.toString().startsWith('http')
-        ? profileImagePath.toString()
-        : 'https://odadee-connect.replit.app/$profileImagePath';
+    // Use centralized image URL normalization
+    return ImageUrlHelper.normalizeImageUrl(profileImagePath.toString());
   }
 
   Widget _buildProfileImageWidget() {

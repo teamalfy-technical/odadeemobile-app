@@ -7,6 +7,7 @@ class ImageUrlHelper {
       return null;
     }
 
+    // Already a full URL - return as-is
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
@@ -16,10 +17,17 @@ class ImageUrlHelper {
       normalizedUrl = normalizedUrl.substring(1);
     }
 
+    // Already contains the api/images path - just add base URL
+    if (normalizedUrl.startsWith('api/images/') || normalizedUrl.contains('/api/images/')) {
+      return '$baseUrl/$normalizedUrl';
+    }
+
+    // Starts with uploads/ - add the image endpoint
     if (normalizedUrl.startsWith('uploads/')) {
       return '$baseUrl$imageEndpoint/$normalizedUrl';
-    } else {
-      return '$baseUrl$imageEndpoint/uploads/$normalizedUrl';
     }
+    
+    // Plain filename or other path - add full prefix
+    return '$baseUrl$imageEndpoint/uploads/$normalizedUrl';
   }
 }
