@@ -52,14 +52,26 @@ class MyApp extends StatelessWidget {
         create: (_) => ThemeService(),
         child: Consumer<ThemeService>(
           builder: (context, themeService, _) {
-            return MaterialApp(
+            Widget app = MaterialApp(
               debugShowCheckedModeBanner: false,
               title: 'Odade3',
-              theme: themeService.isDarkMode 
-                  ? themeService.getDarkTheme() 
+              theme: themeService.isDarkMode
+                  ? themeService.getDarkTheme()
                   : themeService.getLightTheme(),
               home: MyHomePage(),
             );
+
+            // Center the app on web with max width
+            if (kIsWeb) {
+              return Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: app,
+                ),
+              );
+            }
+
+            return app;
           },
         ),
       ),
