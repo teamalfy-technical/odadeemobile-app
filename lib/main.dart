@@ -31,9 +31,9 @@ Future<void> main() async {
           [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
       .then((value) => {
             runApp(
-              DevicePreview(
-                  enabled: !kReleaseMode, builder: (context) => const MyApp()),
-              // MyApp()
+              // DevicePreview(
+              //     enabled: !kReleaseMode, builder: (context) => const MyApp()),
+              MyApp()
             )
           });
 }

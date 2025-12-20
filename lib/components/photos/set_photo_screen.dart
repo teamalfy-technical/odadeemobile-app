@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -31,8 +31,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                  'Camera is not available on web. Please use gallery instead.'),
+              content: Text('Camera is not available on web. Please use gallery instead.'),
               duration: Duration(seconds: 3),
             ),
           );
@@ -43,7 +42,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
 
       final image = await ImagePicker().pickImage(source: source);
       if (image == null) return;
-
+      
       if (kIsWeb) {
         // On web, just use the XFile directly
         if (mounted) {
