@@ -3431,8 +3431,8 @@ main.dart.js:33403 Comments API Response: <!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>PRESEC Odadeɛ Global Alumni Network - Reconnect, Support, Build the Future</title>
-    <meta name="description" content="Join thousands of PRESEC Odadeɛ Global alumni creating opportunities, giving back, and staying connected across generations. Support school projects and mentorship programs.">
+    <title>PRESEC Ɔdadeɛ Global Alumni Network - Reconnect, Support, Build the Future</title>
+    <meta name="description" content="Join thousands of PRESEC Ɔdadeɛ Global alumni creating opportunities, giving back, and staying connected across generations. Support school projects and mentorship programs.">
     <script type="module" crossorigin src="/assets/index-lrwbJTEf.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-CdEVv0sV.css">
   </head>
