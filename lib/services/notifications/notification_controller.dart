@@ -213,7 +213,7 @@ getDeviceFcmToken(){
 
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-    AndroidInitializationSettings androidInitializationSettings = const AndroidInitializationSettings("launch");
+    AndroidInitializationSettings androidInitializationSettings = const AndroidInitializationSettings("ic_launcher");
 
     DarwinInitializationSettings iosInitializationSettings = const DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -302,7 +302,6 @@ Future instantNotification(String message,String title,String payload,{String? i
    var android =  AndroidNotificationDetails(
        "android", "channel",channelDescription: "description",priority: Priority.high, importance: Importance.max,
        playSound: true,
-       sound: RawResourceAndroidNotificationSound("coin_sound"),
        icon: "ic_launcher",
        ticker: 'ticker',
        color: odaPrimary,
