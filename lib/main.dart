@@ -1,31 +1,46 @@
 // @dart=2.12
+import 'dart:developer';
+
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:odadee/navigation_service.dart';
+import 'package:odadee/services/notifications/notification_controller.dart';
+import 'package:odadee/utils/shared_preferance_util.dart';
 import 'package:provider/provider.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/Screens/SplashScreen/splash_screen.dart';
 import 'package:odadee/Screens/Authentication/magic_link_callback.dart';
 import 'package:odadee/constants.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:odadee/firebase_options.dart';
 import 'package:odadee/services/migration_helper.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/theme_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await MigrationHelper.migrateAuthStorage();
-  
+
   // Initialize ThemeService
   final themeService = ThemeService();
   await themeService.initialize();
 
-  /*await Firebase.initializeApp();
-  final fcmToken = await FirebaseMessaging.instance.getToken();
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
-  //log("FCMToken $fcmToken");*/
+  SharedPreferencesUtils.prefs = await SharedPreferences.getInstance();
+
+  // Initialize Firebase (required before using FirebaseMessaging)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    log('✅ Firebase initialized successfully');
+  } catch (e) {
+    log('❌ Error initializing Firebase: $e');
+  }
 
   SystemChrome.setPreferredOrientations(
           [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
@@ -38,9 +53,26 @@ Future<void> main() async {
           });
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Future.delayed(Duration(seconds: 1), () async {
+      log('📱 MyApp initState - Initializing notifications');
+      await NotificationController().initialise(showInitialNotification: true,listenNotification: true);
+      await NotificationController().initialize();
+      NotificationController().requestFlutterLocalPermissions();
+      log('✅ Notification initialization complete');
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -53,6 +85,7 @@ class MyApp extends StatelessWidget {
         child: Consumer<ThemeService>(
           builder: (context, themeService, _) {
             Widget app = MaterialApp(
+              navigatorKey: NavigationService.navigatorKey,
               debugShowCheckedModeBanner: false,
               title: 'Odade3',
               theme: themeService.isDarkMode

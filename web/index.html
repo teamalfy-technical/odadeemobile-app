@@ -99,29 +99,15 @@
   </div>
   
   <script>
-    // Aggressively clear all caches and service workers
+    // Register Firebase Messaging Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister().then(function(success) {
-            if (success) console.log('Service worker unregistered');
-          });
-        }
-      });
-    }
-    
-    // Clear all caches
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (let name of names) {
-          caches.delete(name);
-        }
-      });
-    }
-    
-    // Force reload from server if needed
-    if (performance.navigation.type != 1) {
-      console.log('Forcing cache refresh...');
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('Firebase Messaging Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
     }
   </script>
   <script src="flutter_bootstrap.js" async></script>
