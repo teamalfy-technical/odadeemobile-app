@@ -1,5 +1,4 @@
 import 'dart:io' if (dart.library.html) 'dart:html' as html;
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -22,7 +21,6 @@ class SetPhotoScreen extends StatefulWidget {
 }
 
 class _SetPhotoScreenState extends State<SetPhotoScreen> {
-  dynamic _image;
   XFile? _pickedFile;
 
   Future _pickImage(ImageSource source) async {
@@ -43,7 +41,7 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
 
       final image = await ImagePicker().pickImage(source: source);
       if (image == null) return;
-      
+
       if (kIsWeb) {
         // On web, just use the XFile directly
         if (mounted) {
@@ -53,12 +51,11 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
           });
         }
       } else {
-        // On mobile, use File and crop
-        File? img = File(image.path);
-        img = await _cropImage(imageFile: img);
+        // On mobile, crop the image
+        final croppedFile = await _cropImage(imageFile: image);
         if (mounted) {
           setState(() {
-            _image = img;
+            _pickedFile = croppedFile ?? image;
             Navigator.of(context).pop();
           });
         }
@@ -78,14 +75,14 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
     }
   }
 
-  Future<File?> _cropImage({required File imageFile}) async {
+  Future<XFile?> _cropImage({required XFile imageFile}) async {
     // Image cropper might not work on web, skip cropping
     if (kIsWeb) return imageFile;
 
     CroppedFile? croppedImage =
         await ImageCropper().cropImage(sourcePath: imageFile.path);
     if (croppedImage == null) return null;
-    return File(croppedImage.path);
+    return XFile(croppedImage.path);
   }
 
   void _showSelectPhotoOptions(BuildContext context) {
@@ -167,29 +164,24 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
                             color: Colors.grey.shade200,
                           ),
                           child: Center(
-                            child: _image == null && _pickedFile == null
+                            child: _pickedFile == null
                                 ? const Text(
                                     'No image selected',
                                     style: TextStyle(fontSize: 20),
                                   )
-                                : kIsWeb && _pickedFile != null
-                                    ? FutureBuilder<Uint8List>(
-                                        future: _pickedFile!.readAsBytes(),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.hasData) {
-                                            return CircleAvatar(
-                                              backgroundImage:
-                                                  MemoryImage(snapshot.data!),
-                                              radius: 200.0,
-                                            );
-                                          }
-                                          return const CircularProgressIndicator();
-                                        },
-                                      )
-                                    : CircleAvatar(
-                                        backgroundImage: FileImage(_image!),
-                                        radius: 200.0,
-                                      ),
+                                : FutureBuilder<Uint8List>(
+                                    future: _pickedFile!.readAsBytes(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        return CircleAvatar(
+                                          backgroundImage:
+                                              MemoryImage(snapshot.data!),
+                                          radius: 200.0,
+                                        );
+                                      }
+                                      return const CircularProgressIndicator();
+                                    },
+                                  ),
                           )),
                     ),
                   ),

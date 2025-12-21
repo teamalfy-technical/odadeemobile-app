@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:odadee/services/auth_service.dart';
 
 class UserService {
@@ -67,15 +67,15 @@ class UserService {
     }
   }
 
-  Future<String?> uploadProfileImage(File imageFile) async {
+  Future<String?> uploadProfileImage(XFile imageFile) async {
     try {
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
-      
+
       final response = await updateProfile(
         profileImageBase64: 'data:image/jpeg;base64,$base64Image',
       );
-      
+
       return response['profileImage'];
     } catch (e) {
       debugPrint('Upload profile image error: $e');
@@ -83,15 +83,15 @@ class UserService {
     }
   }
 
-  Future<String?> uploadCoverImage(File imageFile) async {
+  Future<String?> uploadCoverImage(XFile imageFile) async {
     try {
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
-      
+
       final response = await updateProfile(
         coverImageBase64: 'data:image/jpeg;base64,$base64Image',
       );
-      
+
       return response['coverImage'];
     } catch (e) {
       debugPrint('Upload cover image error: $e');

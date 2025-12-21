@@ -343,14 +343,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _rateApp() async {
     String storeUrl;
-    
-    if (kIsWeb) {
-      _showError('Please rate us on your device\'s app store');
-      return;
-    }
 
     try {
-      if (Platform.isAndroid) {
+      if (kIsWeb) {
+        // On web, show options for both Android and iOS stores
+        await _showWebRateDialog();
+        return;
+      } else if (Platform.isAndroid) {
         storeUrl = 'https://play.google.com/store/apps/details?id=com.odadee.app';
       } else if (Platform.isIOS) {
         storeUrl = 'https://apps.apple.com/app/idXXXXXXXXX'; // Replace with actual App Store ID
@@ -368,6 +367,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       _showError('Could not open app store');
     }
+  }
+
+  Future<void> _showWebRateDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF1e293b),
+        title: Text(
+          'Rate Odadee',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Please rate us on your preferred platform:',
+              style: TextStyle(color: Colors.white70),
+            ),
+            SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.android, color: Colors.green),
+              title: Text('Google Play Store', style: TextStyle(color: Colors.white)),
+              onTap: () async {
+                Navigator.pop(context);
+                final url = Uri.parse('https://play.google.com/store/apps/details?id=com.odadee.app');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.apple, color: Colors.white),
+              title: Text('Apple App Store', style: TextStyle(color: Colors.white)),
+              onTap: () async {
+                Navigator.pop(context);
+                final url = Uri.parse('https://apps.apple.com/app/idXXXXXXXXX'); // Replace with actual App Store ID
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: odaSecondary)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool> _showConfirmDialog({

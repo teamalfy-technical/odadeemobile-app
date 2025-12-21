@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -64,14 +63,10 @@ class _SignUp4State extends State<SignUp4> {
   FocusNode focusNode = FocusNode();
 
   List _interests = [];
-  String? filePath;
-  File? file;
 
   @override
   void initState() {
     _interests = widget.data['interests[]'];
-    filePath = widget.user_data.image;
-    file = File(filePath!);
   }
 
   @override

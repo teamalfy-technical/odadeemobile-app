@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class BiometricService {
   static final BiometricService _instance = BiometricService._internal();
-  
+
   factory BiometricService() => _instance;
   BiometricService._internal();
 
@@ -13,6 +13,11 @@ class BiometricService {
 
   /// Check if biometric is available on the device
   Future<bool> isBiometricAvailable() async {
+    // Biometric authentication is not supported on web
+    if (kIsWeb) {
+      return false;
+    }
+
     try {
       return await _localAuth.canCheckBiometrics;
     } catch (e) {
@@ -23,6 +28,10 @@ class BiometricService {
 
   /// Check if device has any biometric enrolled
   Future<bool> hasBiometricEnrolled() async {
+    if (kIsWeb) {
+      return false;
+    }
+
     try {
       final biometrics = await _localAuth.getAvailableBiometrics();
       return biometrics.isNotEmpty;
@@ -34,6 +43,10 @@ class BiometricService {
 
   /// Get available biometric types
   Future<List<BiometricType>> getAvailableBiometrics() async {
+    if (kIsWeb) {
+      return [];
+    }
+
     try {
       return await _localAuth.getAvailableBiometrics();
     } catch (e) {
@@ -44,6 +57,11 @@ class BiometricService {
 
   /// Authenticate using biometric
   Future<bool> authenticate() async {
+    if (kIsWeb) {
+      debugPrint('Biometric authentication not supported on web');
+      return false;
+    }
+
     try {
       return await _localAuth.authenticate(
         localizedReason: 'Please authenticate to access your account',
