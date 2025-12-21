@@ -69,7 +69,7 @@ class _RadioScreenState extends State<RadioScreen> {
     _futureGetAllStations = getRadioStations();
 
     _radioPlayer.setChannel(
-      title: 'ODADEƐ Radio',
+      title: 'Ɔdadeɛ Radio',
       url: 'https://stream.zeno.fm/b51ep03x438uv',
       imagePath: 'assets/cover.jpg',
 

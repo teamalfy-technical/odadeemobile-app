@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-This guide covers everything you need to implement authentication in your Flutter app for the PRESEC Odadeɛ Global Alumni Network.
+This guide covers everything you need to implement authentication in your Flutter app for the PRESEC Ɔdadeɛ Global Alumni Network.
 
 ## API Base URLs
 
