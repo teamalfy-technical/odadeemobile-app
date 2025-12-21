@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +12,7 @@ import 'package:odadee/Screens/Authentication/SignUp/sign_up_3.dart';
 import 'package:odadee/components/photos/select_photo_options_screen.dart';
 import 'package:odadee/constants.dart';
 
-Future<UpdateImageModel> updateProfileImage(data, user) async {
+Future<UpdateImageModel> updateProfileImage(XFile data, String user) async {
   var token = await getApiPref();
 
   final url = Uri.parse("$hostName/api/upload-image");
@@ -20,7 +21,12 @@ Future<UpdateImageModel> updateProfileImage(data, user) async {
   request.headers['Accept'] = 'application/json';
   //request.headers['Authorization'] = 'Bearer ' + token.toString();
 
-  request.files.add(await http.MultipartFile.fromPath('image', data.path));
+  // Works on both web and mobile
+  request.files.add(await http.MultipartFile.fromBytes(
+    'image',
+    await data.readAsBytes(),
+    filename: data.name,
+  ));
   request.fields['user'] = user;
   final response = await request.send();
   if (response.statusCode == 200) {
@@ -54,7 +60,7 @@ class _SignUp2State extends State<SignUp2> {
   bool hasError = false;
   String? password;
   String? graduation_year;
-  File? _image;
+  XFile? _image;
 
   FocusNode focusNode = FocusNode();
 
@@ -245,17 +251,36 @@ class _SignUp2State extends State<SignUp2> {
                                           )
                                         : Stack(
                                             children: [
-                                              Container(
-                                                height: 220,
-                                                width: 220,
-                                                decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                    image: DecorationImage(
-                                                        image:
-                                                            FileImage(_image!),
-                                                        fit: BoxFit.contain)),
+                                              FutureBuilder<Uint8List>(
+                                                future: _image!.readAsBytes(),
+                                                builder: (context, snapshot) {
+                                                  if (snapshot.hasData) {
+                                                    return Container(
+                                                      height: 220,
+                                                      width: 220,
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                20),
+                                                        image: DecorationImage(
+                                                          image: MemoryImage(snapshot.data!),
+                                                          fit: BoxFit.contain,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                  return Container(
+                                                    height: 220,
+                                                    width: 220,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(20),
+                                                    ),
+                                                    child: const Center(
+                                                      child: CircularProgressIndicator(),
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                               if (_image != null)
                                                 Positioned(
@@ -491,24 +516,48 @@ class _SignUp2State extends State<SignUp2> {
 
   Future _pickImage(ImageSource source) async {
     try {
+      // On web, camera is not supported
+      if (kIsWeb && source == ImageSource.camera) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Camera is not available on web. Please use gallery instead.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
+
       final image = await ImagePicker().pickImage(source: source);
       if (image == null) return;
-      File? img = File(image.path);
-      img = await _cropImage(imageFile: img);
-      setState(() {
-        _image = img;
-        Navigator.of(context).pop();
-      });
+
+      if (kIsWeb) {
+        // On web, skip cropping
+        setState(() {
+          _image = image;
+          Navigator.of(context).pop();
+        });
+      } else {
+        // On mobile, crop the image
+        final croppedImg = await _cropImage(imageFile: image);
+        setState(() {
+          _image = croppedImg ?? image;
+          Navigator.of(context).pop();
+        });
+      }
     } on PlatformException catch (e) {
       print(e);
       Navigator.of(context).pop();
     }
   }
 
-  Future<File?> _cropImage({required File imageFile}) async {
+  Future<XFile?> _cropImage({required XFile imageFile}) async {
+    // Skip cropping on web
+    if (kIsWeb) return imageFile;
+
     CroppedFile? croppedImage =
         await ImageCropper().cropImage(sourcePath: imageFile.path);
     if (croppedImage == null) return null;
-    return File(croppedImage.path);
+    return XFile(croppedImage.path);
   }
 }
