@@ -1,0 +1,230 @@
+# Ɔdadeɛ Mobile App Test Cases
+# Version: 1.1.0
+# Format: Firebase Test Lab / Robo Test Compatible
+
+- displayName: Setup - Login
+  id: setup_login
+  steps:
+    - goal: Launch the app and wait for splash screen
+      hint: Video splash plays for 3.5 seconds
+      successCriteria: Splash screen completes and navigation occurs
+
+    - goal: Log in with valid credentials
+      hint: Enter email and password, then tap Sign In
+      successCriteria: User is navigated to the Dashboard
+
+- displayName: Smoke Test - Core Navigation
+  id: smoke_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: Verify Dashboard loads correctly
+      hint: Check that all widgets and data are visible
+      successCriteria: Dashboard displays with stats, events, and news sections
+
+    - goal: Navigate to Profile screen
+      hint: Tap on the profile icon in the bottom navigation or header
+      successCriteria: User profile page is visible with avatar and details
+
+    - goal: Navigate to Events screen
+      hint: Tap on Events in the bottom navigation
+      successCriteria: List of events is displayed
+
+    - goal: Navigate to Settings
+      hint: Look for settings icon or menu option
+      successCriteria: Settings page is visible
+
+- displayName: Authentication - Sign Up Flow
+  id: auth_signup
+  steps:
+    - goal: Navigate to Sign Up screen
+      hint: Tap "Create Account" or "Sign Up" link on login screen
+      successCriteria: Sign Up form is displayed
+
+    - goal: Fill in registration details
+      hint: Enter name, email, phone, graduation year, and password
+      successCriteria: All fields are filled without validation errors
+
+    - goal: Select graduation year
+      hint: Tap the year dropdown and select a year
+      successCriteria: Year group is selected and displayed
+
+    - goal: Complete registration
+      hint: Tap Register or Submit button
+      successCriteria: Account created or confirmation message shown
+
+- displayName: Authentication - Password Reset
+  id: auth_reset
+  steps:
+    - goal: Navigate to Forgot Password
+      hint: Tap "Forgot Password" link on Sign In screen
+      successCriteria: Password reset screen is displayed
+
+    - goal: Enter email for password reset
+      hint: Type a registered email address
+      successCriteria: Email field is populated
+
+    - goal: Submit password reset request
+      hint: Tap Submit or Reset button
+      successCriteria: Confirmation message is displayed
+
+- displayName: Profile Management
+  id: profile_management
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View user profile
+      hint: Navigate to Profile section
+      successCriteria: Profile displays name, email, avatar, and year group
+
+    - goal: Edit profile details
+      hint: Tap Edit Profile button
+      successCriteria: Edit form is displayed with current data
+
+    - goal: Update profile picture
+      hint: Tap on profile picture and select a new image
+      successCriteria: Image picker opens and allows selection
+
+    - goal: Save profile changes
+      hint: Tap Save or Update button
+      successCriteria: Changes are saved and confirmation shown
+
+- displayName: Events Feature
+  id: events_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View events list
+      hint: Navigate to Events section
+      successCriteria: List of upcoming events with images and dates is displayed
+
+    - goal: View event details
+      hint: Tap on any event in the list
+      successCriteria: Event detail page opens with full information
+
+    - goal: Check event image loading
+      hint: Observe if event images load correctly
+      successCriteria: Event images are displayed without errors
+
+- displayName: News and Articles
+  id: articles_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View news list
+      hint: Navigate to News or Articles section
+      successCriteria: List of articles with thumbnails is displayed
+
+    - goal: Open article details
+      hint: Tap on any article
+      successCriteria: Full article content is displayed
+
+    - goal: View article comments
+      hint: Scroll to comments section
+      successCriteria: Comments section is visible
+
+- displayName: Projects and Donations
+  id: projects_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View projects list
+      hint: Navigate to Projects section
+      successCriteria: List of projects with progress indicators is displayed
+
+    - goal: View project details
+      hint: Tap on any project
+      successCriteria: Project details page shows description and goal
+
+    - goal: Open payment modal
+      hint: Tap Pay Dues or Donate button
+      successCriteria: Payment modal or screen opens
+
+- displayName: Radio Feature
+  id: radio_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: Navigate to Radio screen
+      hint: Find and tap Radio in navigation
+      successCriteria: Radio player screen is displayed
+
+    - goal: Start radio playback
+      hint: Tap the Play button
+      successCriteria: Radio stream starts playing
+
+    - goal: Pause radio playback
+      hint: Tap the Pause button
+      successCriteria: Radio stream pauses
+
+- displayName: Year Group Feature
+  id: year_group_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View year group information
+      hint: Navigate to Year Group section
+      successCriteria: Year group details are displayed
+
+    - goal: View year group members
+      hint: Scroll to member list
+      successCriteria: List of members with avatars is visible
+
+- displayName: Members Directory
+  id: members_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View all members list
+      hint: Navigate to All Users or Members section
+      successCriteria: Paginated list of members is displayed
+
+    - goal: View member profile
+      hint: Tap on any member
+      successCriteria: Member detail page is displayed
+
+- displayName: Discussions
+  id: discussions_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: View discussions list
+      hint: Navigate to Discussions section
+      successCriteria: List of discussion threads is displayed
+
+    - goal: Open a discussion thread
+      hint: Tap on any discussion
+      successCriteria: Discussion details and replies are visible
+
+- displayName: Settings and Logout
+  id: settings_test
+  prerequisiteTestCaseId: setup_login
+  steps:
+    - goal: Navigate to Settings
+      hint: Find settings in menu or navigation
+      successCriteria: Settings screen is displayed
+
+    - goal: Access Change Password
+      hint: Tap Change Password option
+      successCriteria: Password change form is displayed
+
+    - goal: Logout from the app
+      hint: Tap Logout button and confirm
+      successCriteria: User is logged out and returned to Sign In screen
+
+- displayName: Offline Error Handling
+  id: offline_test
+  steps:
+    - goal: Disable internet connection
+      hint: Turn off WiFi and mobile data
+      successCriteria: Device is offline
+
+    - goal: Try to load data in the app
+      hint: Navigate to any data screen (Events, News, etc.)
+      successCriteria: Appropriate offline or error message is displayed
+
+    - goal: Re-enable internet connection
+      hint: Turn WiFi or mobile data back on
+      successCriteria: App reconnects and data loads
+
+- displayName: Video Splash Screen
+  id: splash_test
+  steps:
+    - goal: Launch the app fresh
+      hint: Force close the app and reopen
+      successCriteria: Video splash animation plays
+
+    - goal: Wait for splash to complete
+      hint: Watch the splash screen for 3.5 seconds
+      successCriteria: App navigates to next screen automatically
