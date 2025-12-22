@@ -14,6 +14,7 @@ import 'package:odadee/services/notifications/notification_actions_manager.dart'
 import 'package:odadee/utils/shared_preferance_util.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:odadee/utils/platform_helper.dart';
+import 'package:odadee/services/notifications/web_notification_helper.dart';
 
 
 
@@ -157,16 +158,16 @@ class NotificationController{
 
 getDeviceFcmToken(){
   if(PlatformHelper.isWeb){
-    // For web, you need to provide VAPID key from Firebase Console
-    // Go to Project Settings > Cloud Messaging > Web Push certificates
-    // TODO: Replace with your actual VAPID key
+    const vapidKey = 'BGizEfvITSQfS7h7jtHCeft68wVXOYhArx6xwF_mjxlH6ObQsfC_ZSPPUaw1kTW9KeQeX6KVSYlebUzCtN0WQaQ'; // TODO: Replace with your actual VAPID key
+
     _fcm.getToken(
-      vapidKey: 'GGQLIJKj-bV19HNkdOrLmIrJMij5gEYrJ_xNoQ78fhU',
+      vapidKey: vapidKey,
     ).then((String? token) async{
-      log("Web FCM token: $token");
+      log("✅ Web FCM token obtained: $token");
       await SharedPreferencesUtils.setFcmToken(token ?? "");
     }).catchError((e){
-      log("Error getting web FCM token: ${e.toString()}");
+      log("❌ Error getting web FCM token: ${e.toString()}");
+      log("🔧 Make sure your VAPID key is correct in notification_controller.dart");
     });
   }
   else if(PlatformHelper.isIOS){
@@ -254,9 +255,15 @@ getDeviceFcmToken(){
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 Future instantNotification(String message,String title,String payload,{String? imageUrl}) async{
-   // On web, Firebase handles notifications automatically through the service worker
+   // On web, use browser's Notification API for foreground notifications
    if (PlatformHelper.isWeb) {
-     log('ℹ️ Web platform - notifications handled by browser/service worker');
+     log('📱 Showing web notification: $title - $message');
+     try {
+       // Use the web notification API
+       await showWebNotification(title, message, imageUrl);
+     } catch (e) {
+       log('❌ Error showing web notification: $e');
+     }
      return;
    }
 
