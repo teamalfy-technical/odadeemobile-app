@@ -1,0 +1,18 @@
+# Prevent browser from caching and reloading Flutter web app on tab switch
+<IfModule mod_headers.c>
+    # Allow caching for static assets
+    <FilesMatch "\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=31536000, public"
+    </FilesMatch>
+
+    # Cache the main HTML for 1 hour
+    <FilesMatch "\.html$">
+        Header set Cache-Control "max-age=3600, public"
+    </FilesMatch>
+
+    # Prevent service worker from forcing reload
+    <FilesMatch "firebase-messaging-sw\.js$">
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Service-Worker-Allowed "/"
+    </FilesMatch>
+</IfModule>
