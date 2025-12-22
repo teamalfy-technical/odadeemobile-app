@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -19,27 +20,28 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Cache Control - Allow caching for better performance -->
-  <meta http-equiv="Cache-Control" content="max-age=3600">
-  <meta http-equiv="Pragma" content="cache">
-  <meta http-equiv="Expires" content="3600">
-  
-  <meta name="description" content="Ɔdadeɛ Global - Reconnect. Support. Build the Future. Join thousands of Ɔdadeɛ alumni creating opportunities, giving back, and staying connected.">
+
+  <!-- Cache Control -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <meta name="description"
+        content="Ɔdadeɛ Global - Reconnect. Support. Build the Future. Join thousands of Ɔdadeɛ alumni creating opportunities, giving back, and staying connected.">
   <meta name="keywords" content="Ɔdadeɛ, alumni, community, network, projects, events">
   <meta name="author" content="Ɔdadeɛ Global">
-  
+
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Ɔdadeɛ Global - Alumni Network">
   <meta property="og:description" content="Reconnect. Support. Build the Future. Join thousands of Ɔdadeɛ alumni.">
   <meta property="og:site_name" content="Ɔdadeɛ Global">
-  
+
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Ɔdadeɛ Global - Alumni Network">
   <meta name="twitter:description" content="Reconnect. Support. Build the Future.">
-  
+
   <!-- Theme Color -->
   <meta name="theme-color" content="#0f172a">
 
@@ -51,11 +53,11 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>Ɔdadeɛ Global - Alumni Network</title>
   <link rel="manifest" href="manifest.json">
-  
+
   <style>
     body {
       margin: 0;
@@ -66,11 +68,13 @@
       height: 100vh;
       overflow: hidden;
     }
+
     #loading {
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       text-align: center;
     }
+
     .spinner {
       border: 4px solid rgba(255, 255, 255, 0.1);
       border-top: 4px solid #2563eb;
@@ -80,10 +84,17 @@
       animation: spin 1s linear infinite;
       margin: 20px auto;
     }
+
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
+
     /* Center Flutter app with max width on desktop */
     flt-glass-pane {
       max-width: 480px;
@@ -92,56 +103,67 @@
     }
   </style>
 </head>
+
 <body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Loading Ɔdadeɛ...</p>
-  </div>
-  
-  <script>
-    // Prevent Flutter from reloading when tab becomes visible
-    let _flutterAppVisible = true;
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading Ɔdadeɛ...</p>
+</div>
 
-    document.addEventListener('visibilitychange', function() {
-      if (document.hidden) {
-        _flutterAppVisible = false;
-        console.log('Tab hidden - preserving state');
-      } else {
-        _flutterAppVisible = true;
-        console.log('Tab visible - state preserved');
-      }
-    });
+<script>
+  // PWA Install Prompt Handler
+  let deferredPrompt;
 
-    // Prevent page from reloading on focus
-    window.addEventListener('focus', function() {
-      console.log('Window focused - state preserved');
-    });
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredPrompt = e;
+    console.log('PWA install prompt available');
 
-    window.addEventListener('blur', function() {
-      console.log('Window blurred - state preserved');
-    });
+    // Optionally show a custom install button/banner
+    // You can dispatch a custom event to Flutter to show an install UI
+    window.dispatchEvent(new CustomEvent('pwa-install-available'));
+  });
 
-    // Register Firebase Messaging Service Worker after page load
-    window.addEventListener('load', function() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/',
-          updateViaCache: 'none'  // Prevent automatic updates on visibility change
+  // Listen for successful installation
+  window.addEventListener('appinstalled', (e) => {
+    console.log('Ɔdadeɛ was installed successfully!');
+    deferredPrompt = null;
+  });
+
+  // Function to trigger install prompt (can be called from Flutter)
+  window.promptPWAInstall = async function () {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('User response to install prompt:', outcome);
+      deferredPrompt = null;
+      return outcome;
+    }
+    return null;
+  };
+
+  // Check if already installed as PWA
+  window.isPWAInstalled = function () {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+  };
+
+  // Register Service Worker for PWA functionality
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/flutter_service_worker.js')
+        .then(function (registration) {
+          console.log('ServiceWorker registration successful with scope:', registration.scope);
         })
-          .then((registration) => {
-            console.log('Firebase Messaging Service Worker registered:', registration);
-
-            // Prevent service worker from auto-updating when tab becomes visible
-            registration.addEventListener('updatefound', () => {
-              console.log('Service Worker update found, but not installing automatically');
-            });
-          })
-          .catch((error) => {
-            console.error('Service Worker registration failed:', error);
-          });
-      }
+        .catch(function (error) {
+          console.log('ServiceWorker registration failed:', error);
+        });
     });
-  </script>
-  <script src="flutter_bootstrap.js" async></script>
+  }
+</script>
+<script src="flutter_bootstrap.js" async></script>
 </body>
+
 </html>
