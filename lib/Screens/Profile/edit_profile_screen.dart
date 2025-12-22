@@ -31,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   
   bool _openToMentor = false;
   bool _isLoading = false;
+  bool _isPickingImage = false;
   XFile? _selectedImage;
 
   @override
@@ -130,6 +131,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
+    // Prevent multiple simultaneous file picker calls
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -139,12 +147,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         imageQuality: 85,
       );
 
+      // Check if widget is still mounted after async operation
+      if (!mounted) return;
+
       if (image != null) {
         if (kIsWeb) {
           // On web, skip cropping and use the image directly
-          setState(() {
-            _selectedImage = image;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedImage = image;
+            });
+          }
         } else {
           // On mobile, crop the image
           final croppedFile = await ImageCropper().cropImage(
@@ -165,7 +178,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ],
           );
 
-          if (croppedFile != null) {
+          if (mounted && croppedFile != null) {
             setState(() {
               _selectedImage = XFile(croppedFile.path);
             });
@@ -174,12 +187,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to pick image'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
     }
   }
 

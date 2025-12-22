@@ -40,6 +40,9 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
       }
 
       final image = await ImagePicker().pickImage(source: source);
+
+      // Check if widget is still mounted after file picker
+      if (!mounted) return;
       if (image == null) return;
 
       if (kIsWeb) {
@@ -47,8 +50,8 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
         if (mounted) {
           setState(() {
             _pickedFile = image;
-            Navigator.of(context).pop();
           });
+          Navigator.of(context).pop();
         }
       } else {
         // On mobile, crop the image
@@ -56,8 +59,8 @@ class _SetPhotoScreenState extends State<SetPhotoScreen> {
         if (mounted) {
           setState(() {
             _pickedFile = croppedFile ?? image;
-            Navigator.of(context).pop();
           });
+          Navigator.of(context).pop();
         }
       }
     } on PlatformException catch (e) {

@@ -529,25 +529,34 @@ class _SignUp2State extends State<SignUp2> {
       }
 
       final image = await ImagePicker().pickImage(source: source);
+
+      // Check if widget is still mounted after file picker
+      if (!mounted) return;
       if (image == null) return;
 
       if (kIsWeb) {
         // On web, skip cropping
-        setState(() {
-          _image = image;
+        if (mounted) {
+          setState(() {
+            _image = image;
+          });
           Navigator.of(context).pop();
-        });
+        }
       } else {
         // On mobile, crop the image
         final croppedImg = await _cropImage(imageFile: image);
-        setState(() {
-          _image = croppedImg ?? image;
+        if (mounted) {
+          setState(() {
+            _image = croppedImg ?? image;
+          });
           Navigator.of(context).pop();
-        });
+        }
       }
     } on PlatformException catch (e) {
       print(e);
-      Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
