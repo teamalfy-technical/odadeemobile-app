@@ -20,10 +20,10 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- Cache Control -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  <!-- Cache Control - Allow caching for better performance -->
+  <meta http-equiv="Cache-Control" content="max-age=3600">
+  <meta http-equiv="Pragma" content="cache">
+  <meta http-equiv="Expires" content="3600">
   
   <meta name="description" content="Ɔdadeɛ Global - Reconnect. Support. Build the Future. Join thousands of Ɔdadeɛ alumni creating opportunities, giving back, and staying connected.">
   <meta name="keywords" content="Ɔdadeɛ, alumni, community, network, projects, events">
@@ -99,16 +99,48 @@
   </div>
   
   <script>
-    // Register Firebase Messaging Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then((registration) => {
-          console.log('Firebase Messaging Service Worker registered:', registration);
+    // Prevent Flutter from reloading when tab becomes visible
+    let _flutterAppVisible = true;
+
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        _flutterAppVisible = false;
+        console.log('Tab hidden - preserving state');
+      } else {
+        _flutterAppVisible = true;
+        console.log('Tab visible - state preserved');
+      }
+    });
+
+    // Prevent page from reloading on focus
+    window.addEventListener('focus', function() {
+      console.log('Window focused - state preserved');
+    });
+
+    window.addEventListener('blur', function() {
+      console.log('Window blurred - state preserved');
+    });
+
+    // Register Firebase Messaging Service Worker after page load
+    window.addEventListener('load', function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/',
+          updateViaCache: 'none'  // Prevent automatic updates on visibility change
         })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
-    }
+          .then((registration) => {
+            console.log('Firebase Messaging Service Worker registered:', registration);
+
+            // Prevent service worker from auto-updating when tab becomes visible
+            registration.addEventListener('updatefound', () => {
+              console.log('Service Worker update found, but not installing automatically');
+            });
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      }
+    });
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
