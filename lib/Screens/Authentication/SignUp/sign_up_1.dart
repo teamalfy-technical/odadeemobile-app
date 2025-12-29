@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/foundation.dart';

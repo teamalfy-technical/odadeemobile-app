@@ -43,7 +43,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 20,
                     ),
                     Text(
-                      "Odadee!",
+                      "Welcome to the\nƆdadeɛ App!",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                           color: odaPrimary,
                           fontSize: 30,
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       height: 20,
                     ),
                     Text(
-                      "Ready to dive into a lifetime of memories with the best fraternity around?",
+                      "Your alumni community, in your pocket. People, events, and support. All in one place.",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w400,

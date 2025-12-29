@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
@@ -31,7 +31,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   
   bool _openToMentor = false;
   bool _isLoading = false;
-  File? _selectedImage;
+  bool _isPickingImage = false;
+  XFile? _selectedImage;
 
   @override
   void initState() {
@@ -77,11 +78,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildProfileImageWidget() {
     if (_selectedImage != null) {
       return ClipOval(
-        child: Image.file(
-          _selectedImage!,
-          width: 120,
-          height: 120,
-          fit: BoxFit.cover,
+        child: FutureBuilder<Uint8List>(
+          future: _selectedImage!.readAsBytes(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Image.memory(
+                snapshot.data!,
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+              );
+            }
+            return Container(
+              width: 120,
+              height: 120,
+              color: Color(0xFF1e293b),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          },
         ),
       );
     }
@@ -117,15 +131,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Image upload is not supported on web yet'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
+    // Prevent multiple simultaneous file picker calls
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
 
     try {
       final ImagePicker picker = ImagePicker();
@@ -136,39 +147,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         imageQuality: 85,
       );
 
-      if (image != null) {
-        final croppedFile = await ImageCropper().cropImage(
-          sourcePath: image.path,
-          aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle: 'Crop Profile Picture',
-              toolbarColor: odaPrimary,
-              toolbarWidgetColor: Colors.white,
-              initAspectRatio: CropAspectRatioPreset.square,
-              lockAspectRatio: true,
-            ),
-            IOSUiSettings(
-              title: 'Crop Profile Picture',
-              aspectRatioLockEnabled: true,
-            ),
-          ],
-        );
+      // Check if widget is still mounted after async operation
+      if (!mounted) return;
 
-        if (croppedFile != null) {
-          setState(() {
-            _selectedImage = File(croppedFile.path);
-          });
+      if (image != null) {
+        if (kIsWeb) {
+          // On web, skip cropping and use the image directly
+          if (mounted) {
+            setState(() {
+              _selectedImage = image;
+            });
+          }
+        } else {
+          // On mobile, crop the image
+          final croppedFile = await ImageCropper().cropImage(
+            sourcePath: image.path,
+            aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Profile Picture',
+                toolbarColor: odaPrimary,
+                toolbarWidgetColor: Colors.white,
+                initAspectRatio: CropAspectRatioPreset.square,
+                lockAspectRatio: true,
+              ),
+              IOSUiSettings(
+                title: 'Crop Profile Picture',
+                aspectRatioLockEnabled: true,
+              ),
+            ],
+          );
+
+          if (mounted && croppedFile != null) {
+            setState(() {
+              _selectedImage = XFile(croppedFile.path);
+            });
+          }
         }
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to pick image'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
     }
   }
 
@@ -202,7 +234,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         openToMentor: _openToMentor,
       );
 
-      if (_selectedImage != null && !kIsWeb) {
+      if (_selectedImage != null) {
         await _userService.uploadProfileImage(_selectedImage!);
       }
 
