@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:odadee/models/project.dart';
 import 'package:odadee/config/api_config.dart';
-import 'package:odadee/constants.dart';
+
+import 'package:odadee/components/project_contribution_modal.dart';
 import 'package:intl/intl.dart';
 
 class ProjectDetailsScreen extends StatefulWidget {
@@ -14,7 +15,8 @@ class ProjectDetailsScreen extends StatefulWidget {
 }
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
-  Project? get project => widget.data is Project ? widget.data as Project : null;
+  Project? get project =>
+      widget.data is Project ? widget.data as Project : null;
 
   String _formatCurrency(double? amount) {
     final formatter = NumberFormat('#,##0.00');
@@ -28,7 +30,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     if (target == 0) return 0.0;
     return (current / target).clamp(0.0, 1.0);
   }
-  
+
   String _getProgressPercentage() {
     if (project == null || (project!.targetAmount ?? 0) == 0) return '0.0';
     final current = project!.currentAmount ?? 0.0;
@@ -37,7 +39,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final percentage = (current / target * 100);
     return percentage.toStringAsFixed(1);
   }
-  
+
   bool _isOverfunded() {
     if (project == null || (project!.targetAmount ?? 0) == 0) return false;
     final current = project!.currentAmount ?? 0.0;
@@ -115,7 +117,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       color: Color(0xFF1e293b),
                       child: Center(
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Color(0xFF2563eb)),
                         ),
                       ),
                     );
@@ -135,7 +138,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   ),
                 ),
               ),
-            
             Padding(
               padding: EdgeInsets.all(20),
               child: Column(
@@ -145,7 +147,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     children: [
                       if (project!.category.isNotEmpty)
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: Color(0xFF2563eb).withOpacity(0.2),
                             borderRadius: BorderRadius.circular(20),
@@ -166,7 +169,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       Spacer(),
                       if (project!.status.isNotEmpty)
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: project!.status == 'active'
                                 ? Color(0xFF10b981).withOpacity(0.2)
@@ -177,8 +181,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             project!.status.toUpperCase(),
                             style: TextStyle(
                               fontSize: 12,
-                              color: project!.status == 'active' 
-                                  ? Color(0xFF10b981) 
+                              color: project!.status == 'active'
+                                  ? Color(0xFF10b981)
                                   : Color(0xFF94a3b8),
                               fontWeight: FontWeight.w600,
                             ),
@@ -187,7 +191,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     ],
                   ),
                   SizedBox(height: 20),
-                  
                   Text(
                     project!.title,
                     style: TextStyle(
@@ -197,7 +200,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  
                   Container(
                     padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -220,16 +222,18 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                           ),
                         ),
                         SizedBox(height: 16),
-                        
                         LayoutBuilder(
                           builder: (context, constraints) {
                             final containerWidth = constraints.maxWidth;
                             final currentAmt = project!.currentAmount ?? 0.0;
                             final targetAmt = project!.targetAmount ?? 1.0;
-                            final rawRatio = targetAmt > 0 ? currentAmt / targetAmt : 0.0;
-                            final overflowRatio = rawRatio > 1.0 ? (rawRatio - 1.0) : 0.0;
-                            final overflowWidth = containerWidth * overflowRatio;
-                            
+                            final rawRatio =
+                                targetAmt > 0 ? currentAmt / targetAmt : 0.0;
+                            final overflowRatio =
+                                rawRatio > 1.0 ? (rawRatio - 1.0) : 0.0;
+                            final overflowWidth =
+                                containerWidth * overflowRatio;
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -240,8 +244,9 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                     minHeight: 12,
                                     backgroundColor: Color(0xFF334155),
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      rawRatio >= 1.0 ? Color(0xFF10b981) : Color(0xFF2563eb)
-                                    ),
+                                        rawRatio >= 1.0
+                                            ? Color(0xFF10b981)
+                                            : Color(0xFF2563eb)),
                                   ),
                                 ),
                                 if (rawRatio > 1.0)
@@ -252,7 +257,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                                       child: Row(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
                                             child: Container(
                                               height: 6,
                                               width: overflowWidth,
@@ -280,9 +286,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             );
                           },
                         ),
-                        
                         SizedBox(height: 16),
-                        
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -330,9 +334,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             ),
                           ],
                         ),
-                        
                         SizedBox(height: 12),
-                        
                         Center(
                           child: Column(
                             children: [
@@ -362,9 +364,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       ],
                     ),
                   ),
-                  
                   SizedBox(height: 24),
-                  
                   Text(
                     'About this project',
                     style: TextStyle(
@@ -382,17 +382,31 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       height: 1.5,
                     ),
                   ),
-                  
                   SizedBox(height: 40),
-                  
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Project funding coming soon!')),
-                        );
+                        if (project?.id == null) return;
+                        showDialog(
+                          context: context,
+                          builder: (context) => ProjectContributionModal(
+                            projectId: project!.id,
+                            projectTitle: project!.title,
+                          ),
+                        ).then((success) {
+                          if (success == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Thank you for your contribution to ${project!.title}!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            // Optionally refresh project details here
+                          }
+                        });
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFF2563eb),
@@ -410,7 +424,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       ),
                     ),
                   ),
-                  
                   SizedBox(height: 20),
                 ],
               ),
