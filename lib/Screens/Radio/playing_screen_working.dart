@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:radio_player/radio_player.dart';
+// import 'package:radio_player/radio_player.dart';
 
 class RadioScreen extends StatefulWidget {
   const RadioScreen({super.key});
@@ -9,7 +9,7 @@ class RadioScreen extends StatefulWidget {
 }
 
 class _RadioScreenState extends State<RadioScreen> {
-  final RadioPlayer _radioPlayer = RadioPlayer();
+  // final RadioPlayer _radioPlayer = RadioPlayer();
   bool isPlaying = false;
   List<String>? metadata;
 
@@ -20,23 +20,23 @@ class _RadioScreenState extends State<RadioScreen> {
   }
 
   void initRadioPlayer() {
-    _radioPlayer.setChannel(
-      title: 'Radio Player',
-      url: 'https://stream.zeno.fm/b51ep03x438uv',
-      imagePath: 'assets/cover.jpg',
-    );
+    // _radioPlayer.setChannel(
+    //   title: 'Radio Player',
+    //   url: 'https://stream.zeno.fm/b51ep03x438uv',
+    //   imagePath: 'assets/cover.jpg',
+    // );
 
-    _radioPlayer.stateStream.listen((value) {
-      setState(() {
-        isPlaying = value;
-      });
-    });
+    // _radioPlayer.stateStream.listen((value) {
+    //   setState(() {
+    //     isPlaying = value;
+    //   });
+    // });
 
-    _radioPlayer.metadataStream.listen((value) {
-      setState(() {
-        metadata = value;
-      });
-    });
+    // _radioPlayer.metadataStream.listen((value) {
+    //   setState(() {
+    //     metadata = value;
+    //   });
+    // });
   }
 
   @override
@@ -52,28 +52,28 @@ class _RadioScreenState extends State<RadioScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                FutureBuilder(
-                  future: _radioPlayer.getArtworkImage(),
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    Image artwork;
-                    if (snapshot.hasData) {
-                      artwork = snapshot.data;
-                    } else {
-                      artwork = Image.asset(
-                        'assets/cover.jpg',
-                        fit: BoxFit.cover,
-                      );
-                    }
-                    return SizedBox(
-                      height: 180,
-                      width: 180,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: artwork,
-                      ),
-                    );
-                  },
-                ),
+                // FutureBuilder(
+                //   future: _radioPlayer.getArtworkImage(),
+                //   builder: (BuildContext context, AsyncSnapshot snapshot) {
+                //     Image artwork;
+                //     if (snapshot.hasData) {
+                //       artwork = snapshot.data;
+                //     } else {
+                //       artwork = Image.asset(
+                //         'assets/cover.jpg',
+                //         fit: BoxFit.cover,
+                //       );
+                //     }
+                //     return SizedBox(
+                //       height: 180,
+                //       width: 180,
+                //       child: ClipRRect(
+                //         borderRadius: BorderRadius.circular(10.0),
+                //         child: artwork,
+                //       ),
+                //     );
+                //   },
+                // ),
                 SizedBox(height: 20),
                 Text(
                   metadata?[0] ?? 'Metadata',
@@ -94,7 +94,7 @@ class _RadioScreenState extends State<RadioScreen> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            isPlaying ? _radioPlayer.pause() : _radioPlayer.play();
+            // isPlaying ? _radioPlayer.pause() : _radioPlayer.play();
           },
           tooltip: 'Control button',
           child: Icon(
