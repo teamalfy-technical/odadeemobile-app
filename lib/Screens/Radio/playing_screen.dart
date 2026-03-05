@@ -11,7 +11,6 @@ import 'package:odadee/Screens/Radio/playing_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
-import 'package:radio_player/radio_player.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:http/http.dart' as http;
 
@@ -56,7 +55,7 @@ class _RadioScreenState extends State<RadioScreen> {
 
   Future<RadiosModel>? _futureGetAllStations;
 
-  final RadioPlayer _radioPlayer = RadioPlayer();
+  // final RadioPlayer _radioPlayer = RadioPlayer();
   bool isPlaying = false;
 
 
@@ -68,18 +67,18 @@ class _RadioScreenState extends State<RadioScreen> {
     super.initState();
     _futureGetAllStations = getRadioStations();
 
-    _radioPlayer.setChannel(
-      title: 'Ɔdadeɛ Radio',
-      url: 'https://stream.zeno.fm/b51ep03x438uv',
-      imagePath: 'assets/cover.jpg',
+    // _radioPlayer.setChannel(
+    //   title: 'Ɔdadeɛ Radio',
+    //   url: 'https://stream.zeno.fm/b51ep03x438uv',
+    //   imagePath: 'assets/cover.jpg',
+    //
+    // );
 
-    );
-
-    _radioPlayer.stateStream.listen((value) {
-      setState(() {
-        isPlaying = value;
-      });
-    });
+    // _radioPlayer.stateStream.listen((value) {
+    //   setState(() {
+    //     isPlaying = value;
+    //   });
+    // });
 
 
 
@@ -268,7 +267,7 @@ class _RadioScreenState extends State<RadioScreen> {
 
                                   InkWell(
                                     onTap: (){
-                                      isPlaying ? _radioPlayer.pause() : _radioPlayer.play();
+                                      // isPlaying ? _radioPlayer.pause() : _radioPlayer.play();
                                     },
                                     child: Container(
                                       height: 60,
