@@ -30,6 +30,7 @@ class _PayDuesScreenState extends State<PayDuesScreen> {
     try {
       final userData = await authService.getCachedUser();
       if (userData != null && userData['yearGroup'] != null) {
+        if (!mounted) return;
         setState(() {
           yearGroupName = userData['yearGroup'].toString();
           isLoading = false;
@@ -37,6 +38,7 @@ class _PayDuesScreenState extends State<PayDuesScreen> {
       } else {
         // Fallback: fetch from API
         final freshUserData = await authService.getCurrentUser();
+        if (!mounted) return;
         setState(() {
           yearGroupName = freshUserData['yearGroup']?.toString() ?? 'Your Year Group';
           isLoading = false;
@@ -44,6 +46,17 @@ class _PayDuesScreenState extends State<PayDuesScreen> {
       }
     } catch (e) {
       print('Error loading year group: $e');
+
+      if (!mounted) return;
+
+      // Check if it's an auth error
+      if (e.toString().contains('Session expired') ||
+          e.toString().contains('Authentication failed') ||
+          e.toString().contains('login again')) {
+        // Auth error - user will be redirected to login by app
+        return;
+      }
+
       setState(() {
         yearGroupName = 'Your Year Group';
         isLoading = false;

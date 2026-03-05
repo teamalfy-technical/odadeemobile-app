@@ -62,6 +62,8 @@ class _ProjectContributionModalState extends State<ProjectContributionModal> {
         final data = jsonDecode(response.body);
         final List<dynamic> groups = data['yearGroups'] ?? [];
 
+        if (!mounted) return;
+
         setState(() {
           yearGroups = groups
               .map((g) => {
@@ -88,9 +90,22 @@ class _ProjectContributionModalState extends State<ProjectContributionModal> {
         throw Exception('Failed to load year groups');
       }
     } catch (e) {
+      print('Error fetching year groups: $e');
+
+      if (!mounted) return;
+
+      // Check if it's an auth error that requires re-login
+      if (e.toString().contains('Session expired') ||
+          e.toString().contains('Authentication failed') ||
+          e.toString().contains('login again')) {
+        Navigator.pop(context); // Close modal
+        // Don't set error message - let the app handle re-login
+        return;
+      }
+
       setState(() {
         isLoadingYearGroups = false;
-        errorMessage = 'Failed to load year groups: $e';
+        errorMessage = 'Failed to load year groups. Please try again.';
       });
     }
   }

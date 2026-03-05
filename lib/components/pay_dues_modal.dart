@@ -50,7 +50,9 @@ class _PayDuesModalState extends State<PayDuesModal> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> groups = data['yearGroups'] ?? [];
-        
+
+        if (!mounted) return;
+
         setState(() {
           yearGroups = groups.map((g) => {
             'id': g['id'],
@@ -58,7 +60,7 @@ class _PayDuesModalState extends State<PayDuesModal> {
             'year': g['year'],
           }).toList();
           isLoadingYearGroups = false;
-          
+
           // Auto-select first year group
           if (yearGroups.isNotEmpty) {
             selectedYearGroupId = yearGroups[0]['id'];
@@ -70,9 +72,22 @@ class _PayDuesModalState extends State<PayDuesModal> {
         throw Exception('Failed to load year groups');
       }
     } catch (e) {
+      print('Error fetching year groups: $e');
+
+      if (!mounted) return;
+
+      // Check if it's an auth error that requires re-login
+      if (e.toString().contains('Session expired') ||
+          e.toString().contains('Authentication failed') ||
+          e.toString().contains('login again')) {
+        Navigator.pop(context); // Close modal
+        // Don't set error message - let the app handle re-login
+        return;
+      }
+
       setState(() {
         isLoadingYearGroups = false;
-        errorMessage = 'Failed to load year groups: $e';
+        errorMessage = 'Failed to load year groups. Please try again.';
       });
     }
   }
@@ -93,21 +108,23 @@ class _PayDuesModalState extends State<PayDuesModal> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> dues = data['dues'] ?? [];
-        
+
         final newDuesItems = dues.map((d) => {
           'id': d['id'],
           'title': d['title'],
-          'amount': (d['amount'] is String) 
-              ? double.parse(d['amount']) 
+          'amount': (d['amount'] is String)
+              ? double.parse(d['amount'])
               : (d['amount'] as num).toDouble(),
           'currency': d['currency'] ?? 'GHS',
           'description': d['description'],
         }).toList();
-        
+
+        if (!mounted) return;
+
         setState(() {
           duesItems = newDuesItems;
           isLoadingDues = false;
-          
+
           // Auto-select first dues item after fetching
           if (duesItems.isNotEmpty) {
             selectedDuesId = duesItems[0]['id'];
@@ -124,13 +141,26 @@ class _PayDuesModalState extends State<PayDuesModal> {
         throw Exception('Failed to load dues items');
       }
     } catch (e) {
+      print('Error fetching dues for year group: $e');
+
+      if (!mounted) return;
+
+      // Check if it's an auth error that requires re-login
+      if (e.toString().contains('Session expired') ||
+          e.toString().contains('Authentication failed') ||
+          e.toString().contains('login again')) {
+        Navigator.pop(context); // Close modal
+        // Don't set error message - let the app handle re-login
+        return;
+      }
+
       setState(() {
         isLoadingDues = false;
         duesItems = [];
         selectedDuesId = null;
         selectedDuesTitle = null;
         selectedDuesAmount = null;
-        errorMessage = 'Failed to load dues items: $e';
+        errorMessage = 'Failed to load dues items. Please try again.';
       });
     }
   }

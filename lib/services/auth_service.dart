@@ -116,7 +116,10 @@ class AuthService {
       final refreshToken = await storage.read(key: 'refresh_token');
 
       if (refreshToken == null) {
-        throw Exception('No refresh token available');
+        // Clear invalid session state
+        debugPrint('No refresh token available - clearing storage and requiring re-login');
+        await _clearStorage();
+        throw Exception('Session expired, please login again');
       }
 
       final response = await http.post(
@@ -135,6 +138,8 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('Token refresh error: $e');
+      // Ensure storage is cleared on any refresh failure
+      await _clearStorage();
       rethrow;
     }
   }
@@ -479,7 +484,31 @@ class AuthService {
 
   Future<bool> isLoggedIn() async {
     final accessToken = await storage.read(key: 'access_token');
-    return accessToken != null;
+
+    // No access token at all
+    if (accessToken == null) {
+      return false;
+    }
+
+    // For web session auth, just check if access token exists
+    if (kIsWeb) {
+      final authType = await storage.read(key: 'auth_type');
+      if (authType == 'web_session') {
+        return true;
+      }
+    }
+
+    // For JWT auth, verify refresh token also exists
+    // If access token exists but refresh token is missing, it means the session is invalid
+    final refreshToken = await storage.read(key: 'refresh_token');
+    if (refreshToken == null) {
+      // Clear invalid session
+      debugPrint('Access token exists but refresh token is missing - clearing invalid session');
+      await _clearStorage();
+      return false;
+    }
+
+    return true;
   }
 
   Future<Map<String, dynamic>?> getCachedUser() async {
