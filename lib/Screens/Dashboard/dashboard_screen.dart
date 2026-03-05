@@ -40,6 +40,62 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // Cache variables
+  static Future<List<dynamic>>? _cachedDataFuture;
+  static DateTime? _lastFetchTime;
+  static List<dynamic>? _lastLoadedData;
+  static const _cacheValidityDuration = Duration(hours: 24);
+
+  // Track if this is a manual refresh
+  bool _isManualRefresh = false;
+
+  Future<List<dynamic>> _getCachedOrFetchData() async {
+    final now = DateTime.now();
+
+    // Return cached data if it exists and is still valid
+    if (_cachedDataFuture != null &&
+        _lastFetchTime != null &&
+        now.difference(_lastFetchTime!) < _cacheValidityDuration) {
+      return _cachedDataFuture!;
+    }
+
+    // Fetch new data and cache it
+    _lastFetchTime = now;
+    _cachedDataFuture = Future.wait([
+      _fetchAllUsersData(),
+      _fetchAllEventsData(),
+      _fetchAllProjectsData(),
+      _fetchAllArticlesData(),
+      _fetchStats(),
+      _fetchYearGroupMembers(),
+      _fetchYearGroupContributions(),
+    ]);
+
+    // Store the result for manual refresh use
+    final result = await _cachedDataFuture!;
+    _lastLoadedData = result;
+    return result;
+  }
+
+  // Method to force refresh data
+  Future<void> _refreshData() async {
+    setState(() {
+      _isManualRefresh = true;
+    });
+
+    _cachedDataFuture = null;
+    _lastFetchTime = null;
+
+    // Fetch new data
+    await _getCachedOrFetchData();
+
+    if (mounted) {
+      setState(() {
+        _isManualRefresh = false;
+      });
+    }
+  }
+
   Future<users_model.AllUsersModel> _fetchAllUsersData() async {
     try {
       final authService = AuthService();
@@ -452,17 +508,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       body: SafeArea(
         child: FutureBuilder<List<dynamic>>(
-          future: Future.wait([
-            _fetchAllUsersData(),
-            _fetchAllEventsData(),
-            _fetchAllProjectsData(),
-            _fetchAllArticlesData(),
-            _fetchStats(),
-            _fetchYearGroupMembers(),
-            _fetchYearGroupContributions(),
-          ]),
+          future: _getCachedOrFetchData(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            // During manual refresh, use last loaded data if available
+            final dataToDisplay = _isManualRefresh && _lastLoadedData != null
+                ? _lastLoadedData
+                : snapshot.data;
+
+            // Only show loading screen on initial load, not on manual refresh
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !_isManualRefresh &&
+                dataToDisplay == null) {
               return Container(
                 width: MediaQuery.of(context).size.width,
                 child: Column(
@@ -479,7 +535,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               );
-            } else if (snapshot.hasError) {
+            } else if (snapshot.hasError && !_isManualRefresh) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -510,20 +566,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               );
-            } else if (snapshot.hasData) {
-              final userData = snapshot.data![0] as users_model.AllUsersModel;
+            } else if (dataToDisplay != null) {
+              // Use available data - either new or cached during manual refresh
+              final data = dataToDisplay!;
+              final userData = data[0] as users_model.AllUsersModel;
 
-              final eventsData = snapshot.data![1] as List<Event>;
+              final eventsData = data[1] as List<Event>;
 
-              final projectsData = snapshot.data![2] as List<Project>;
+              final projectsData = data[2] as List<Project>;
 
               final articlesData =
-                  snapshot.data![3] as articles_model.AllArticlesModel?;
+                  data[3] as articles_model.AllArticlesModel?;
 
               final yearGroupMembers =
-                  snapshot.data![5] as List<YearGroupMember>;
+                  data[5] as List<YearGroupMember>;
 
-              final yearGroupContributions = snapshot.data![6] as double;
+              final yearGroupContributions = data[6] as double;
 
               // Check if critical data is null (users, events, projects are required)
               // Data is guaranteed to be present if we get here
@@ -539,8 +597,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Container(
                   child: Stack(
                     children: [
-                      SingleChildScrollView(
-                        child: Column(
+                      RefreshIndicator(
+                        onRefresh: _refreshData,
+                        color: odaPrimary,
+                        child: SingleChildScrollView(
+                          child: Column(
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(20.0),
@@ -1489,6 +1550,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             SizedBox(height: 80)
                           ],
                         ),
+                      ),
                       ),
                       FooterNav(activeTab: 'home'),
                     ],
