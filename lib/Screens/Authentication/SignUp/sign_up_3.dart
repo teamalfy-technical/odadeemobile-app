@@ -109,7 +109,6 @@ class _SignUp3State extends State<SignUp3> {
                                 height: 40,
                               ),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
                                 decoration: BoxDecoration(
                                     //color: Colors.white,
                                     borderRadius: BorderRadius.circular(5),
@@ -167,8 +166,6 @@ class _SignUp3State extends State<SignUp3> {
                                 children: [
                                   Expanded(
                                     child: Container(
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 10),
                                       decoration: BoxDecoration(
                                           //color: Colors.white,
                                           borderRadius:

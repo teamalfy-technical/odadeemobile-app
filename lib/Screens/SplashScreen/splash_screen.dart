@@ -16,6 +16,8 @@ class _SplashScreenState extends State<SplashScreen> {
   VideoPlayerController? _controller;
   bool _initialized = false;
   bool _hasNavigated = false;
+  bool _isDisposed = false;
+  Timer? _navigationTimer;
 
   @override
   void initState() {
@@ -25,31 +27,41 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeVideo() async {
     try {
-      if (kIsWeb) {
-        _controller = VideoPlayerController.networkUrl(
-          Uri.parse('splash_video.webm'),
-        );
-      } else {
-        _controller =
-            VideoPlayerController.asset('assets/videos/splash_video.mp4');
+      final controller = kIsWeb
+          ? VideoPlayerController.networkUrl(
+              Uri.parse('splash_video.webm'),
+            )
+          : VideoPlayerController.asset('assets/videos/splash_video.mp4');
+      _controller = controller;
+
+      await controller.initialize();
+
+      if (_isDisposed || !mounted) {
+        controller.dispose();
+        return;
       }
 
-      await _controller!.initialize();
+      setState(() {
+        _initialized = true;
+      });
 
-      if (mounted) {
-        setState(() {
-          _initialized = true;
-        });
+      controller.setVolume(0.0);
+      // Loop instead of letting the video reach natural completion: on
+      // completion the plugin internally does pause().then((_) =>
+      // seekTo(...)), and that dangling continuation can run after we've
+      // disposed the controller (when our navigation timer fires around
+      // the same time the video ends), which crashes with "used after
+      // being disposed". We navigate away on our own timer regardless, so
+      // looping is harmless here and avoids the completion event entirely.
+      controller.setLooping(true);
+      controller.play();
 
-        _controller!.setVolume(0.0);
-        _controller!.setLooping(false);
-        _controller!.play();
-
-        Timer(const Duration(milliseconds: 3500), _navigateToOnboarding);
-      }
+      _navigationTimer =
+          Timer(const Duration(milliseconds: 3500), _navigateToOnboarding);
     } catch (e) {
       debugPrint('Video initialization error: $e');
-      Timer(const Duration(milliseconds: 3500), _navigateToOnboarding);
+      _navigationTimer =
+          Timer(const Duration(milliseconds: 3500), _navigateToOnboarding);
     }
   }
 
@@ -66,8 +78,26 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _isDisposed = true;
+    _navigationTimer?.cancel();
+    _disposeController();
     super.dispose();
+  }
+
+  // video_player's internal position-polling timer checks `_isDisposed`
+  // before awaiting the platform call but not after, so it can still
+  // call notifyListeners() on a controller that finished disposing while
+  // the await was pending. Pausing first cancels that timer, and awaiting
+  // pause() before dispose() closes most of that window.
+  Future<void> _disposeController() async {
+    final controller = _controller;
+    if (controller == null) return;
+    try {
+      await controller.pause();
+    } catch (_) {
+      // Ignore: controller may already be in a bad state during teardown.
+    }
+    await controller.dispose();
   }
 
   @override

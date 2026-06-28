@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:odadee/config/api_config.dart';
+import 'package:odadee/navigation_service.dart';
+import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -13,6 +16,30 @@ class AuthService {
   AuthService._internal();
 
   final storage = const FlutterSecureStorage();
+
+  // Prevents multiple simultaneous redirects when several requests
+  // hit an expired session at the same time.
+  bool _isRedirectingToLogin = false;
+
+  /// Clears the session and forces navigation to the login screen.
+  /// Safe to call from anywhere (services, interceptors, etc.) since it
+  /// uses the global navigator key instead of a BuildContext.
+  Future<void> _forceLogoutAndRedirectToLogin() async {
+    await _clearStorage();
+
+    if (_isRedirectingToLogin) return;
+    _isRedirectingToLogin = true;
+
+    final navigator = NavigationService.navigatorKey.currentState;
+    if (navigator != null) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => SignInScreen()),
+        (route) => false,
+      );
+    }
+
+    _isRedirectingToLogin = false;
+  }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -118,7 +145,7 @@ class AuthService {
       if (refreshToken == null) {
         // Clear invalid session state
         debugPrint('No refresh token available - clearing storage and requiring re-login');
-        await _clearStorage();
+        await _forceLogoutAndRedirectToLogin();
         throw Exception('Session expired, please login again');
       }
 
@@ -133,13 +160,13 @@ class AuthService {
         await storage.write(key: 'access_token', value: data['accessToken']);
         return data['accessToken'];
       } else {
-        await _clearStorage();
+        await _forceLogoutAndRedirectToLogin();
         throw Exception('Session expired, please login again');
       }
     } catch (e) {
       debugPrint('Token refresh error: $e');
-      // Ensure storage is cleared on any refresh failure
-      await _clearStorage();
+      // Ensure storage is cleared and user is sent to login on any refresh failure
+      await _forceLogoutAndRedirectToLogin();
       rethrow;
     }
   }
@@ -333,7 +360,7 @@ class AuthService {
     // For web session auth, 401 means session expired - don't try to refresh
     if (response.statusCode == 401) {
       if (kIsWeb && authType == 'web_session') {
-        await _clearStorage();
+        await _forceLogoutAndRedirectToLogin();
         throw Exception('Session expired, please login again');
       }
 
@@ -348,6 +375,7 @@ class AuthService {
           additionalHeaders,
         );
       } catch (e) {
+        // refreshToken() already cleared storage and redirected to login
         throw Exception('Authentication failed, please login again');
       }
     }

@@ -191,7 +191,6 @@ class _SignInScreenState extends State<SignInScreen> {
                           height: 40,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                               //color: Colors.white,
                               borderRadius: BorderRadius.circular(5),
@@ -249,7 +248,6 @@ class _SignInScreenState extends State<SignInScreen> {
                           height: 20,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                               //color: Colors.white,
                               borderRadius: BorderRadius.circular(5),
