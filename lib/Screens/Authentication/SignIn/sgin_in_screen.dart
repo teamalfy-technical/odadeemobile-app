@@ -88,6 +88,7 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   bool show_password = false;
   Future<LoginResult>? _futureSignIn;
+  bool _hasHandledLoginResult = false;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -127,6 +128,7 @@ class _SignInScreenState extends State<SignInScreen> {
           
           if (biometricCredentials != null) {
             setState(() {
+              _hasHandledLoginResult = false;
               _futureSignIn = signInUser(
                 biometricCredentials['email']!,
                 biometricCredentials['password']!,
@@ -422,6 +424,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 KeyboardUtil.hideKeyboard(context);
 
                                 setState(() {
+                                  _hasHandledLoginResult = false;
                                   _futureSignIn = signInUser(user!, password!);
                                 });
                               }
@@ -507,6 +510,14 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _handleNavigationAndDialogs(BuildContext context, LoginResult data) {
+    // Guard against this firing more than once for the same login result
+    // (e.g. if this screen instance is still mounted underneath another
+    // route and its FutureBuilder resolves again later), which would pop
+    // up a stale dialog and force-navigate away from whatever the user is
+    // currently doing.
+    if (_hasHandledLoginResult || !mounted) return;
+    _hasHandledLoginResult = true;
+
     if (data.success && data.user != null) {
       final user = data.user!;
       final hasProfilePicture = user['profilePicture'] != null &&
@@ -525,12 +536,14 @@ class _SignInScreenState extends State<SignInScreen> {
             Icons.check_circle,
             Colors.green);
         Future.delayed(Duration(milliseconds: 500), () {
+          if (!mounted) return;
           _navigateToDashboard(context);
         });
       } else {
         _showDialog(context, "Success", "User logged in successfully.",
             Icons.check_circle, Colors.green);
         Future.delayed(Duration(milliseconds: 500), () {
+          if (!mounted) return;
           // Offer to enable biometric login if available and not already enabled
           if (_isBiometricAvailable && !_isBiometricLoginEnabled) {
             _showBiometricSetupDialog(context);

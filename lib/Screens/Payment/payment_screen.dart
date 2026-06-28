@@ -18,15 +18,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool isLoading = true;
   bool paymentLaunched = false;
 
+  // Apple rejects in-app WebView checkout for payments and requires
+  // checkout to happen outside the app (e.g. in the system browser) unless
+  // using Apple Pay/IAP. Android has no such restriction, so only iOS needs
+  // the external-browser flow; Android keeps the in-app WebView.
+  bool get _requiresExternalBrowser =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
   @override
   void initState() {
     super.initState();
-    
-    if (kIsWeb) {
-      // For Flutter Web, launch payment URL in new tab
-      _launchPaymentForWeb();
+
+    if (kIsWeb || _requiresExternalBrowser) {
+      // Flutter Web and iOS both launch the payment URL externally and
+      // show a confirmation screen for the user to return to.
+      _launchPaymentExternally();
     } else {
-      // For mobile platforms, use WebView
+      // Android: use in-app WebView.
       _initializeWebView();
     }
   }
@@ -110,7 +118,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
-  Future<void> _launchPaymentForWeb() async {
+  Future<void> _launchPaymentExternally() async {
     setState(() {
       isLoading = true;
     });
@@ -148,16 +156,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      // Web: Show confirmation screen
-      return _buildWebConfirmationScreen();
+    if (kIsWeb || _requiresExternalBrowser) {
+      // Web and iOS: Show confirmation screen for the externally-opened payment
+      return _buildExternalConfirmationScreen();
     } else {
-      // Mobile: Use WebView
+      // Android: Use in-app WebView
       return _buildMobileWebViewScreen();
     }
   }
 
-  Widget _buildWebConfirmationScreen() {
+  Widget _buildExternalConfirmationScreen() {
     return Scaffold(
       backgroundColor: Color(0xFF0f172a),
       appBar: AppBar(
@@ -207,7 +215,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 SizedBox(height: 12),
                 Text(
-                  'Please complete your payment in the new tab that just opened, then return here.',
+                  kIsWeb
+                      ? 'Please complete your payment in the new tab that just opened, then return here.'
+                      : 'Please complete your payment in the browser that just opened, then return here.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFF94a3b8),
@@ -255,7 +265,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 SizedBox(height: 16),
                 TextButton.icon(
-                  onPressed: _launchPaymentForWeb,
+                  onPressed: _launchPaymentExternally,
                   icon: Icon(Icons.refresh, size: 18),
                   label: Text('Reopen Payment Page'),
                   style: TextButton.styleFrom(
@@ -279,7 +289,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: _launchPaymentForWeb,
+                  onPressed: _launchPaymentExternally,
                   icon: Icon(Icons.refresh),
                   label: Text('Retry'),
                   style: ElevatedButton.styleFrom(
