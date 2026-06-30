@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Authentication/ForgetPassword/forgot_password.dart';
+import 'package:odadee/Screens/Authentication/terms_gate_screen.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
@@ -684,9 +685,24 @@ class _SignInScreenState extends State<SignInScreen> {
         context, MaterialPageRoute(builder: (_) => SignInScreen()));
   }
 
-  void _navigateToDashboard(BuildContext context) {
+  void _navigateToDashboard(BuildContext context) async {
+    if (await hasAcceptedCurrentTerms()) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => DashboardScreen()));
+      return;
+    }
+
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => DashboardScreen()));
+      context,
+      MaterialPageRoute(
+        builder: (_) => TermsGateScreen(
+          onAccepted: () {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) => DashboardScreen()));
+          },
+        ),
+      ),
+    );
   }
 
   // FutureBuilder<SignInModel> buildFutureBuilder() {

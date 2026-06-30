@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:odadee/services/discussion_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:odadee/components/authenticated_image.dart';
+import 'package:odadee/components/report_content_sheet.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/theme_service.dart';
@@ -16,10 +18,12 @@ class DiscussionsScreen extends StatefulWidget {
 
 class _DiscussionsScreenState extends State<DiscussionsScreen> {
   final DiscussionService _discussionService = DiscussionService();
+  final ModerationService _moderationService = ModerationService();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _postController = TextEditingController();
   
   List<DiscussionPost> _posts = [];
+  Set<String> _blockedUserIds = {};
   bool _isLoading = true;
   bool _isPosting = false;
   String _selectedCategory = 'all';
@@ -52,13 +56,15 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     print('=== DISCUSSIONS SCREEN: LOADING POSTS ===');
     setState(() => _isLoading = true);
     try {
+      final blockedIds = await _moderationService.getBlockedUserIds();
       final posts = await _discussionService.getPosts(
         category: _selectedCategory == 'all' ? null : _selectedCategory,
       );
       print('=== DISCUSSIONS SCREEN: Loaded ${posts.length} posts ===');
       if (mounted) {
         setState(() {
-          _posts = posts;
+          _blockedUserIds = blockedIds;
+          _posts = posts.where((p) => !blockedIds.contains(p.userId)).toList();
           _isLoading = false;
         });
         print('=== DISCUSSIONS SCREEN: UI updated, isLoading=$_isLoading ===');
@@ -71,6 +77,66 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           SnackBar(content: Text('Failed to load discussions: ${e.toString().replaceAll('Exception: ', '')}')),
         );
       }
+    }
+  }
+
+  Future<bool> _confirmBlockUser({
+    required String blockedUserId,
+    required String blockedUserName,
+    String? lastSeenContentId,
+    String? lastSeenContentType,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.cardColor(context),
+        title: Text('Block $blockedUserName?', style: TextStyle(color: AppColors.textColor(context))),
+        content: Text(
+          'You will no longer see posts or comments from $blockedUserName, and our moderation team will be notified to review their content.',
+          style: TextStyle(color: AppColors.subtitleColor(context)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Block'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return false;
+
+    try {
+      await _moderationService.blockUser(
+        blockedUserId: blockedUserId,
+        lastSeenContentId: lastSeenContentId,
+        lastSeenContentType: lastSeenContentType,
+      );
+      if (mounted) {
+        setState(() {
+          _blockedUserIds.add(blockedUserId);
+          _posts = _posts.where((p) => p.userId != blockedUserId).toList();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$blockedUserName has been blocked.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+      return true;
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to block user. Please try again.'), backgroundColor: Colors.red),
+        );
+      }
+      return false;
     }
   }
 
@@ -93,7 +159,17 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
       );
       return;
     }
-    
+    if (_moderationService.containsObjectionableContent(_titleController.text) ||
+        _moderationService.containsObjectionableContent(_postController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Your post contains language that violates our community guidelines. Please revise it.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isPosting = true);
     try {
       final newPost = await _discussionService.createPost(
@@ -332,7 +408,9 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           if (loadingComments) {
             _discussionService.getComments(post.id).then((loadedComments) {
               setModalState(() {
-                comments = loadedComments;
+                comments = loadedComments
+                    .where((c) => !_blockedUserIds.contains(c.userId))
+                    .toList();
                 loadingComments = false;
               });
             }).catchError((e) {
@@ -406,7 +484,20 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                               itemCount: comments.length,
                               itemBuilder: (context, index) {
                                 final comment = comments[index];
-                                return _buildCommentCard(comment, surfaceColor, textColor, subtitleColor, mutedColor);
+                                return _buildCommentCard(
+                                  comment,
+                                  surfaceColor,
+                                  textColor,
+                                  subtitleColor,
+                                  mutedColor,
+                                  onUserBlocked: (blockedUserId) {
+                                    setModalState(() {
+                                      comments = comments
+                                          .where((c) => c.userId != blockedUserId)
+                                          .toList();
+                                    });
+                                  },
+                                );
                               },
                             ),
                 ),
@@ -451,7 +542,18 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                                 ? null
                                 : () async {
                                     if (commentController.text.trim().isEmpty) return;
-                                    
+
+                                    if (_moderationService.containsObjectionableContent(
+                                        commentController.text)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Your comment contains language that violates our community guidelines. Please revise it.'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
                                     setModalState(() => posting = true);
                                     try {
                                       final newComment = await _discussionService.addComment(
@@ -503,7 +605,14 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     );
   }
 
-  Widget _buildCommentCard(DiscussionComment comment, Color surfaceColor, Color textColor, Color subtitleColor, Color mutedColor) {
+  Widget _buildCommentCard(
+    DiscussionComment comment,
+    Color surfaceColor,
+    Color textColor,
+    Color subtitleColor,
+    Color mutedColor, {
+    void Function(String blockedUserId)? onUserBlocked,
+  }) {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.all(12),
@@ -537,6 +646,15 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   ],
                 ),
               ),
+              _buildContentMenuButton(
+                contentType: 'discussion_comment',
+                contentId: comment.id,
+                authorId: comment.userId,
+                authorName: comment.author?.fullName ?? 'this user',
+                contentSnapshot: comment.content,
+                mutedColor: mutedColor,
+                onUserBlocked: onUserBlocked,
+              ),
             ],
           ),
           SizedBox(height: 8),
@@ -546,6 +664,58 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildContentMenuButton({
+    required String contentType,
+    required String contentId,
+    required String authorId,
+    required String authorName,
+    required String contentSnapshot,
+    required Color mutedColor,
+    void Function(String blockedUserId)? onUserBlocked,
+  }) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert, color: mutedColor, size: 18),
+      color: AppColors.cardColor(context),
+      onSelected: (value) async {
+        if (value == 'report') {
+          showReportContentSheet(
+            context: context,
+            contentType: contentType,
+            contentId: contentId,
+            reportedUserId: authorId,
+            contentSnapshot: contentSnapshot,
+          );
+        } else if (value == 'block') {
+          final blocked = await _confirmBlockUser(
+            blockedUserId: authorId,
+            blockedUserName: authorName,
+            lastSeenContentId: contentId,
+            lastSeenContentType: contentType,
+          );
+          if (blocked) onUserBlocked?.call(authorId);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'report',
+          child: Row(children: [
+            Icon(Icons.flag_outlined, size: 18, color: AppColors.textColor(context)),
+            SizedBox(width: 8),
+            Text('Report', style: TextStyle(color: AppColors.textColor(context))),
+          ]),
+        ),
+        PopupMenuItem(
+          value: 'block',
+          child: Row(children: [
+            Icon(Icons.block, size: 18, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Block $authorName', style: TextStyle(color: Colors.red)),
+          ]),
+        ),
+      ],
     );
   }
 
@@ -686,10 +856,18 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                   ],
                 ),
               ),
+              _buildContentMenuButton(
+                contentType: 'discussion_post',
+                contentId: post.id,
+                authorId: post.userId,
+                authorName: post.author?.fullName ?? 'this user',
+                contentSnapshot: '${post.title}\n${post.content}',
+                mutedColor: mutedColor,
+              ),
             ],
           ),
           SizedBox(height: 12),
-          
+
           if (post.title.isNotEmpty) ...[
             Text(
               post.title,

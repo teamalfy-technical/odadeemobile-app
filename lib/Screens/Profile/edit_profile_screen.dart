@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/user_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 
@@ -206,6 +207,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (ModerationService().containsObjectionableContent(_bioController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Your bio contains language that violates our community guidelines. Please revise it.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 

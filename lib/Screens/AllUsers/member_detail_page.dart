@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/components/authenticated_image.dart';
+import 'package:odadee/components/report_content_sheet.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:odadee/services/theme_service.dart';
 
 class MemberDetailPage extends StatefulWidget {
@@ -57,6 +59,53 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
     }
   }
 
+  Future<void> _confirmBlockUser(String userName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text('Block $userName?', style: TextStyle(color: AppColors.textColor(context))),
+        content: Text(
+          'You will no longer see posts or comments from $userName, and our moderation team will be notified to review their content.',
+          style: TextStyle(color: AppColors.textColor(context)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Block'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ModerationService().blockUser(
+        blockedUserId: widget.data.id ?? '',
+        lastSeenContentId: widget.data.id,
+        lastSeenContentType: 'profile',
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$userName has been blocked.'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to block user. Please try again.'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final String userName =
@@ -83,6 +132,42 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
               fontSize: 18,
               fontWeight: FontWeight.w600),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: AppColors.textColor(context)),
+            onSelected: (value) {
+              if (value == 'report') {
+                showReportContentSheet(
+                  context: context,
+                  contentType: 'profile',
+                  contentId: widget.data.id ?? '',
+                  reportedUserId: widget.data.id ?? '',
+                  contentSnapshot: userName,
+                );
+              } else if (value == 'block') {
+                _confirmBlockUser(userName);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'report',
+                child: Row(children: [
+                  Icon(Icons.flag_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Report $userName'),
+                ]),
+              ),
+              PopupMenuItem(
+                value: 'block',
+                child: Row(children: [
+                  Icon(Icons.block, size: 18, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Block $userName', style: TextStyle(color: Colors.red)),
+                ]),
+              ),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

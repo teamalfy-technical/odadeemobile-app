@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Authentication/SignUp/sign_up_4.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/moderation_service.dart';
 
 class SignUp3 extends StatefulWidget {
   final data;
@@ -304,6 +305,16 @@ class _SignUp3State extends State<SignUp3> {
                             child: InkWell(
                               onTap: () {
                                 if (_formKey.currentState!.validate()) {
+                                  if (ModerationService().containsObjectionableContent(shortBio ?? '')) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Your bio contains language that violates our community guidelines. Please revise it.'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
                                   _formKey.currentState!.save();
                                   KeyboardUtil.hideKeyboard(context);
 

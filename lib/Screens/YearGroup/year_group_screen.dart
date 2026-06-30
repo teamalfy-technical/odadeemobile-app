@@ -8,6 +8,7 @@ import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/theme_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:intl/intl.dart';
 
 class YearGroupScreen extends StatefulWidget {
@@ -89,8 +90,11 @@ class _YearGroupScreenState extends State<YearGroupScreen> with SingleTickerProv
     setState(() => _loadingMembers = true);
     try {
       final members = await _yearGroupService.getYearGroupMembers(_yearGroup!.id);
+      final blockedIds = await ModerationService().getBlockedUserIds();
       setState(() {
-        _members = members;
+        _members = members
+            .where((m) => !blockedIds.contains(m.user?.id ?? m.id))
+            .toList();
         _loadingMembers = false;
       });
     } catch (e) {

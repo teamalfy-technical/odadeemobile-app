@@ -6,6 +6,7 @@ import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 
 class MembersScreen extends StatefulWidget {
   const MembersScreen({super.key});
@@ -66,7 +67,10 @@ class _MembersScreenState extends State<MembersScreen> {
         }
       } while (currentPage <= totalPages);
       
-      allMembers = fetchedMembers;
+      final blockedIds = await ModerationService().getBlockedUserIds();
+      allMembers = fetchedMembers
+          .where((m) => !blockedIds.contains(m['id']?.toString()))
+          .toList();
       _filterMembers(query);
       
     } catch (e) {

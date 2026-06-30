@@ -10,6 +10,7 @@ import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Radio/playing_screen.dart';
@@ -87,7 +88,7 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
     try {
       final authService = AuthService();
       final endpoint = '/api/users?page=$page${filters != null ? '&$filters' : ''}';
-      
+
       print('Fetching: $endpoint');
 
       final response = await authService.authenticatedRequest('GET', endpoint);
@@ -98,9 +99,13 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
 
         print(data);
 
+        final blockedIds = await ModerationService().getBlockedUserIds();
+        final visibleUsers =
+            eventData.data!.where((u) => !blockedIds.contains(u.id)).toList();
+
         setState(() {
           lastPage = eventData.lastPage!;
-          yearGroupList.addAll(eventData.data!);
+          yearGroupList.addAll(visibleUsers);
           isLoading = false;
         });
       } else {

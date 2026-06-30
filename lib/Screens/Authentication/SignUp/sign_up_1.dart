@@ -3,12 +3,14 @@ import 'dart:io' show Platform;
 
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
 import 'package:odadee/Screens/Authentication/SignUp/sign_up_2.dart';
 import 'package:odadee/components/keyboard_utils.dart';
+import 'package:odadee/components/web_view_page.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/year_group_service.dart';
@@ -85,6 +87,7 @@ class _SignUp1State extends State<SignUp1> {
 
   List<YearGroup> _yearGroups = [];
   bool _loadingYearGroups = true;
+  bool _agreedToTerms = false;
 
   /* get_fcm_token() async {
     final fcmToken = await FirebaseMessaging.instance.getToken();
@@ -733,6 +736,67 @@ class _SignUp1State extends State<SignUp1> {
               SizedBox(
                 height: 20,
               ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: _agreedToTerms,
+                      activeColor: odaSecondary,
+                      onChanged: (value) {
+                        setState(() {
+                          _agreedToTerms = value ?? false;
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _agreedToTerms = !_agreedToTerms;
+                        });
+                      },
+                      child: Text.rich(
+                        TextSpan(
+                          text: "I agree to the ",
+                          style: TextStyle(fontSize: 13),
+                          children: [
+                            TextSpan(
+                              text: "Terms of Use",
+                              style: TextStyle(
+                                  color: odaSecondary,
+                                  fontWeight: FontWeight.bold),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => WebViewPage(
+                                        title: 'Terms of Use',
+                                        url: 'https://odadee.net/terms-service',
+                                      ),
+                                    ),
+                                  );
+                                },
+                            ),
+                            TextSpan(
+                              text:
+                                  ", and understand there is zero tolerance for objectionable content or abusive behavior on Odadee. Accounts that post such content will be removed.",
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 16,
+              ),
               Column(
                 children: [
                   Align(
@@ -740,12 +804,24 @@ class _SignUp1State extends State<SignUp1> {
                       width: MediaQuery.of(context).size.width,
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                          color: odaSecondary,
+                          color: _agreedToTerms
+                              ? odaSecondary
+                              : odaSecondary.withOpacity(0.4),
                           borderRadius: BorderRadius.circular(10)),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
+                            if (!_agreedToTerms) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Please agree to the Terms of Use to continue'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
                               KeyboardUtil.hideKeyboard(context);
@@ -760,7 +836,9 @@ class _SignUp1State extends State<SignUp1> {
                                 "graduationYear": yearGroup != null ? int.tryParse(yearGroup!) ?? 0 : 0,
                               };
 
-                              _futureSignUp = registerUser(data);
+                              setState(() {
+                                _futureSignUp = registerUser(data);
+                              });
 
                               print(data);
 

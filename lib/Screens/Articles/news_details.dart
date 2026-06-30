@@ -10,8 +10,10 @@ import 'package:odadee/Screens/Projects/models/project_detail_model.dart';
 import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Radio/radio_screen.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
+import 'package:odadee/components/report_content_sheet.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Radio/playing_screen.dart';
@@ -57,13 +59,67 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
   Future<CommentModel>? _futureGetAllComments;
   final commentController = TextEditingController();
+  Set<String> _blockedAuthorNames = {};
 
 
   @override
   void initState() {
     super.initState();
     _futureGetAllComments = getAllComments(widget.data.id.toString());
+    _loadBlockedAuthorNames();
+  }
 
+  Future<void> _loadBlockedAuthorNames() async {
+    // article comments only expose an author display name, not a user id,
+    // so blocked-name matching is a stopgap until odadee.net's comments API
+    // returns a userId field.
+    final names = await ModerationService().getBlockedAuthorNames();
+    if (mounted) setState(() => _blockedAuthorNames = names);
+  }
+
+  Future<void> _confirmBlockAuthor(String authorName, int commentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Block $authorName?'),
+        content: Text(
+          'You will no longer see comments from $authorName, and our moderation team will be notified to review their content.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Block'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ModerationService().blockAuthorName(
+        authorName: authorName,
+        lastSeenContentId: commentId.toString(),
+        lastSeenContentType: 'article_comment',
+      );
+      if (mounted) {
+        setState(() => _blockedAuthorNames.add(authorName));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$authorName has been blocked.'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to block user. Please try again.'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -108,7 +164,9 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
           else if(snapshot.hasData) {
 
             var data = snapshot.data!;
-            var comments = data.comments!.data!;
+            var comments = data.comments!.data!
+                .where((c) => !_blockedAuthorNames.contains(c.author))
+                .toList();
 
             print("#########################");
 
@@ -341,6 +399,15 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                                                   onTap: () {
                                                     String commentText = commentController.text;
                                                     if (commentText.isNotEmpty) {
+                                                      if (ModerationService().containsObjectionableContent(commentText)) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text('Your comment contains language that violates our community guidelines. Please revise it.'),
+                                                            backgroundColor: Colors.red,
+                                                          ),
+                                                        );
+                                                        return;
+                                                      }
                                                       // Post the comment
                                                       postComment(commentText);
                                                       // Clear the input field
@@ -420,6 +487,43 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                                                                   Text(comment.content.toString(), style: TextStyle(fontSize: 14, color: Colors.grey),),
                                                                 ],
                                                               ),
+                                                            ),
+                                                            PopupMenuButton<String>(
+                                                              icon: Icon(Icons.more_vert, color: Colors.grey, size: 18),
+                                                              onSelected: (value) {
+                                                                if (value == 'report') {
+                                                                  showReportContentSheet(
+                                                                    context: context,
+                                                                    contentType: 'article_comment',
+                                                                    contentId: comment.id.toString(),
+                                                                    reportedUserId: comment.author ?? '',
+                                                                    contentSnapshot: comment.content,
+                                                                  );
+                                                                } else if (value == 'block') {
+                                                                  _confirmBlockAuthor(
+                                                                    comment.author ?? 'this user',
+                                                                    comment.id ?? 0,
+                                                                  );
+                                                                }
+                                                              },
+                                                              itemBuilder: (context) => [
+                                                                PopupMenuItem(
+                                                                  value: 'report',
+                                                                  child: Row(children: [
+                                                                    Icon(Icons.flag_outlined, size: 18),
+                                                                    SizedBox(width: 8),
+                                                                    Text('Report'),
+                                                                  ]),
+                                                                ),
+                                                                PopupMenuItem(
+                                                                  value: 'block',
+                                                                  child: Row(children: [
+                                                                    Icon(Icons.block, size: 18, color: Colors.red),
+                                                                    SizedBox(width: 8),
+                                                                    Text('Block', style: TextStyle(color: Colors.red)),
+                                                                  ]),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
                                                         ),

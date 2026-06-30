@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/Authentication/SignUp/models/update_bio_model.dart';
+import 'package:odadee/Screens/Authentication/terms_gate_screen.dart' show markTermsAcceptedForNewSignup;
 import 'package:odadee/constants.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
@@ -388,7 +389,9 @@ class _SignUp4State extends State<SignUp4> {
             print(data.toJson());
 
             if (data.message == "Bio Updated Successfully") {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+                await markTermsAcceptedForNewSignup();
+
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => SignInScreen()));
 

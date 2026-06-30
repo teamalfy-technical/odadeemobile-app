@@ -27,6 +27,7 @@ import 'package:odadee/services/project_service.dart';
 import 'package:odadee/models/event.dart';
 import 'package:odadee/models/project.dart';
 import 'package:odadee/services/year_group_service.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 import 'package:odadee/components/authenticated_image.dart';
 
@@ -241,7 +242,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return [];
       }
       final members = await yearGroupService.getYearGroupMembers(yearGroup.id);
-      return members;
+      final blockedIds = await ModerationService().getBlockedUserIds();
+      return members
+          .where((m) => !blockedIds.contains(m.user?.id ?? m.id))
+          .toList();
     } catch (e) {
       return [];
     }

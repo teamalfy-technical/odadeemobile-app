@@ -6,8 +6,10 @@ import 'package:odadee/Screens/Projects/pay_dues.dart';
 import 'package:odadee/Screens/Settings/settings_screen.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/components/authenticated_image.dart';
+import 'package:odadee/components/report_content_sheet.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/constants.dart';
+import 'package:odadee/services/moderation_service.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../Radio/playing_screen.dart';
@@ -27,6 +29,55 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool is_info_page = true;
+
+  String get _userName =>
+      "${widget.data.firstName ?? ''} ${widget.data.lastName ?? ''}".trim();
+
+  Future<void> _confirmBlockUser() async {
+    final userName = _userName.isEmpty ? 'this user' : _userName;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Block $userName?'),
+        content: Text(
+          'You will no longer see posts or comments from $userName, and our moderation team will be notified to review their content.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Block'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ModerationService().blockUser(
+        blockedUserId: widget.data.id ?? '',
+        lastSeenContentId: widget.data.id,
+        lastSeenContentType: 'profile',
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$userName has been blocked.'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to block user. Please try again.'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
 
   String _safeConvertDate(String? dateString) {
     if (dateString == null || dateString.trim().isEmpty) {
@@ -110,37 +161,75 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                             Text("User Details", style: TextStyle(fontSize: 20, color: Colors.black),),
                           ],
                         ),
-                        InkWell(
-                          onTap: () {
+                        Row(
+                          children: [
+                            InkWell(
+                              onTap: () {
 
-                            if(show_filter){
-                              setState(() {
-                                show_filter = false;
-                              });
-                            }else {
-                              setState(() {
-                                show_filter = true;
-                              });
-                            }
+                                if(show_filter){
+                                  setState(() {
+                                    show_filter = false;
+                                  });
+                                }else {
+                                  setState(() {
+                                    show_filter = true;
+                                  });
+                                }
 
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: odaPrimary,
-                              borderRadius: BorderRadius.circular(5)
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: odaPrimary,
+                                  borderRadius: BorderRadius.circular(5)
 
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.chat_outlined, size: 15, color: Colors.white,),
-                                SizedBox(
-                                  width:3 ,
                                 ),
-                                Text("Message", style: TextStyle(color: Colors.white, fontSize: 14),)
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.chat_outlined, size: 15, color: Colors.white,),
+                                    SizedBox(
+                                      width:3 ,
+                                    ),
+                                    Text("Message", style: TextStyle(color: Colors.white, fontSize: 14),)
+                                  ],
+                                ),
+                              ),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: Icon(Icons.more_vert, color: odaSecondary),
+                              onSelected: (value) {
+                                if (value == 'report') {
+                                  showReportContentSheet(
+                                    context: context,
+                                    contentType: 'profile',
+                                    contentId: widget.data.id ?? '',
+                                    reportedUserId: widget.data.id ?? '',
+                                    contentSnapshot: _userName,
+                                  );
+                                } else if (value == 'block') {
+                                  _confirmBlockUser();
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 'report',
+                                  child: Row(children: [
+                                    Icon(Icons.flag_outlined, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('Report $_userName'),
+                                  ]),
+                                ),
+                                PopupMenuItem(
+                                  value: 'block',
+                                  child: Row(children: [
+                                    Icon(Icons.block, size: 18, color: Colors.red),
+                                    SizedBox(width: 8),
+                                    Text('Block $_userName', style: TextStyle(color: Colors.red)),
+                                  ]),
+                                ),
                               ],
                             ),
-                          ),
+                          ],
                         )
                       ],
 
