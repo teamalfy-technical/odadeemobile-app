@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:odadee/Screens/Authentication/ForgetPassword/forgot_password.dart';
+import 'package:odadee/Screens/Authentication/SignUp/sign_up_1.dart';
 import 'package:odadee/Screens/Authentication/terms_gate_screen.dart';
 import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
 import 'package:odadee/components/keyboard_utils.dart';
@@ -449,7 +450,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     Align(
                       child: InkWell(
                         onTap: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (BuildContext context) => SignUp1()));
                         },
                         child: Text.rich(TextSpan(
                             text: "Don't have an account? ",
