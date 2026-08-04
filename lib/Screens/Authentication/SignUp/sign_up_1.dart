@@ -84,6 +84,7 @@ class _SignUp1State extends State<SignUp1> {
   String? lastName;
   String? email;
   String? password;
+  String? confirmPassword;
 
   List<YearGroup> _yearGroups = [];
   bool _loadingYearGroups = true;
@@ -625,11 +626,18 @@ class _SignUp1State extends State<SignUp1> {
                                       PasteTextInputFormatter(),
                                     ],
                                     validator: (value) {
-                                      if (value!.isEmpty) {
+                                      if (value == null || value.isEmpty) {
                                         return 'Password is required';
                                       }
+                                      // Standard strength policy: at least 8
+                                      // characters, and at least one uppercase
+                                      // letter, one lowercase letter, one digit,
+                                      // and one special (non-alphanumeric)
+                                      // character. Using [^A-Za-z0-9] accepts any
+                                      // symbol as "special" so strong passwords
+                                      // are never wrongly rejected.
                                       if (!RegExp(
-                                              r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$%^&*])')
+                                              r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$')
                                           .hasMatch(value)) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
@@ -703,8 +711,8 @@ class _SignUp1State extends State<SignUp1> {
                                       PasteTextInputFormatter(),
                                     ],
                                     validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'Password is required';
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please confirm your password';
                                       }
 
                                       if (value != password) {
@@ -716,12 +724,12 @@ class _SignUp1State extends State<SignUp1> {
                                     obscureText: show_password ? false : true,
                                     onSaved: (value) {
                                       setState(() {
-                                        password = value;
+                                        confirmPassword = value;
                                       });
                                     },
                                     onChanged: (value) {
                                       setState(() {
-                                        password = value;
+                                        confirmPassword = value;
                                       });
                                     }),
                               ),

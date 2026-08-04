@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -38,8 +39,22 @@ class _AuthenticatedImageState extends State<AuthenticatedImage> {
 
   Future<void> _loadImage() async {
     try {
+      // Handle base64 data URLs directly without an HTTP request
+      if (widget.imageUrl.startsWith('data:')) {
+        final commaIndex = widget.imageUrl.indexOf(',');
+        if (commaIndex != -1) {
+          final base64Str = widget.imageUrl.substring(commaIndex + 1);
+          final bytes = base64Decode(base64Str);
+          setState(() {
+            _imageData = bytes;
+            _isLoading = false;
+          });
+          return;
+        }
+      }
+
       final token = await AuthService().getAccessToken();
-      
+
       final response = await http.get(
         Uri.parse(widget.imageUrl),
         headers: {

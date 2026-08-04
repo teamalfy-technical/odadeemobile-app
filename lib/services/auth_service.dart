@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/navigation_service.dart';
 import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
+import 'package:odadee/utils/logger.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -46,9 +47,26 @@ class AuthService {
       final deviceId = await _getOrCreateDeviceId();
       final deviceInfo = await _getDeviceInfo();
 
+      final loginUrl = '${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}';
+      final loginHeaders = {'Content-Type': 'application/json'};
+      final loginBody = {
+        'email': email,
+        'password': '***',
+        'deviceInfo': {
+          'deviceId': deviceId,
+          'deviceName': deviceInfo['deviceName'],
+          'deviceType': deviceInfo['deviceType'],
+          'deviceModel': deviceInfo['deviceModel'],
+          'osName': deviceInfo['osName'],
+          'osVersion': deviceInfo['osVersion'],
+          'appVersion': ApiConfig.appVersion,
+        },
+      };
+      ApiLogger.logRequest(loginUrl, headers: loginBody, body: loginBody);
+
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(loginUrl),
+        headers: loginHeaders,
         body: jsonEncode({
           'email': email,
           'password': password,
@@ -63,6 +81,7 @@ class AuthService {
           },
         }),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -92,8 +111,19 @@ class AuthService {
       final deviceId = await _getOrCreateDeviceId();
       final deviceInfo = await _getDeviceInfo();
 
+      final registerUrl = '${ApiConfig.baseUrl}/api/auth/mobile/register';
+      ApiLogger.logRequest(registerUrl, headers: {'Content-Type': 'application/json'}, body: {
+        'email': email,
+        'password': '***',
+        'firstName': firstName,
+        'lastName': lastName,
+        'graduationYear': graduationYear,
+        if (phoneNumber != null) 'phoneNumber': phoneNumber,
+        if (invitationToken != null) 'invitationToken': invitationToken,
+      });
+
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/mobile/register'),
+        Uri.parse(registerUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -115,6 +145,7 @@ class AuthService {
           },
         }),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       final contentType = response.headers['content-type'] ?? '';
       if (!contentType.contains('application/json')) {
@@ -149,11 +180,15 @@ class AuthService {
         throw Exception('Session expired, please login again');
       }
 
+      final refreshUrl = '${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}';
+      ApiLogger.logRequest(refreshUrl, headers: {'Content-Type': 'application/json'});
+
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}'),
+        Uri.parse(refreshUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refreshToken': refreshToken}),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -173,11 +208,14 @@ class AuthService {
 
   Future<Map<String, dynamic>> requestMagicLink(String email) async {
     try {
+      final url = '${ApiConfig.baseUrl}/api/auth/magic-link/request';
+      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/request'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -200,10 +238,13 @@ class AuthService {
 
   Future<Map<String, dynamic>> verifyMagicLink(String token) async {
     try {
+      final url = '${ApiConfig.baseUrl}/api/auth/magic-link/validate/$token';
+      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'});
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/validate/$token'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -391,38 +432,49 @@ class AuthService {
     Map<String, String>? additionalHeaders,
   ) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
-    final headers = {
+    final requestHeaders = {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
       if (additionalHeaders != null) ...additionalHeaders,
     };
 
+    ApiLogger.logRequest(
+      uri.toString(),
+      headers: requestHeaders,
+      body: body,
+    );
+
+    http.Response response;
+
     switch (method.toUpperCase()) {
       case 'GET':
-        return await http.get(uri, headers: headers);
+        response = await http.get(uri, headers: requestHeaders);
       case 'POST':
-        return await http.post(
+        response = await http.post(
           uri,
-          headers: headers,
+          headers: requestHeaders,
           body: body != null ? jsonEncode(body) : null,
         );
       case 'PUT':
-        return await http.put(
+        response = await http.put(
           uri,
-          headers: headers,
+          headers: requestHeaders,
           body: body != null ? jsonEncode(body) : null,
         );
       case 'DELETE':
-        return await http.delete(uri, headers: headers);
+        response = await http.delete(uri, headers: requestHeaders);
       case 'PATCH':
-        return await http.patch(
+        response = await http.patch(
           uri,
-          headers: headers,
+          headers: requestHeaders,
           body: body != null ? jsonEncode(body) : null,
         );
       default:
         throw Exception('Unsupported HTTP method: $method');
     }
+
+    ApiLogger.logResponse(response.statusCode, body: response.body);
+    return response;
   }
 
   Future<String> _getOrCreateDeviceId() async {
@@ -611,11 +663,14 @@ class AuthService {
   /// Request password reset via email
   Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     try {
+      final url = '${ApiConfig.baseUrl}/api/auth/request-password-reset';
+      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/request-password-reset'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -650,14 +705,17 @@ class AuthService {
     required String newPassword,
   }) async {
     try {
+      final url = '${ApiConfig.baseUrl}/api/auth/reset-password';
+      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'token': token, 'newPassword': '***'});
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/reset-password'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': token,
           'newPassword': newPassword,
         }),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -689,11 +747,14 @@ class AuthService {
   /// Request magic link for passwordless login
   Future<Map<String, dynamic>> requestMagicLinkLogin(String email) async {
     try {
+      final url = '${ApiConfig.baseUrl}/api/auth/magic-link/request';
+      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/request'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -728,14 +789,17 @@ class AuthService {
     required String password,
   }) async {
     try {
+      final url = '${ApiConfig.baseUrl}/api/auth/magic-link/set-password';
+      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'token': token, 'password': '***'});
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/magic-link/set-password'),
+        Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': token,
           'password': password,
         }),
       );
+      ApiLogger.logResponse(response.statusCode, body: response.body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

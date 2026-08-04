@@ -9,7 +9,9 @@ import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({super.key});
+  final bool fromBottomNav;
+
+  const UserProfileScreen({super.key, this.fromBottomNav = false});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -121,7 +123,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !widget.fromBottomNav,
+      child: Scaffold(
       backgroundColor: Color(0xFF0f172a),
       body: SafeArea(
         bottom: false,
@@ -143,6 +147,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -156,15 +161,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             Row(
               children: [
-                InkWell(
-                  onTap: () => Navigator.pop(context),
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: Colors.black87,
-                    size: 28,
+                if (!widget.fromBottomNav) ...[
+                  InkWell(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: Colors.black87,
+                      size: 28,
+                    ),
                   ),
-                ),
-                SizedBox(width: 12),
+                  SizedBox(width: 12),
+                ],
                 Text(
                   "Profile",
                   style: TextStyle(

@@ -90,6 +90,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (!value.contains(RegExp(r'[0-9]'))) {
       return 'Password must contain at least one number';
     }
+    // Any non-alphanumeric character counts as "special", matching the
+    // sign-up / reset-password strength policy so a password valid on one
+    // screen is valid on all of them.
+    if (!value.contains(RegExp(r'[^A-Za-z0-9]'))) {
+      return 'Password must contain at least one special character';
+    }
     return null;
   }
 

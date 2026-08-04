@@ -16,7 +16,9 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final bool fromBottomNav;
+
+  const SettingsScreen({super.key, this.fromBottomNav = false});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -492,7 +494,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !widget.fromBottomNav,
+      child: Scaffold(
       backgroundColor: odaBackground,
       body: SafeArea(
         bottom: false,
@@ -506,10 +510,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back, color: odaBackground),
-                        onPressed: () => Navigator.pop(context),
-                      ),
+                      if (!widget.fromBottomNav) ...[
+                        IconButton(
+                          icon: Icon(Icons.arrow_back, color: odaBackground),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
                       Text(
                         'Settings',
                         style: TextStyle(
@@ -549,6 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             FooterNav(activeTab: 'settings'),
           ],
         ),
+      ),
       ),
     );
   }

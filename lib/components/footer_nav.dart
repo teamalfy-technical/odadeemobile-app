@@ -77,7 +77,7 @@ class FooterNav extends StatelessWidget {
                 if (activeTab != 'settings') {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (BuildContext context) => SettingsScreen(),
+                      builder: (BuildContext context) => SettingsScreen(fromBottomNav: true),
                     ),
                   );
                 }
@@ -92,7 +92,7 @@ class FooterNav extends StatelessWidget {
                 if (activeTab != 'profile') {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (BuildContext context) => UserProfileScreen(),
+                      builder: (BuildContext context) => UserProfileScreen(fromBottomNav: true),
                     ),
                   );
                 }

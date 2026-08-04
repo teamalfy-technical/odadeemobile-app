@@ -292,20 +292,16 @@ class _SignInScreenState extends State<SignInScreen> {
                               LengthLimitingTextInputFormatter(225),
                             ],
                             validator: (value) {
-                              if (value!.isEmpty) {
+                              // Login only checks that a password was entered.
+                              // Password *strength* rules must not be enforced
+                              // here: they can differ from what a valid existing
+                              // password contains (e.g. special characters
+                              // outside a narrow set), which would block sign-in
+                              // for credentials the server would happily accept.
+                              // The backend is the source of truth for whether
+                              // the credentials are correct.
+                              if (value == null || value.isEmpty) {
                                 return 'Password is required';
-                              }
-                              if (!RegExp(
-                                      r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$%^&*])')
-                                  .hasMatch(value)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "- Password must be at least 8 characters long\n- Must include at least one uppercase letter,\n- One lowercase letter, one digit,\n- And one special character"),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                                return '';
                               }
                               return null;
                             },

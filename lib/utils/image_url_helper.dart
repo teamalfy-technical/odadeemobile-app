@@ -7,6 +7,11 @@ class ImageUrlHelper {
       return null;
     }
 
+    // Base64 data URL — return as-is so the image widget can decode it directly
+    if (url.startsWith('data:')) {
+      return url;
+    }
+
     // Already a full URL - return as-is
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
