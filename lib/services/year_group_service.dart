@@ -21,6 +21,16 @@ class YearGroupService {
   static YearGroup? _cachedUserYearGroup;
   static String? _cachedUserYearGroupId;
 
+  /// Clears all static caches. Must be called on login/logout: the user's
+  /// year group is user-specific, so a new session must not read the previous
+  /// user's cached value.
+  static void clearCache() {
+    _cachedYearGroups = null;
+    _cacheTime = null;
+    _cachedUserYearGroup = null;
+    _cachedUserYearGroupId = null;
+  }
+
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
     if (value is double) return value;

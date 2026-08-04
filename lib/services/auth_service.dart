@@ -9,6 +9,8 @@ import 'package:uuid/uuid.dart';
 import 'package:odadee/config/api_config.dart';
 import 'package:odadee/navigation_service.dart';
 import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
+import 'package:odadee/Screens/Dashboard/dashboard_screen.dart';
+import 'package:odadee/services/year_group_service.dart';
 import 'package:odadee/utils/logger.dart';
 
 class AuthService {
@@ -87,6 +89,10 @@ class AuthService {
         final data = jsonDecode(response.body);
         await _storeTokens(data['accessToken'], data['refreshToken']);
         await _storeUser(data['user']);
+        // A fresh session must not reuse dashboard data (or a cached failed
+        // future) or the previous user's year group from a previous session.
+        DashboardScreen.clearCache();
+        YearGroupService.clearCache();
         return data;
       } else {
         final error = jsonDecode(response.body);
@@ -552,6 +558,9 @@ class AuthService {
   }
 
   Future<void> _clearStorage() async {
+    // Drop any in-memory data cached for the session being torn down.
+    DashboardScreen.clearCache();
+    YearGroupService.clearCache();
     await storage.delete(key: 'access_token');
     await storage.delete(key: 'refresh_token');
     await storage.delete(key: 'user_data');

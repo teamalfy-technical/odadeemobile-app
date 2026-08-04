@@ -36,6 +36,11 @@ import '../Authentication/SignIn/sgin_in_screen.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
+  /// Clears the cross-session dashboard data cache. Call on login/logout so a
+  /// new session never serves stale data (or a cached failed future) from a
+  /// previous, possibly-expired session.
+  static void clearCache() => _DashboardScreenState.clearCache();
+
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -49,6 +54,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Track if this is a manual refresh
   bool _isManualRefresh = false;
+
+  /// Clears the cross-session static cache. Must be called whenever the
+  /// authenticated session changes (login / logout) so a new session never
+  /// serves data — or a failed future — belonging to the previous session.
+  static void clearCache() {
+    _cachedDataFuture = null;
+    _lastFetchTime = null;
+    _lastLoadedData = null;
+  }
 
   Future<List<dynamic>> _getCachedOrFetchData() async {
     final now = DateTime.now();
@@ -562,7 +576,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () {
-                          setState(() {});
+                          // Invalidate the cached (failed) future before
+                          // rebuilding. Without this, the static cache still
+                          // holds the previous failed Future and is considered
+                          // "valid" for 24h, so retry would just re-await the
+                          // same failure and appear to do nothing.
+                          setState(() {
+                            _cachedDataFuture = null;
+                            _lastFetchTime = null;
+                            _lastLoadedData = null;
+                          });
                         },
                         child: Text('Retry'),
                       ),
