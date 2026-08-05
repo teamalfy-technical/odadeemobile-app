@@ -323,17 +323,14 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> changePassword({
-    String? currentPassword,
+    required String currentPassword,
     required String newPassword,
   }) async {
     try {
       final body = <String, dynamic>{
+        'currentPassword': currentPassword,
         'newPassword': newPassword,
       };
-      
-      if (currentPassword != null && currentPassword.isNotEmpty) {
-        body['currentPassword'] = currentPassword;
-      }
 
       final response = await authenticatedRequest(
         'POST',
@@ -672,7 +669,7 @@ class AuthService {
   /// Request password reset via email
   Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     try {
-      final url = '${ApiConfig.baseUrl}/api/auth/request-password-reset';
+      final url = '${ApiConfig.baseUrl}/api/auth/forgot-password';
       ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
       final response = await http.post(
         Uri.parse(url),
@@ -733,9 +730,10 @@ class AuthService {
           'message': data['message'] ?? 'Password reset successfully. Please log in with your new password.',
         };
       } else if (response.statusCode == 400) {
+        final error = jsonDecode(response.body);
         return {
           'success': false,
-          'message': 'Invalid or expired reset link. Please request a new one.',
+          'message': error['message'] ?? 'Invalid or expired reset link. Please request a new one.',
         };
       } else {
         final error = jsonDecode(response.body);

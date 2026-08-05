@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
+import 'package:odadee/utils/password_policy.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -19,7 +20,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _showNewPassword = false;
   bool _showConfirmPassword = false;
   bool _isLoading = false;
-  bool _isSettingNewPassword = false;
 
   @override
   void dispose() {
@@ -37,7 +37,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final authService = AuthService();
       final result = await authService.changePassword(
-        currentPassword: _isSettingNewPassword ? null : _currentPasswordController.text,
+        currentPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
       );
 
@@ -75,28 +75,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-    if (value.length < 8) {
-      return 'Password must be at least 8 characters';
-    }
-    if (!value.contains(RegExp(r'[A-Z]'))) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!value.contains(RegExp(r'[a-z]'))) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number';
-    }
-    // Any non-alphanumeric character counts as "special", matching the
-    // sign-up / reset-password strength policy so a password valid on one
-    // screen is valid on all of them.
-    if (!value.contains(RegExp(r'[^A-Za-z0-9]'))) {
-      return 'Password must contain at least one special character';
-    }
-    return null;
+    return PasswordPolicy.validate(value);
   }
 
   String? _validateConfirmPassword(String? value) {
@@ -121,7 +100,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          _isSettingNewPassword ? 'Set Password' : 'Change Password',
+          'Change Password',
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.w600,
@@ -154,9 +133,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          _isSettingNewPassword
-                              ? 'You logged in with a magic link. Set a password to log in with email and password in the future.'
-                              : 'Create a strong password with at least 8 characters, including uppercase, lowercase, and numbers.',
+                          'Enter your current password, then choose a new password that meets all requirements.',
                           style: TextStyle(
                             color: bodyText2,
                             fontSize: 14,
@@ -166,44 +143,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _isSettingNewPassword,
-                      onChanged: (value) {
-                        setState(() {
-                          _isSettingNewPassword = value ?? false;
-                          if (_isSettingNewPassword) {
-                            _currentPasswordController.clear();
-                          }
-                        });
-                      },
-                      activeColor: odaSecondary,
-                    ),
-                    Expanded(
-                      child: Text(
-                        'I logged in via magic link (no current password)',
-                        style: TextStyle(
-                          color: bodyText1,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 SizedBox(height: 24),
-                if (!_isSettingNewPassword) ...[
-                  Text(
+                Text(
                     'Current Password',
                     style: TextStyle(
                       color: bodyText1,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  TextFormField(
+                ),
+                SizedBox(height: 8),
+                TextFormField(
                     controller: _currentPasswordController,
                     obscureText: !_showCurrentPassword,
                     style: TextStyle(color: bodyText1),
@@ -235,14 +185,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (!_isSettingNewPassword && (value == null || value.isEmpty)) {
+                      if (value == null || value.isEmpty) {
                         return 'Current password is required';
                       }
                       return null;
                     },
-                  ),
-                  SizedBox(height: 24),
-                ],
+                ),
+                SizedBox(height: 24),
                 Text(
                   'New Password',
                   style: TextStyle(
@@ -348,9 +297,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                       SizedBox(height: 8),
                       _buildRequirement('At least 8 characters'),
+                      _buildRequirement('No more than 128 characters'),
                       _buildRequirement('One uppercase letter (A-Z)'),
                       _buildRequirement('One lowercase letter (a-z)'),
                       _buildRequirement('One number (0-9)'),
+                      _buildRequirement('One special character'),
                     ],
                   ),
                 ),
@@ -377,7 +328,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             ),
                           )
                         : Text(
-                            _isSettingNewPassword ? 'Set Password' : 'Change Password',
+                            'Change Password',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,

@@ -14,6 +14,7 @@ import 'package:odadee/components/web_view_page.dart';
 import 'package:odadee/constants.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/year_group_service.dart';
+import 'package:odadee/utils/password_policy.dart';
 
 class RegisterResult {
   final bool success;
@@ -622,35 +623,10 @@ class _SignUp1State extends State<SignUp1> {
                                       border: InputBorder.none,
                                     ),
                                     inputFormatters: [
-                                      LengthLimitingTextInputFormatter(225),
+                                      LengthLimitingTextInputFormatter(PasswordPolicy.maxLength),
                                       PasteTextInputFormatter(),
                                     ],
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Password is required';
-                                      }
-                                      // Standard strength policy: at least 8
-                                      // characters, and at least one uppercase
-                                      // letter, one lowercase letter, one digit,
-                                      // and one special (non-alphanumeric)
-                                      // character. Using [^A-Za-z0-9] accepts any
-                                      // symbol as "special" so strong passwords
-                                      // are never wrongly rejected.
-                                      if (!RegExp(
-                                              r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$')
-                                          .hasMatch(value)) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "- Password must be at least 8 characters long\n- Must include at least one uppercase letter,\n- One lowercase letter, one digit,\n- And one special character"),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                        return '';
-                                      }
-                                      return null;
-                                    },
+                                    validator: PasswordPolicy.validate,
                                     textInputAction: TextInputAction.next,
                                     obscureText: show_password ? false : true,
                                     onSaved: (value) {

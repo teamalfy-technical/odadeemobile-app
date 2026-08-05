@@ -1,38 +1,47 @@
+import 'package:odadee/config/api_config.dart';
+
 class ImageUrlHelper {
-  static const String baseUrl = 'https://odadee.net';
   static const String imageEndpoint = '/api/images';
 
   static String? normalizeImageUrl(String? url) {
-    if (url == null || url.isEmpty) {
+    final imagePath = url?.trim();
+    if (imagePath == null || imagePath.isEmpty) {
       return null;
     }
 
-    // Base64 data URL — return as-is so the image widget can decode it directly
-    if (url.startsWith('data:')) {
-      return url;
+    if (imagePath.startsWith('data:')) {
+      return imagePath;
     }
 
-    // Already a full URL - return as-is
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
+    final parsedUrl = Uri.tryParse(imagePath);
+    if (parsedUrl?.host == 'dashboard.odadee.net') {
+      return null;
     }
 
-    String normalizedUrl = url;
-    if (normalizedUrl.startsWith('/')) {
-      normalizedUrl = normalizedUrl.substring(1);
+    if (parsedUrl?.host == 'storage.googleapis.com') {
+      final storagePath = parsedUrl!.path.replaceFirst(RegExp(r'^/+'), '');
+      return storagePath.isEmpty
+          ? null
+          : '${ApiConfig.baseUrl}$imageEndpoint/$storagePath';
     }
 
-    // Already contains the api/images path - just add base URL
-    if (normalizedUrl.startsWith('api/images/') || normalizedUrl.contains('/api/images/')) {
-      return '$baseUrl/$normalizedUrl';
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
     }
 
-    // Starts with uploads/ - add the image endpoint
-    if (normalizedUrl.startsWith('uploads/')) {
-      return '$baseUrl$imageEndpoint/$normalizedUrl';
+    if (imagePath.startsWith('/api/images/')) {
+      return '${ApiConfig.baseUrl}$imagePath';
     }
-    
-    // Plain filename or other path - add full prefix
-    return '$baseUrl$imageEndpoint/uploads/$normalizedUrl';
+
+    if (imagePath.startsWith('/')) {
+      return '${ApiConfig.baseUrl}$imagePath';
+    }
+
+    if (imagePath.startsWith('api/images/')) {
+      return '${ApiConfig.baseUrl}/$imagePath';
+    }
+
+    final normalizedPath = imagePath.replaceFirst(RegExp(r'^/+'), '');
+    return '${ApiConfig.baseUrl}$imageEndpoint/$normalizedPath';
   }
 }

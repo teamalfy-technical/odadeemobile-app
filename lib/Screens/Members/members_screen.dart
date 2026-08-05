@@ -4,9 +4,9 @@ import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
 import 'package:odadee/Screens/AllUsers/models/all_users_model.dart';
 import 'package:odadee/components/authenticated_image.dart';
 import 'package:odadee/constants.dart';
-import 'package:odadee/config/api_config.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/services/moderation_service.dart';
+import 'package:odadee/utils/image_url_helper.dart';
 
 class MembersScreen extends StatefulWidget {
   const MembersScreen({super.key});
@@ -337,14 +337,10 @@ class _MembersScreenState extends State<MembersScreen> {
     final currentRole = member['currentRole'] ?? '';
     final userId = member['id'];
 
-    String imageUrl = '';
-    if (profileImage != null && profileImage.toString().isNotEmpty) {
-      if (profileImage.startsWith('http')) {
-        imageUrl = profileImage;
-      } else {
-        imageUrl = '${ApiConfig.baseUrl}/$profileImage';
-      }
-    }
+    final imageUrl = ImageUrlHelper.normalizeImageUrl(
+          profileImage?.toString(),
+        ) ??
+        '';
 
     return GestureDetector(
       onTap: () {
