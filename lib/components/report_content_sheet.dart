@@ -55,7 +55,7 @@ Future<void> showReportContentSheet({
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
-                  initialValue: selectedReason,
+                  value: selectedReason,
                   dropdownColor: const Color(0xFF1e293b),
                   style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
