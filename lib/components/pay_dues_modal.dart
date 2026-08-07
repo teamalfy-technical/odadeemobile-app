@@ -184,6 +184,7 @@ class _PayDuesModalState extends State<PayDuesModal> {
         paymentType: 'dues',
         amount: selectedDuesAmount!,
         yearGroupId: selectedYearGroupId!,
+        duesId: selectedDuesId,
         description: selectedDuesTitle,
       );
 

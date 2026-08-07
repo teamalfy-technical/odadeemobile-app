@@ -18,6 +18,7 @@ class PaymentService {
     String? phoneNumber,
     String? projectId,
     String? eventId,
+    String? duesId,
   }) async {
     try {
       Map<String, dynamic>? userData;
@@ -71,6 +72,7 @@ class PaymentService {
         if (phoneNumber != null) 'phoneNumber': phoneNumber,
         if (projectId != null) 'projectId': projectId,
         if (eventId != null) 'eventId': eventId,
+        if (duesId != null) 'duesId': duesId,
       };
       
       final response = await authService.authenticatedRequest(
