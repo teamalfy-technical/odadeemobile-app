@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:odadee/config/api_config.dart';
 import 'package:odadee/services/auth_service.dart';
 import 'package:odadee/models/project.dart';
-import 'package:odadee/models/event.dart';
 import 'package:odadee/utils/image_url_helper.dart';
 
 class YearGroupService {
@@ -11,12 +11,12 @@ class YearGroupService {
   YearGroupService._internal();
 
   final AuthService _authService = AuthService();
-  
+
   // Cache for year groups to avoid redundant API calls
   static List<YearGroup>? _cachedYearGroups;
   static DateTime? _cacheTime;
   static const Duration _cacheDuration = Duration(minutes: 10);
-  
+
   // Cache for user's year group
   static YearGroup? _cachedUserYearGroup;
   static String? _cachedUserYearGroupId;
@@ -46,7 +46,7 @@ class YearGroupService {
         return _cachedYearGroups!;
       }
     }
-    
+
     try {
       final response = await _authService.authenticatedRequest(
         'GET',
@@ -57,11 +57,11 @@ class YearGroupService {
         final data = jsonDecode(response.body);
         final List<dynamic> groupsJson = data['yearGroups'] ?? [];
         final groups = groupsJson.map((g) => YearGroup.fromJson(g)).toList();
-        
+
         // Cache the result
         _cachedYearGroups = groups;
         _cacheTime = DateTime.now();
-        
+
         return groups;
       }
       throw Exception('Failed to load year groups');
@@ -69,7 +69,7 @@ class YearGroupService {
       rethrow;
     }
   }
-  
+
   /// Fast method to get user's year group ID
   /// Returns cached ID if available, otherwise falls back to getUserYearGroup()
   Future<String?> getUserYearGroupIdFast() async {
@@ -77,35 +77,28 @@ class YearGroupService {
     if (_cachedUserYearGroupId != null) {
       return _cachedUserYearGroupId;
     }
-    
+
     // If no cached ID, call getUserYearGroup which will populate the cache
     final yearGroup = await getUserYearGroup();
     return yearGroup?.id;
   }
 
-  /// Fetches year groups for registration/sign-up flows
-  /// Always returns fallback list since public API endpoint is not available
+  /// Fetches exact year-group streams for registration/sign-up flows.
   Future<List<YearGroup>> getPublicYearGroups() async {
-    // Public year groups endpoint is not available, use fallback directly
-    return _generateFallbackYearGroups();
-  }
-
-  /// Generate a list of year groups from 1960 to current year
-  /// Used as fallback when the public API endpoint is unavailable
-  List<YearGroup> _generateFallbackYearGroups() {
-    final currentYear = DateTime.now().year;
-    final List<YearGroup> groups = [];
-    for (int year = currentYear; year >= 1960; year--) {
-      groups.add(YearGroup(
-        id: year.toString(),
-        year: year,
-        name: 'Class of $year',
-        description: 'PRESEC graduating class of $year',
-        memberCount: 0,
-        createdAt: DateTime.now(),
-      ));
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}${ApiConfig.publicYearGroupsEndpoint}'),
+      headers: const {'Accept': 'application/json'},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Year groups are temporarily unavailable');
     }
-    return groups;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final groupsJson = data['yearGroups'] as List<dynamic>? ?? const [];
+    return groupsJson
+        .whereType<Map<String, dynamic>>()
+        .map(YearGroup.fromJson)
+        .where((group) => group.id.isNotEmpty && group.year > 0)
+        .toList();
   }
 
   Future<YearGroup> getYearGroupDetails(String yearGroupId) async {
@@ -183,10 +176,7 @@ class YearGroupService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': e.toString(),
-      };
+      return {'success': false, 'message': e.toString()};
     }
   }
 
@@ -195,31 +185,28 @@ class YearGroupService {
     if (_cachedUserYearGroup != null) {
       return _cachedUserYearGroup;
     }
-    
+
     try {
-      Map<String, dynamic>? userData = await _authService.getCachedUser();
-      userData ??= await _authService.getCurrentUser();
-
-      final graduationYearRaw = userData['graduationYear'] ??
-          userData['yearGroup'] ??
-          userData['year_group'];
-
-      if (graduationYearRaw == null) return null;
-
-      final int? graduationYear = graduationYearRaw is int
-          ? graduationYearRaw
-          : int.tryParse(graduationYearRaw.toString());
-
-      if (graduationYear == null) return null;
-
-      final yearGroups = await getAllYearGroups();
-
-      final matchingGroup = yearGroups.firstWhere(
-        (g) => g.year == graduationYear,
-        orElse: () =>
-            throw Exception('Year group not found for year $graduationYear'),
+      final response = await _authService.authenticatedRequest(
+        'GET',
+        '/api/user/memberships',
       );
-      
+      if (response.statusCode != 200) return null;
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final memberships = data['memberships'] as List<dynamic>? ?? const [];
+      if (memberships.isEmpty) return null;
+      final preferred = memberships.cast<Map<String, dynamic>>().firstWhere(
+            (membership) => membership['isAdmin'] == true,
+            orElse: () => memberships.cast<Map<String, dynamic>>().firstWhere(
+                  (membership) =>
+                      membership['verificationStatus'] == 'verified',
+                  orElse: () => memberships.first as Map<String, dynamic>,
+                ),
+          );
+      final groupJson = preferred['yearGroup'] as Map<String, dynamic>?;
+      if (groupJson == null) return null;
+      final matchingGroup = YearGroup.fromJson(groupJson);
+
       // Cache the result including the real year group ID
       _cachedUserYearGroup = matchingGroup;
       _cachedUserYearGroupId = matchingGroup.id;
@@ -228,6 +215,42 @@ class YearGroupService {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<Map<String, dynamic>?> getPendingStreamConfirmation() async {
+    final response = await _authService.authenticatedRequest(
+      'GET',
+      '/api/user/memberships',
+    );
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final memberships = data['memberships'] as List<dynamic>? ?? const [];
+    for (final raw in memberships) {
+      final membership = raw as Map<String, dynamic>;
+      final group = membership['yearGroup'] as Map<String, dynamic>?;
+      final year = int.tryParse(group?['year']?.toString() ?? '');
+      if (year != null &&
+          const [1993, 1994, 1995].contains(year) &&
+          group?['stream'] == 'shs' &&
+          membership['streamConfirmedAt'] == null) {
+        return membership;
+      }
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>> confirmStream(String stream) async {
+    final response = await _authService.authenticatedRequest(
+      'POST',
+      '/api/user/year-group-stream/confirm',
+      body: {'stream': stream},
+    );
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['message'] ?? 'Failed to confirm year-group stream');
+    }
+    clearCache();
+    return data;
   }
 
   Future<YearGroupStats?> getYearGroupStats(String yearGroupId) async {
@@ -271,16 +294,19 @@ class YearGroupService {
 
         final totalDues = _parseDouble(yearGroup['totalDues']);
         final membershipFees = _parseDouble(
-            yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees']);
+          yearGroup['totalMembershipFees'] ?? yearGroup['membershipFees'],
+        );
         final collections = _parseDouble(
-            yearGroup['totalCollections'] ?? yearGroup['collections']);
+          yearGroup['totalCollections'] ?? yearGroup['collections'],
+        );
 
         if (totalDues > 0 || membershipFees > 0 || collections > 0) {
           return totalDues + membershipFees + collections;
         }
 
         return _parseDouble(
-            yearGroup['totalAmount'] ?? yearGroup['totalContributions']);
+          yearGroup['totalAmount'] ?? yearGroup['totalContributions'],
+        );
       }
       return 0.0;
     } catch (e) {
@@ -289,7 +315,8 @@ class YearGroupService {
   }
 
   Future<DuesCollectionSummary?> getDuesCollectionSummary(
-      String yearGroupId) async {
+    String yearGroupId,
+  ) async {
     try {
       final response = await _authService.authenticatedRequest(
         'GET',
@@ -443,6 +470,8 @@ class YearGroup {
   final String id;
   final String name;
   final int year;
+  final String stream;
+  final String displayLabel;
   final String? description;
   final int memberCount;
   final DateTime createdAt;
@@ -451,10 +480,12 @@ class YearGroup {
     required this.id,
     required this.name,
     required this.year,
+    this.stream = 'standard',
+    String? displayLabel,
     this.description,
     required this.memberCount,
     required this.createdAt,
-  });
+  }) : displayLabel = displayLabel ?? name;
 
   factory YearGroup.fromJson(Map<String, dynamic> json) {
     final yearRaw = json['year'];
@@ -465,6 +496,10 @@ class YearGroup {
       id: json['id'] ?? '',
       name: json['name'] ?? 'Class of $year',
       year: year,
+      stream: json['stream']?.toString() ?? 'standard',
+      displayLabel: json['displayLabel']?.toString() ??
+          json['name']?.toString() ??
+          'Class of $year',
       description: json['description'],
       memberCount: json['memberCount'] ?? 0,
       createdAt: json['createdAt'] != null

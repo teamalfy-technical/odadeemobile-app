@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -40,6 +41,9 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
   int currentFilteredPage = 1;
 
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  int _requestSequence = 0;
 
   @override
   void initState() {
@@ -53,7 +57,11 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
 
     // Build the initial filter criteria
     String? initialFilters = buildFilterQueryString(
-        initialYeargroup, initialCity, initialHouse, initialPosition);
+      initialYeargroup,
+      initialCity,
+      initialHouse,
+      initialPosition,
+    );
 
     // Fetch the filtered data on initialization
     _fetchFilteredData(1, initialFilters);
@@ -63,6 +71,8 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -79,15 +89,17 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
     }
   }
 
-// Function to fetch filtered data
+  // Function to fetch filtered data
   Future<void> _fetchFilteredData(int page, String? filters) async {
+    final requestId = ++_requestSequence;
     setState(() {
       isLoading = true;
     });
 
     try {
       final authService = AuthService();
-      final endpoint = '/api/users?page=$page${filters != null ? '&$filters' : ''}';
+      final endpoint =
+          '/api/users?page=$page${filters != null ? '&$filters' : ''}';
 
       print('Fetching: $endpoint');
 
@@ -103,6 +115,7 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
         final visibleUsers =
             eventData.data!.where((u) => !blockedIds.contains(u.id)).toList();
 
+        if (!mounted || requestId != _requestSequence) return;
         setState(() {
           lastPage = eventData.lastPage!;
           yearGroupList.addAll(visibleUsers);
@@ -112,16 +125,20 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
         throw Exception('Failed to load filtered data');
       }
     } catch (e) {
+      if (!mounted || requestId != _requestSequence) return;
       setState(() {
         isLoading = false;
       });
-      rethrow;
     }
   }
 
-// Function to apply filters
-  void applyFilters(
-      {String? yeargroup, String? city, String? house, String? position}) {
+  // Function to apply filters
+  void applyFilters({
+    String? yeargroup,
+    String? city,
+    String? house,
+    String? position,
+  }) {
     yearGroupList.clear();
     // Update the filter criteria and reset the page to 1
     currentFilters = buildFilterQueryString(yeargroup, city, house, position);
@@ -132,8 +149,14 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
   }
 
   String? buildFilterQueryString(
-      String? yeargroup, String? city, String? house, String? position) {
+    String? yeargroup,
+    String? city,
+    String? house,
+    String? position,
+  ) {
     final filters = <String, String?>{
+      if (_searchController.text.trim().isNotEmpty)
+        'q': _searchController.text.trim(),
       if (yeargroup != null && yeargroup.isNotEmpty) 'yeargroup': yeargroup,
       if (city != null && city.isNotEmpty) 'city': city,
       if (house != null && house.isNotEmpty) 'house': house,
@@ -147,6 +170,20 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
         .join('&');
 
     return queryParameters.isNotEmpty ? queryParameters : null;
+  }
+
+  void _scheduleSearch(String _) {
+    setState(() {});
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), _runSearch);
+  }
+
+  void _runSearch() {
+    _searchDebounce?.cancel();
+    yearGroupList.clear();
+    currentFilteredPage = 1;
+    currentFilters = buildFilterQueryString(_year, _city, _house, _position);
+    _fetchFilteredData(1, currentFilters);
   }
 
   @override
@@ -183,13 +220,13 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                 ),
                               ),
                             ),
-                            SizedBox(
-                              width: 10,
-                            ),
+                            SizedBox(width: 10),
                             Text(
                               "All Registered Users",
-                              style:
-                                  TextStyle(fontSize: 20, color: Colors.black),
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.black,
+                              ),
                             ),
                           ],
                         ),
@@ -207,10 +244,13 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 8),
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
-                                color: odaPrimary,
-                                borderRadius: BorderRadius.circular(5)),
+                              color: odaPrimary,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                             child: Row(
                               children: [
                                 Icon(
@@ -218,19 +258,44 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                   size: 15,
                                   color: Colors.white,
                                 ),
-                                SizedBox(
-                                  width: 3,
-                                ),
+                                SizedBox(width: 3),
                                 Text(
                                   "Filter",
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 14),
-                                )
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        )
+                        ),
                       ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 0, 15, 12),
+                    child: TextField(
+                      controller: _searchController,
+                      textInputAction: TextInputAction.search,
+                      onChanged: _scheduleSearch,
+                      onSubmitted: (_) => _runSearch(),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Search by full name, profession, company, or location',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear search',
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _runSearch();
+                                },
+                              ),
+                        border: const OutlineInputBorder(),
+                      ),
                     ),
                   ),
                   Expanded(
@@ -285,7 +350,6 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                               ),
 
                             ),*/
-
                             if (isLoading == true) ...[
                               Expanded(
                                 child: Container(
@@ -306,11 +370,14 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                         return InkWell(
                                           onTap: () {
                                             Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                    builder: (BuildContext
-                                                            context) =>
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (BuildContext context) =>
                                                         UserDetailScreen(
-                                                            data: userItem)));
+                                                  data: userItem,
+                                                ),
+                                              ),
+                                            );
                                           },
                                           child: Column(
                                             children: [
@@ -320,60 +387,72 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                     Container(
                                                       height: 70,
                                                       width: 70,
-                                                      margin:
-                                                          EdgeInsets.all(10),
+                                                      margin: EdgeInsets.all(
+                                                        10,
+                                                      ),
                                                       decoration: BoxDecoration(
-                                                          color: odaSecondary
-                                                              .withOpacity(0.2),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          image: DecorationImage(
-                                                              image: NetworkImage(
-                                                                  userItem.image
-                                                                      .toString()),
-                                                              fit: BoxFit
-                                                                  .cover)),
+                                                        color: odaSecondary
+                                                            .withOpacity(0.2),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          10,
+                                                        ),
+                                                        image: DecorationImage(
+                                                          image: NetworkImage(
+                                                            userItem.image
+                                                                .toString(),
+                                                          ),
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
                                                     ),
                                                   ] else ...[
                                                     Container(
                                                       height: 70,
                                                       width: 70,
-                                                      margin:
-                                                          EdgeInsets.all(10),
+                                                      margin: EdgeInsets.all(
+                                                        10,
+                                                      ),
                                                       decoration: BoxDecoration(
-                                                          color: odaSecondary
-                                                              .withOpacity(0.2),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          image: DecorationImage(
-                                                              image: NetworkImage(
-                                                                  userItem.image
-                                                                      .toString()),
-                                                              fit: BoxFit
-                                                                  .cover)),
+                                                        color: odaSecondary
+                                                            .withOpacity(0.2),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          10,
+                                                        ),
+                                                        image: DecorationImage(
+                                                          image: NetworkImage(
+                                                            userItem.image
+                                                                .toString(),
+                                                          ),
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
                                                       child: Center(
                                                         child: Text(
                                                           userItem.firstName
                                                                   .toString()
                                                                   .substring(
-                                                                      0, 1) +
+                                                                    0,
+                                                                    1,
+                                                                  ) +
                                                               userItem.lastName
                                                                   .toString()
                                                                   .substring(
-                                                                      0, 1),
+                                                                    0,
+                                                                    1,
+                                                                  ),
                                                           style: TextStyle(
-                                                              fontSize: 19,
-                                                              color:
-                                                                  Colors.grey),
+                                                            fontSize: 19,
+                                                            color: Colors.grey,
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
                                                   ],
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
+                                                  SizedBox(width: 5),
                                                   Container(
                                                     child: Column(
                                                       crossAxisAlignment:
@@ -383,47 +462,42 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                         Text(
                                                           "${userItem.firstName} ${userItem.lastName}",
                                                           style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              color:
-                                                                  Colors.black),
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            color: Colors.black,
+                                                          ),
                                                         ),
-                                                        SizedBox(
-                                                          height: 2,
-                                                        ),
+                                                        SizedBox(height: 2),
                                                         Text(
                                                           userItem.email
                                                               .toString(),
                                                           style: TextStyle(
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                          ),
                                                         ),
-                                                        SizedBox(
-                                                          height: 5,
-                                                        ),
+                                                        SizedBox(height: 5),
                                                         Text(
                                                           "View Details",
                                                           style: TextStyle(
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              color:
-                                                                  odaSecondary),
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            color: odaSecondary,
+                                                          ),
                                                         ),
                                                       ],
                                                     ),
-                                                  )
+                                                  ),
                                                 ],
                                               ),
                                               Container(
                                                 //width: 150,
                                                 margin: EdgeInsets.symmetric(
-                                                    horizontal: 10),
+                                                  horizontal: 10,
+                                                ),
                                                 child: Divider(
                                                   color: Colors.black
                                                       .withOpacity(0.2),
@@ -445,8 +519,8 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                     ),
                                   ),
                                 ),
-                              ]
-                            ]
+                              ],
+                            ],
                           ],
                         ),
                         if (show_filter == true) ...[
@@ -457,26 +531,29 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                 padding: EdgeInsets.all(20),
                                 width: MediaQuery.of(context).size.width,
                                 decoration: BoxDecoration(
-                                    color: odaPrimary,
-                                    borderRadius: BorderRadius.circular(10)),
+                                  color: odaPrimary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                               Container(
                                 height: 520,
                                 padding: EdgeInsets.all(20),
                                 width: MediaQuery.of(context).size.width,
                                 decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10)),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    GradientText('All Registered Year Groups',
-                                        style: const TextStyle(
-                                            fontSize: 24, color: odaSecondary),
-                                        colors: [
-                                          odaPrimary,
-                                          odaSecondary,
-                                        ]),
+                                    GradientText(
+                                      'All Registered Year Groups',
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        color: odaSecondary,
+                                      ),
+                                      colors: [odaPrimary, odaSecondary],
+                                    ),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -492,9 +569,7 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                         CrossAxisAlignment
                                                             .start,
                                                     children: [
-                                                      SizedBox(
-                                                        height: 20,
-                                                      ),
+                                                      SizedBox(height: 20),
                                                       Column(
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
@@ -503,36 +578,43 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                           Text(
                                                             "Year Group",
                                                             style: TextStyle(
-                                                                fontSize: 12),
+                                                              fontSize: 12,
+                                                            ),
                                                           ),
-                                                          SizedBox(
-                                                            height: 10,
-                                                          ),
+                                                          SizedBox(height: 10),
                                                           GestureDetector(
                                                             onTap: () {
                                                               _showGraduationYearModal(
-                                                                  context);
+                                                                context,
+                                                              );
                                                             },
                                                             child: Container(
                                                               padding:
                                                                   EdgeInsets
-                                                                      .all(10),
+                                                                      .all(
+                                                                10,
+                                                              ),
                                                               width:
                                                                   MediaQuery.of(
-                                                                          context)
-                                                                      .size
-                                                                      .width,
+                                                                context,
+                                                              ).size.width,
                                                               height: 60,
-                                                              decoration: BoxDecoration(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              5),
-                                                                  border: Border.all(
-                                                                      color: Colors
-                                                                          .grey
-                                                                          .withOpacity(
-                                                                              0.4))),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                  5,
+                                                                ),
+                                                                border:
+                                                                    Border.all(
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .withOpacity(
+                                                                    0.4,
+                                                                  ),
+                                                                ),
+                                                              ),
                                                               child: Row(
                                                                 mainAxisAlignment:
                                                                     MainAxisAlignment
@@ -541,11 +623,13 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                                   Text(
                                                                     _year ??
                                                                         'Select Year',
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            15,
-                                                                        color:
-                                                                            bodyText2),
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          15,
+                                                                      color:
+                                                                          bodyText2,
+                                                                    ),
                                                                   ),
                                                                   Icon(
                                                                     Icons
@@ -560,60 +644,75 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                           ),
                                                         ],
                                                       ),
-                                                      SizedBox(
-                                                        height: 20,
-                                                      ),
+                                                      SizedBox(height: 20),
                                                       Container(
                                                         padding: EdgeInsets
                                                             .symmetric(
-                                                                horizontal: 10),
+                                                          horizontal: 10,
+                                                        ),
                                                         decoration:
                                                             BoxDecoration(
-                                                                //color: Colors.white,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5),
-                                                                border: Border.all(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
+                                                          //color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                            5,
+                                                          ),
+                                                          border: Border.all(
+                                                            color: Colors.grey
+                                                                .withOpacity(
+                                                              0.4,
+                                                            ),
+                                                          ),
+                                                        ),
                                                         child: TextFormField(
                                                           style: TextStyle(),
                                                           decoration:
                                                               InputDecoration(
                                                             //hintText: 'Enter Username/Email',
-
-                                                            hintStyle: TextStyle(
-                                                                color:
-                                                                    Colors.grey,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .normal),
+                                                            hintStyle:
+                                                                TextStyle(
+                                                              color:
+                                                                  Colors.grey,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                            ),
                                                             labelText: "City",
-                                                            labelStyle: TextStyle(
-                                                                fontSize: 15,
-                                                                color:
-                                                                    bodyText2),
-                                                            enabledBorder: UnderlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
-                                                            focusedBorder: UnderlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
+                                                            labelStyle:
+                                                                TextStyle(
+                                                              fontSize: 15,
+                                                              color: bodyText2,
+                                                            ),
+                                                            enabledBorder:
+                                                                UnderlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            focusedBorder:
+                                                                UnderlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                              ),
+                                                            ),
                                                             border: InputBorder
                                                                 .none,
                                                           ),
                                                           inputFormatters: [
                                                             LengthLimitingTextInputFormatter(
-                                                                225),
+                                                              225,
+                                                            ),
                                                             PasteTextInputFormatter(),
                                                           ],
                                                           textInputAction:
@@ -628,60 +727,75 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                           },
                                                         ),
                                                       ),
-                                                      SizedBox(
-                                                        height: 20,
-                                                      ),
+                                                      SizedBox(height: 20),
                                                       Container(
                                                         padding: EdgeInsets
                                                             .symmetric(
-                                                                horizontal: 10),
+                                                          horizontal: 10,
+                                                        ),
                                                         decoration:
                                                             BoxDecoration(
-                                                                //color: Colors.white,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5),
-                                                                border: Border.all(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
+                                                          //color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                            5,
+                                                          ),
+                                                          border: Border.all(
+                                                            color: Colors.grey
+                                                                .withOpacity(
+                                                              0.4,
+                                                            ),
+                                                          ),
+                                                        ),
                                                         child: TextFormField(
                                                           style: TextStyle(),
                                                           decoration:
                                                               InputDecoration(
                                                             //hintText: 'Enter Username/Email',
-
-                                                            hintStyle: TextStyle(
-                                                                color:
-                                                                    Colors.grey,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .normal),
+                                                            hintStyle:
+                                                                TextStyle(
+                                                              color:
+                                                                  Colors.grey,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                            ),
                                                             labelText: "House",
-                                                            labelStyle: TextStyle(
-                                                                fontSize: 15,
-                                                                color:
-                                                                    bodyText2),
-                                                            enabledBorder: UnderlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
-                                                            focusedBorder: UnderlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
+                                                            labelStyle:
+                                                                TextStyle(
+                                                              fontSize: 15,
+                                                              color: bodyText2,
+                                                            ),
+                                                            enabledBorder:
+                                                                UnderlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            focusedBorder:
+                                                                UnderlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                              ),
+                                                            ),
                                                             border: InputBorder
                                                                 .none,
                                                           ),
                                                           inputFormatters: [
                                                             LengthLimitingTextInputFormatter(
-                                                                225),
+                                                              225,
+                                                            ),
                                                             PasteTextInputFormatter(),
                                                           ],
                                                           textInputAction:
@@ -696,61 +810,76 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                           },
                                                         ),
                                                       ),
-                                                      SizedBox(
-                                                        height: 20,
-                                                      ),
+                                                      SizedBox(height: 20),
                                                       Container(
                                                         padding: EdgeInsets
                                                             .symmetric(
-                                                                horizontal: 10),
+                                                          horizontal: 10,
+                                                        ),
                                                         decoration:
                                                             BoxDecoration(
-                                                                //color: Colors.white,
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            5),
-                                                                border: Border.all(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
+                                                          //color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                            5,
+                                                          ),
+                                                          border: Border.all(
+                                                            color: Colors.grey
+                                                                .withOpacity(
+                                                              0.4,
+                                                            ),
+                                                          ),
+                                                        ),
                                                         child: TextFormField(
                                                           style: TextStyle(),
                                                           decoration:
                                                               InputDecoration(
                                                             //hintText: 'Enter Username/Email',
-
-                                                            hintStyle: TextStyle(
-                                                                color:
-                                                                    Colors.grey,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .normal),
+                                                            hintStyle:
+                                                                TextStyle(
+                                                              color:
+                                                                  Colors.grey,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                            ),
                                                             labelText:
                                                                 "Position",
-                                                            labelStyle: TextStyle(
-                                                                fontSize: 15,
-                                                                color:
-                                                                    bodyText2),
-                                                            enabledBorder: UnderlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
-                                                            focusedBorder: UnderlineInputBorder(
-                                                                borderSide: BorderSide(
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .withOpacity(
-                                                                            0.4))),
+                                                            labelStyle:
+                                                                TextStyle(
+                                                              fontSize: 15,
+                                                              color: bodyText2,
+                                                            ),
+                                                            enabledBorder:
+                                                                UnderlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            focusedBorder:
+                                                                UnderlineInputBorder(
+                                                              borderSide:
+                                                                  BorderSide(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .withOpacity(
+                                                                  0.4,
+                                                                ),
+                                                              ),
+                                                            ),
                                                             border: InputBorder
                                                                 .none,
                                                           ),
                                                           inputFormatters: [
                                                             LengthLimitingTextInputFormatter(
-                                                                225),
+                                                              225,
+                                                            ),
                                                             PasteTextInputFormatter(),
                                                           ],
                                                           textInputAction:
@@ -765,25 +894,25 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                           },
                                                         ),
                                                       ),
-                                                      SizedBox(
-                                                        height: 20,
-                                                      ),
+                                                      SizedBox(height: 20),
                                                       Align(
                                                         child: Container(
                                                           width: MediaQuery.of(
-                                                                  context)
-                                                              .size
-                                                              .width,
+                                                            context,
+                                                          ).size.width,
                                                           padding:
                                                               EdgeInsets.all(
-                                                                  15),
-                                                          decoration: BoxDecoration(
-                                                              color:
-                                                                  odaSecondary,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10)),
+                                                            15,
+                                                          ),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: odaSecondary,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                              10,
+                                                            ),
+                                                          ),
                                                           child: Material(
                                                             color: Colors
                                                                 .transparent,
@@ -797,9 +926,11 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                                       .save();
                                                                   KeyboardUtil
                                                                       .hideKeyboard(
-                                                                          context);
+                                                                    context,
+                                                                  );
                                                                   print(
-                                                                      "applyFilters");
+                                                                    "applyFilters",
+                                                                  );
                                                                   applyFilters(
                                                                     yeargroup:
                                                                         _year, // You can replace these with the selected filter values
@@ -821,11 +952,13 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                                     Container(
                                                                   child: Text(
                                                                     "Apply Filter",
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            22,
-                                                                        color: Colors
-                                                                            .white),
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontSize:
+                                                                          22,
+                                                                      color: Colors
+                                                                          .white,
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
@@ -838,7 +971,7 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                                 ),
                                               ),
                                             ),
-                                          )
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -846,14 +979,12 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                 ),
                               ),
                             ],
-                          )
-                        ]
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: 75,
-                  )
+                  SizedBox(height: 75),
                 ],
               ),
               Positioned(
@@ -884,99 +1015,106 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                         },
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.home,
-                              color: odaSecondary,
-                            ),
-                            SizedBox(
-                              height: 4,
-                            ),
+                            Icon(Icons.home, color: odaSecondary),
+                            SizedBox(height: 4),
                             Text(
                               'Home',
-                              style:
-                                  TextStyle(color: odaSecondary, fontSize: 12),
+                              style: TextStyle(
+                                color: odaSecondary,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       InkWell(
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  RadioScreen()));
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => RadioScreen(),
+                            ),
+                          );
                         },
                         child: Column(
                           children: [
                             Icon(Icons.radio, color: Colors.grey),
-                            SizedBox(
-                              height: 4,
+                            SizedBox(height: 4),
+                            Text(
+                              'Radio',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
-                            Text('Radio',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 12)),
                           ],
                         ),
                       ),
                       InkWell(
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
                               builder: (BuildContext context) =>
-                                  PayDuesScreen()));
+                                  PayDuesScreen(),
+                            ),
+                          );
                         },
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.phone_android,
-                              color: Colors.grey,
+                            Icon(Icons.phone_android, color: Colors.grey),
+                            SizedBox(height: 4),
+                            Text(
+                              'Pay Dues',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Pay Dues',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 12)),
                           ],
                         ),
                       ),
                       InkWell(
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
                               builder: (BuildContext context) =>
-                                  SettingsScreen()));
+                                  SettingsScreen(),
+                            ),
+                          );
                         },
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.settings,
-                              color: Colors.grey,
+                            Icon(Icons.settings, color: Colors.grey),
+                            SizedBox(height: 4),
+                            Text(
+                              'Settings',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Settings',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 12)),
                           ],
                         ),
                       ),
                       InkWell(
                         onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
                               builder: (BuildContext context) =>
-                                  UserProfileScreen()));
+                                  UserProfileScreen(),
+                            ),
+                          );
                         },
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.person,
-                              color: Colors.grey,
+                            Icon(Icons.person, color: Colors.grey),
+                            SizedBox(height: 4),
+                            Text(
+                              'Profile',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Text('Profile',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -1003,10 +1141,12 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
               Container(
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
-                    color: odaPrimary,
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(20.0),
-                        topLeft: Radius.circular(20.0))),
+                  color: odaPrimary,
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20.0),
+                    topLeft: Radius.circular(20.0),
+                  ),
+                ),
                 height: 300,
               ),
               Positioned(
@@ -1014,32 +1154,35 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                 child: Container(
                   height: 300,
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20.0),
-                          topLeft: Radius.circular(20.0))),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(20.0),
+                      topLeft: Radius.circular(20.0),
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
                         padding: EdgeInsets.all(20),
                         width: MediaQuery.of(context).size.width,
-                        decoration:
-                            BoxDecoration(color: Colors.grey.withOpacity(0.05)),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.05),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               "Select Graduation Year",
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 20),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: 40,
-                      ),
+                      SizedBox(height: 40),
                       SizedBox(
                         //color: Colors.red,
                         width: MediaQuery.of(context).size.width,
@@ -1059,8 +1202,9 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                       print(year.toString());
                                       setState(() {
                                         _year = year.toString();
-                                        Navigator.of(context)
-                                            .pop(year.toString());
+                                        Navigator.of(
+                                          context,
+                                        ).pop(year.toString());
                                       });
                                     },
                                     child: SizedBox(
@@ -1070,12 +1214,11 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                                           Text(
                                             year.toString(),
                                             style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold),
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
+                                          SizedBox(height: 5),
                                           SizedBox(
                                             width: 150,
                                             child: Divider(
@@ -1092,11 +1235,11 @@ class _AllRegisteredUsersState extends State<AllRegisteredUsers> {
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         );

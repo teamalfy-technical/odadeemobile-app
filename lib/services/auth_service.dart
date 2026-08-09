@@ -110,6 +110,7 @@ class AuthService {
     required String firstName,
     required String lastName,
     required int graduationYear,
+    String? yearGroupId,
     String? phoneNumber,
     String? invitationToken,
   }) async {
@@ -118,15 +119,20 @@ class AuthService {
       final deviceInfo = await _getDeviceInfo();
 
       final registerUrl = '${ApiConfig.baseUrl}/api/auth/mobile/register';
-      ApiLogger.logRequest(registerUrl, headers: {'Content-Type': 'application/json'}, body: {
-        'email': email,
-        'password': '***',
-        'firstName': firstName,
-        'lastName': lastName,
-        'graduationYear': graduationYear,
-        if (phoneNumber != null) 'phoneNumber': phoneNumber,
-        if (invitationToken != null) 'invitationToken': invitationToken,
-      });
+      ApiLogger.logRequest(
+        registerUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: {
+          'email': email,
+          'password': '***',
+          'firstName': firstName,
+          'lastName': lastName,
+          'graduationYear': graduationYear,
+          if (yearGroupId != null) 'yearGroupId': yearGroupId,
+          if (phoneNumber != null) 'phoneNumber': phoneNumber,
+          if (invitationToken != null) 'invitationToken': invitationToken,
+        },
+      );
 
       final response = await http.post(
         Uri.parse(registerUrl),
@@ -137,6 +143,7 @@ class AuthService {
           'firstName': firstName,
           'lastName': lastName,
           'graduationYear': graduationYear,
+          if (yearGroupId != null) 'yearGroupId': yearGroupId,
           if (phoneNumber != null) 'phoneNumber': phoneNumber,
           if (invitationToken != null) 'invitationToken': invitationToken,
           'deviceInfo': {
@@ -181,13 +188,18 @@ class AuthService {
 
       if (refreshToken == null) {
         // Clear invalid session state
-        debugPrint('No refresh token available - clearing storage and requiring re-login');
+        debugPrint(
+          'No refresh token available - clearing storage and requiring re-login',
+        );
         await _forceLogoutAndRedirectToLogin();
         throw Exception('Session expired, please login again');
       }
 
       final refreshUrl = '${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}';
-      ApiLogger.logRequest(refreshUrl, headers: {'Content-Type': 'application/json'});
+      ApiLogger.logRequest(
+        refreshUrl,
+        headers: {'Content-Type': 'application/json'},
+      );
 
       final response = await http.post(
         Uri.parse(refreshUrl),
@@ -215,7 +227,11 @@ class AuthService {
   Future<Map<String, dynamic>> requestMagicLink(String email) async {
     try {
       final url = '${ApiConfig.baseUrl}/api/auth/magic-link/request';
-      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
+      ApiLogger.logRequest(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: {'email': email},
+      );
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -227,13 +243,13 @@ class AuthService {
         final data = jsonDecode(response.body);
         return {
           'success': true,
-          'message': data['message'] ?? 'Magic link sent to your email'
+          'message': data['message'] ?? 'Magic link sent to your email',
         };
       } else {
         final error = jsonDecode(response.body);
         return {
           'success': false,
-          'message': error['message'] ?? 'Failed to send magic link'
+          'message': error['message'] ?? 'Failed to send magic link',
         };
       }
     } catch (e) {
@@ -309,9 +325,7 @@ class AuthService {
       if (accessToken != null) {
         await http.post(
           Uri.parse('${ApiConfig.baseUrl}${ApiConfig.logoutAllEndpoint}'),
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-          },
+          headers: {'Authorization': 'Bearer $accessToken'},
         );
       }
 
@@ -441,11 +455,7 @@ class AuthService {
       if (additionalHeaders != null) ...additionalHeaders,
     };
 
-    ApiLogger.logRequest(
-      uri.toString(),
-      headers: requestHeaders,
-      body: body,
-    );
+    ApiLogger.logRequest(uri.toString(), headers: requestHeaders, body: body);
 
     http.Response response;
 
@@ -545,13 +555,21 @@ class AuthService {
 
     await storage.write(key: 'user_id', value: user['id']?.toString() ?? '');
     await storage.write(
-        key: 'user_email', value: user['email']?.toString() ?? '');
+      key: 'user_email',
+      value: user['email']?.toString() ?? '',
+    );
     await storage.write(
-        key: 'user_first_name', value: user['firstName']?.toString() ?? '');
+      key: 'user_first_name',
+      value: user['firstName']?.toString() ?? '',
+    );
     await storage.write(
-        key: 'user_last_name', value: user['lastName']?.toString() ?? '');
+      key: 'user_last_name',
+      value: user['lastName']?.toString() ?? '',
+    );
     await storage.write(
-        key: 'user_role', value: user['role']?.toString() ?? '');
+      key: 'user_role',
+      value: user['role']?.toString() ?? '',
+    );
   }
 
   Future<void> _clearStorage() async {
@@ -589,7 +607,9 @@ class AuthService {
     final refreshToken = await storage.read(key: 'refresh_token');
     if (refreshToken == null) {
       // Clear invalid session
-      debugPrint('Access token exists but refresh token is missing - clearing invalid session');
+      debugPrint(
+        'Access token exists but refresh token is missing - clearing invalid session',
+      );
       await _clearStorage();
       return false;
     }
@@ -631,7 +651,7 @@ class AuthService {
     try {
       final email = await storage.read(key: 'biometric_email');
       final password = await storage.read(key: 'biometric_password');
-      
+
       if (email != null && password != null) {
         return {'email': email, 'password': password};
       }
@@ -670,7 +690,11 @@ class AuthService {
   Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     try {
       final url = '${ApiConfig.baseUrl}/api/auth/forgot-password';
-      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
+      ApiLogger.logRequest(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: {'email': email},
+      );
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -682,7 +706,8 @@ class AuthService {
         final data = jsonDecode(response.body);
         return {
           'success': true,
-          'message': data['message'] ?? 'Password reset link sent to your email. Please check your inbox.',
+          'message': data['message'] ??
+              'Password reset link sent to your email. Please check your inbox.',
         };
       } else if (response.statusCode == 404) {
         return {
@@ -712,14 +737,15 @@ class AuthService {
   }) async {
     try {
       final url = '${ApiConfig.baseUrl}/api/auth/reset-password';
-      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'token': token, 'newPassword': '***'});
+      ApiLogger.logRequest(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: {'token': token, 'newPassword': '***'},
+      );
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'token': token,
-          'newPassword': newPassword,
-        }),
+        body: jsonEncode({'token': token, 'newPassword': newPassword}),
       );
       ApiLogger.logResponse(response.statusCode, body: response.body);
 
@@ -727,13 +753,15 @@ class AuthService {
         final data = jsonDecode(response.body);
         return {
           'success': true,
-          'message': data['message'] ?? 'Password reset successfully. Please log in with your new password.',
+          'message': data['message'] ??
+              'Password reset successfully. Please log in with your new password.',
         };
       } else if (response.statusCode == 400) {
         final error = jsonDecode(response.body);
         return {
           'success': false,
-          'message': error['message'] ?? 'Invalid or expired reset link. Please request a new one.',
+          'message': error['message'] ??
+              'Invalid or expired reset link. Please request a new one.',
         };
       } else {
         final error = jsonDecode(response.body);
@@ -744,10 +772,7 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('Password reset error: $e');
-      return {
-        'success': false,
-        'message': 'Network error. Please try again.',
-      };
+      return {'success': false, 'message': 'Network error. Please try again.'};
     }
   }
 
@@ -755,7 +780,11 @@ class AuthService {
   Future<Map<String, dynamic>> requestMagicLinkLogin(String email) async {
     try {
       final url = '${ApiConfig.baseUrl}/api/auth/magic-link/request';
-      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'email': email});
+      ApiLogger.logRequest(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: {'email': email},
+      );
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -767,7 +796,8 @@ class AuthService {
         final data = jsonDecode(response.body);
         return {
           'success': true,
-          'message': data['message'] ?? 'Magic link sent to your email. Click the link to log in.',
+          'message': data['message'] ??
+              'Magic link sent to your email. Click the link to log in.',
         };
       } else if (response.statusCode == 404) {
         return {
@@ -783,10 +813,7 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('Magic link request error: $e');
-      return {
-        'success': false,
-        'message': 'Network error. Please try again.',
-      };
+      return {'success': false, 'message': 'Network error. Please try again.'};
     }
   }
 
@@ -797,14 +824,15 @@ class AuthService {
   }) async {
     try {
       final url = '${ApiConfig.baseUrl}/api/auth/magic-link/set-password';
-      ApiLogger.logRequest(url, headers: {'Content-Type': 'application/json'}, body: {'token': token, 'password': '***'});
+      ApiLogger.logRequest(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: {'token': token, 'password': '***'},
+      );
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'token': token,
-          'password': password,
-        }),
+        body: jsonEncode({'token': token, 'password': password}),
       );
       ApiLogger.logResponse(response.statusCode, body: response.body);
 
@@ -818,7 +846,8 @@ class AuthService {
         }
         return {
           'success': true,
-          'message': data['message'] ?? 'Password set successfully. You are now logged in.',
+          'message': data['message'] ??
+              'Password set successfully. You are now logged in.',
           'user': data['user'],
         };
       } else if (response.statusCode == 400) {
@@ -835,10 +864,7 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('Set password with magic link error: $e');
-      return {
-        'success': false,
-        'message': 'Network error. Please try again.',
-      };
+      return {'success': false, 'message': 'Network error. Please try again.'};
     }
   }
 }

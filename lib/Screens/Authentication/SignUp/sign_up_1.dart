@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:country_picker/country_picker.dart';
@@ -6,9 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:odadee/Screens/Authentication/SignIn/sgin_in_screen.dart';
-import 'package:odadee/Screens/Authentication/SignUp/sign_up_2.dart';
 import 'package:odadee/components/keyboard_utils.dart';
 import 'package:odadee/components/web_view_page.dart';
 import 'package:odadee/constants.dart';
@@ -27,21 +24,23 @@ class RegisterResult {
 Future<RegisterResult> registerUser(Map<String, dynamic> data) async {
   try {
     final authService = AuthService();
-    
+
     // Parse graduation year as integer
     int graduationYear;
     if (data['graduationYear'] is int) {
       graduationYear = data['graduationYear'];
     } else {
-      graduationYear = int.tryParse(data['graduationYear']?.toString() ?? '') ?? 0;
+      graduationYear =
+          int.tryParse(data['graduationYear']?.toString() ?? '') ?? 0;
     }
-    
+
     final result = await authService.register(
       email: data['email'],
       password: data['password'],
       firstName: data['firstName'],
       lastName: data['lastName'],
       graduationYear: graduationYear,
+      yearGroupId: data['yearGroupId']?.toString(),
       phoneNumber: data['phoneNumber'],
     );
 
@@ -54,9 +53,7 @@ Future<RegisterResult> registerUser(Map<String, dynamic> data) async {
 }
 
 class SignUp1 extends StatefulWidget {
-  const SignUp1({
-    super.key,
-  });
+  const SignUp1({super.key});
 
   @override
   State<SignUp1> createState() => _SignUp1State();
@@ -79,6 +76,8 @@ class _SignUp1State extends State<SignUp1> {
 
   String? _selectedCountry;
   String? yearGroup;
+  String? yearGroupId;
+  String? yearGroupLabel;
   String? username;
   String? firstName;
   String? middleName;
@@ -154,9 +153,7 @@ class _SignUp1State extends State<SignUp1> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: 30,
-              ),
+              SizedBox(height: 30),
               Container(
                 child: InkWell(
                   onTap: () {
@@ -174,9 +171,7 @@ class _SignUp1State extends State<SignUp1> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -192,9 +187,7 @@ class _SignUp1State extends State<SignUp1> {
                                 "Let's get started",
                                 style: TextStyle(fontSize: 34),
                               ),
-                              SizedBox(
-                                height: 40,
-                              ),
+                              SizedBox(height: 40),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -202,76 +195,84 @@ class _SignUp1State extends State<SignUp1> {
                                     "Country",
                                     style: TextStyle(fontSize: 12),
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
+                                  SizedBox(height: 10),
                                   InkWell(
                                     onTap: () {
                                       showCountryPicker(
-                                          context: context,
-                                          showPhoneCode: true,
-                                          onSelect: (Country country) {
-                                            setState(() {
-                                              _selectedCountry = country.name;
-                                            });
-                                          },
-                                          countryListTheme:
-                                              CountryListThemeData(
-                                                  backgroundColor:
-                                                      odaBackground,
-                                                  textStyle: TextStyle(
-                                                      color: Colors.white),
-                                                  searchTextStyle: TextStyle(
-                                                      color: Colors.white),
-                                                  inputDecoration:
-                                                      InputDecoration(
-                                                    hintText: 'Search',
-                                                    hintStyle: TextStyle(
-                                                        color: Colors.grey),
-                                                    prefixIcon: Icon(
-                                                        Icons.search,
-                                                        color: Colors.grey),
-                                                    border: OutlineInputBorder(
-                                                      borderSide: BorderSide(
-                                                          color: Colors.grey),
-                                                    ),
-                                                  )));
+                                        context: context,
+                                        showPhoneCode: true,
+                                        onSelect: (Country country) {
+                                          setState(() {
+                                            _selectedCountry = country.name;
+                                          });
+                                        },
+                                        countryListTheme: CountryListThemeData(
+                                          backgroundColor: odaBackground,
+                                          textStyle: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          searchTextStyle: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                          inputDecoration: InputDecoration(
+                                            hintText: 'Search',
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey,
+                                            ),
+                                            prefixIcon: Icon(
+                                              Icons.search,
+                                              color: Colors.grey,
+                                            ),
+                                            border: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
                                     },
                                     child: Container(
                                       width: MediaQuery.of(context).size.width,
                                       height: 55,
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 10),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
                                       decoration: BoxDecoration(
-                                          //color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                          border: Border.all(
-                                              color: Colors.grey
-                                                  .withOpacity(0.4))),
+                                        //color: Colors.white,
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: Colors.grey.withOpacity(0.4),
+                                        ),
+                                      ),
                                       child: Row(
                                         children: [
                                           if (_selectedCountry != null) ...[
-                                            Text(_selectedCountry.toString(),
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.black)),
+                                            Text(
+                                              _selectedCountry.toString(),
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.black,
+                                              ),
+                                            ),
                                           ] else ...[
-                                            Text("Select Country",
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.grey
-                                                        .withOpacity(1))),
-                                          ]
+                                            Text(
+                                              "Select Country",
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.grey.withOpacity(
+                                                  1,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -279,9 +280,7 @@ class _SignUp1State extends State<SignUp1> {
                                     "Graduation Year",
                                     style: TextStyle(fontSize: 12),
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
+                                  SizedBox(height: 10),
                                   GestureDetector(
                                     onTap: () {
                                       //_selectGraduationYear(context);
@@ -292,19 +291,22 @@ class _SignUp1State extends State<SignUp1> {
                                       width: MediaQuery.of(context).size.width,
                                       height: 60,
                                       decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                          border: Border.all(
-                                              color: Colors.grey
-                                                  .withOpacity(0.4))),
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: Colors.grey.withOpacity(0.4),
+                                        ),
+                                      ),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            yearGroup ?? 'Select Year',
+                                            yearGroupLabel ??
+                                                'Select Year Group',
                                             style: TextStyle(
-                                                fontSize: 15, color: bodyText2),
+                                              fontSize: 15,
+                                              color: bodyText2,
+                                            ),
                                           ),
                                           Icon(
                                             Icons.calendar_today_outlined,
@@ -317,34 +319,38 @@ class _SignUp1State extends State<SignUp1> {
                                   ),
                                 ],
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
                                   style: TextStyle(),
                                   decoration: InputDecoration(
                                     //hintText: 'Enter Username/Email',
-
                                     hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.normal),
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                     labelText: "First Name",
                                     labelStyle: TextStyle(
-                                        fontSize: 15, color: bodyText2),
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
                                     enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     border: InputBorder.none,
                                   ),
                                   inputFormatters: [
@@ -370,34 +376,38 @@ class _SignUp1State extends State<SignUp1> {
                                   },
                                 ),
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
                                   style: TextStyle(),
                                   decoration: InputDecoration(
                                     //hintText: 'Enter Username/Email',
-
                                     hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.normal),
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                     labelText: "Middle Name",
                                     labelStyle: TextStyle(
-                                        fontSize: 15, color: bodyText2),
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
                                     enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     border: InputBorder.none,
                                   ),
                                   inputFormatters: [
@@ -413,34 +423,38 @@ class _SignUp1State extends State<SignUp1> {
                                   },
                                 ),
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
                                   style: TextStyle(),
                                   decoration: InputDecoration(
                                     //hintText: 'Enter Username/Email',
-
                                     hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.normal),
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                     labelText: "Last Name",
                                     labelStyle: TextStyle(
-                                        fontSize: 15, color: bodyText2),
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
                                     enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     border: InputBorder.none,
                                   ),
                                   inputFormatters: [
@@ -466,34 +480,38 @@ class _SignUp1State extends State<SignUp1> {
                                   },
                                 ),
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
                                   style: TextStyle(),
                                   decoration: InputDecoration(
                                     //hintText: 'Enter Username/Email',
-
                                     hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.normal),
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                     labelText: "Username",
                                     labelStyle: TextStyle(
-                                        fontSize: 15, color: bodyText2),
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
                                     enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     border: InputBorder.none,
                                   ),
                                   inputFormatters: [
@@ -519,34 +537,38 @@ class _SignUp1State extends State<SignUp1> {
                                   },
                                 ),
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
                                   style: TextStyle(),
                                   decoration: InputDecoration(
                                     //hintText: 'Enter Username/Email',
-
                                     hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.normal),
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                     labelText: "Email Address",
                                     labelStyle: TextStyle(
-                                        fontSize: 15, color: bodyText2),
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
                                     enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Colors.grey.withOpacity(0.4))),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
                                     border: InputBorder.none,
                                   ),
                                   inputFormatters: [
@@ -580,146 +602,158 @@ class _SignUp1State extends State<SignUp1> {
                                   },
                                 ),
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
-                                    style: TextStyle(),
-                                    decoration: InputDecoration(
-                                      //hintText: 'Enter Password',
-                                      suffixIcon: IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            show_password = !show_password;
-                                          });
-                                        },
-                                        icon: Icon(
-                                          show_password
-                                              ? Icons.remove_red_eye_outlined
-                                              : Icons.remove_red_eye,
-                                          color: odaSecondary,
-                                        ),
+                                  style: TextStyle(),
+                                  decoration: InputDecoration(
+                                    //hintText: 'Enter Password',
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          show_password = !show_password;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        show_password
+                                            ? Icons.remove_red_eye_outlined
+                                            : Icons.remove_red_eye,
+                                        color: odaSecondary,
                                       ),
-                                      hintStyle: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.normal),
-                                      labelText: "Password",
-                                      labelStyle: TextStyle(
-                                          fontSize: 15, color: bodyText2),
-                                      enabledBorder: UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.grey
-                                                  .withOpacity(0.4))),
-                                      focusedBorder: UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.grey
-                                                  .withOpacity(0.4))),
-                                      border: InputBorder.none,
                                     ),
-                                    inputFormatters: [
-                                      LengthLimitingTextInputFormatter(PasswordPolicy.maxLength),
-                                      PasteTextInputFormatter(),
-                                    ],
-                                    validator: PasswordPolicy.validate,
-                                    textInputAction: TextInputAction.next,
-                                    obscureText: show_password ? false : true,
-                                    onSaved: (value) {
-                                      setState(() {
-                                        password = value;
-                                      });
-                                    },
-                                    onChanged: (value) {
-                                      setState(() {
-                                        password = value;
-                                      });
-                                    }),
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                    labelText: "Password",
+                                    labelStyle: TextStyle(
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
+                                    border: InputBorder.none,
+                                  ),
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(
+                                      PasswordPolicy.maxLength,
+                                    ),
+                                    PasteTextInputFormatter(),
+                                  ],
+                                  validator: PasswordPolicy.validate,
+                                  textInputAction: TextInputAction.next,
+                                  obscureText: show_password ? false : true,
+                                  onSaved: (value) {
+                                    setState(() {
+                                      password = value;
+                                    });
+                                  },
+                                  onChanged: (value) {
+                                    setState(() {
+                                      password = value;
+                                    });
+                                  },
+                                ),
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              SizedBox(height: 20),
                               Container(
                                 decoration: BoxDecoration(
-                                    //color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                        color: Colors.grey.withOpacity(0.4))),
+                                  //color: Colors.white,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.4),
+                                  ),
+                                ),
                                 child: TextFormField(
-                                    style: TextStyle(),
-                                    decoration: InputDecoration(
-                                      //hintText: 'Enter Password',
-                                      suffixIcon: IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            show_password = !show_password;
-                                          });
-                                        },
-                                        icon: Icon(
-                                          show_password
-                                              ? Icons.remove_red_eye_outlined
-                                              : Icons.remove_red_eye,
-                                          color: odaSecondary,
-                                        ),
+                                  style: TextStyle(),
+                                  decoration: InputDecoration(
+                                    //hintText: 'Enter Password',
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          show_password = !show_password;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        show_password
+                                            ? Icons.remove_red_eye_outlined
+                                            : Icons.remove_red_eye,
+                                        color: odaSecondary,
                                       ),
-                                      hintStyle: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.normal),
-                                      labelText: "Confirm Password",
-                                      labelStyle: TextStyle(
-                                          fontSize: 15, color: bodyText2),
-                                      enabledBorder: UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.grey
-                                                  .withOpacity(0.4))),
-                                      focusedBorder: UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.grey
-                                                  .withOpacity(0.4))),
-                                      border: InputBorder.none,
                                     ),
-                                    inputFormatters: [
-                                      LengthLimitingTextInputFormatter(225),
-                                      PasteTextInputFormatter(),
-                                    ],
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please confirm your password';
-                                      }
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                    labelText: "Confirm Password",
+                                    labelStyle: TextStyle(
+                                      fontSize: 15,
+                                      color: bodyText2,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withOpacity(0.4),
+                                      ),
+                                    ),
+                                    border: InputBorder.none,
+                                  ),
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(225),
+                                    PasteTextInputFormatter(),
+                                  ],
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please confirm your password';
+                                    }
 
-                                      if (value != password) {
-                                        return 'Passwords do not match';
-                                      }
-                                      return null;
-                                    },
-                                    textInputAction: TextInputAction.next,
-                                    obscureText: show_password ? false : true,
-                                    onSaved: (value) {
-                                      setState(() {
-                                        confirmPassword = value;
-                                      });
-                                    },
-                                    onChanged: (value) {
-                                      setState(() {
-                                        confirmPassword = value;
-                                      });
-                                    }),
+                                    if (value != password) {
+                                      return 'Passwords do not match';
+                                    }
+                                    return null;
+                                  },
+                                  textInputAction: TextInputAction.next,
+                                  obscureText: show_password ? false : true,
+                                  onSaved: (value) {
+                                    setState(() {
+                                      confirmPassword = value;
+                                    });
+                                  },
+                                  onChanged: (value) {
+                                    setState(() {
+                                      confirmPassword = value;
+                                    });
+                                  },
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -752,8 +786,9 @@ class _SignUp1State extends State<SignUp1> {
                             TextSpan(
                               text: "Terms of Use",
                               style: TextStyle(
-                                  color: odaSecondary,
-                                  fontWeight: FontWeight.bold),
+                                color: odaSecondary,
+                                fontWeight: FontWeight.bold,
+                              ),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   Navigator.push(
@@ -778,9 +813,7 @@ class _SignUp1State extends State<SignUp1> {
                   ),
                 ],
               ),
-              SizedBox(
-                height: 16,
-              ),
+              SizedBox(height: 16),
               Column(
                 children: [
                   Align(
@@ -788,10 +821,11 @@ class _SignUp1State extends State<SignUp1> {
                       width: MediaQuery.of(context).size.width,
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                          color: _agreedToTerms
-                              ? odaSecondary
-                              : odaSecondary.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(10)),
+                        color: _agreedToTerms
+                            ? odaSecondary
+                            : odaSecondary.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
@@ -800,7 +834,8 @@ class _SignUp1State extends State<SignUp1> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                      'Please agree to the Terms of Use to continue'),
+                                    'Please agree to the Terms of Use to continue',
+                                  ),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -817,7 +852,10 @@ class _SignUp1State extends State<SignUp1> {
                                 "lastName": lastName,
                                 "email": email,
                                 "password": password,
-                                "graduationYear": yearGroup != null ? int.tryParse(yearGroup!) ?? 0 : 0,
+                                "graduationYear": yearGroup != null
+                                    ? int.tryParse(yearGroup!) ?? 0
+                                    : 0,
+                                "yearGroupId": yearGroupId,
                               };
 
                               setState(() {
@@ -834,7 +872,9 @@ class _SignUp1State extends State<SignUp1> {
                               child: Text(
                                 "Continue",
                                 style: TextStyle(
-                                    fontSize: 22, color: Colors.white),
+                                  fontSize: 22,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -847,34 +887,35 @@ class _SignUp1State extends State<SignUp1> {
                   // ),
                 ],
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Align(
                 child: InkWell(
                   onTap: () {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (BuildContext context) => SignInScreen()));
-                  },
-                  child: Text.rich(TextSpan(
-                      text: "Already have an account? ",
-                      style: TextStyle(
-                        fontSize: 16,
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => SignInScreen(),
                       ),
+                    );
+                  },
+                  child: Text.rich(
+                    TextSpan(
+                      text: "Already have an account? ",
+                      style: TextStyle(fontSize: 16),
                       children: <InlineSpan>[
                         TextSpan(
                           text: "Sign In here",
                           style: TextStyle(
-                              color: odaSecondary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        )
-                      ])),
+                            color: odaSecondary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -884,85 +925,9 @@ class _SignUp1State extends State<SignUp1> {
 
   FutureBuilder<RegisterResult> buildFutureBuilder() {
     return FutureBuilder<RegisterResult>(
-        future: _futureSignUp,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Scaffold(
-              body: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Text("Please Wait...")
-                  ],
-                ),
-              ),
-            );
-          } else if (snapshot.hasData) {
-            var data = snapshot.data!;
-
-            if (data.success && data.user != null) {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => SignInScreen()));
-
-                showDialog(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                                child: Text("Account Created Successfully")),
-                          ],
-                        ),
-                        content: Text("Please sign in to continue."),
-                      );
-                    });
-              });
-            } else {
-              WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => SignUp1()));
-
-                showDialog(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.close,
-                              color: Colors.red,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Error"),
-                          ],
-                        ),
-                        content: Text(data.error ??
-                            "Registration failed. Please try again."),
-                      );
-                    });
-              });
-            }
-          }
-
+      future: _futureSignUp,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
             body: SizedBox(
               width: MediaQuery.of(context).size.width,
@@ -971,15 +936,84 @@ class _SignUp1State extends State<SignUp1> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text("Please Wait...")
+                  SizedBox(height: 10),
+                  Text("Please Wait..."),
                 ],
               ),
             ),
           );
-        });
+        } else if (snapshot.hasData) {
+          var data = snapshot.data!;
+
+          if (data.success && data.user != null) {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SignInScreen()),
+              );
+
+              showDialog(
+                barrierDismissible: true,
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green),
+                        SizedBox(width: 10),
+                        Expanded(child: Text("Account Created Successfully")),
+                      ],
+                    ),
+                    content: Text("Please sign in to continue."),
+                  );
+                },
+              );
+            });
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SignUp1()),
+              );
+
+              showDialog(
+                barrierDismissible: true,
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Row(
+                      children: [
+                        Icon(Icons.close, color: Colors.red),
+                        SizedBox(width: 10),
+                        Text("Error"),
+                      ],
+                    ),
+                    content: Text(
+                      data.error ?? "Registration failed. Please try again.",
+                    ),
+                  );
+                },
+              );
+            });
+          }
+        }
+
+        return Scaffold(
+          body: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 10),
+                Text("Please Wait..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -999,10 +1033,12 @@ class _SignUp1State extends State<SignUp1> {
               Container(
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
-                    color: odaPrimary,
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(20.0),
-                        topLeft: Radius.circular(20.0))),
+                  color: odaPrimary,
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20.0),
+                    topLeft: Radius.circular(20.0),
+                  ),
+                ),
                 height: 300,
               ),
               Positioned(
@@ -1010,32 +1046,35 @@ class _SignUp1State extends State<SignUp1> {
                 child: Container(
                   height: 300,
                   decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20.0),
-                          topLeft: Radius.circular(20.0))),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(20.0),
+                      topLeft: Radius.circular(20.0),
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
                         padding: EdgeInsets.all(20),
                         width: MediaQuery.of(context).size.width,
-                        decoration:
-                            BoxDecoration(color: Colors.grey.withOpacity(0.05)),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.05),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               "Select Graduation Year",
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 20),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(
-                        height: 40,
-                      ),
+                      SizedBox(height: 40),
                       SizedBox(
                         //color: Colors.red,
                         width: MediaQuery.of(context).size.width,
@@ -1064,12 +1103,17 @@ class _SignUp1State extends State<SignUp1> {
                                             return InkWell(
                                               onTap: () {
                                                 debugPrint(
-                                                    group.year.toString());
+                                                  group.year.toString(),
+                                                );
                                                 setState(() {
                                                   yearGroup =
                                                       group.year.toString();
-                                                  Navigator.of(context).pop(
-                                                      group.year.toString());
+                                                  yearGroupId = group.id;
+                                                  yearGroupLabel =
+                                                      group.displayLabel;
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(group.id);
                                                 });
                                               },
                                               child: SizedBox(
@@ -1077,16 +1121,15 @@ class _SignUp1State extends State<SignUp1> {
                                                 child: Column(
                                                   children: [
                                                     Text(
-                                                      group.name,
+                                                      group.displayLabel,
                                                       style: TextStyle(
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black),
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.black,
+                                                      ),
                                                     ),
-                                                    SizedBox(
-                                                      height: 5,
-                                                    ),
+                                                    SizedBox(height: 5),
                                                     SizedBox(
                                                       width: 150,
                                                       child: Divider(
@@ -1103,11 +1146,11 @@ class _SignUp1State extends State<SignUp1> {
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         );

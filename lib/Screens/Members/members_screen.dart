@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:odadee/Screens/AllUsers/member_detail_page.dart';
@@ -18,104 +19,112 @@ class MembersScreen extends StatefulWidget {
 class _MembersScreenState extends State<MembersScreen> {
   List<dynamic> members = [];
   bool isLoading = true;
+  bool isLoadingMore = false;
   String? error;
-  TextEditingController searchController = TextEditingController();
-  String searchQuery = '';
+  final TextEditingController searchController = TextEditingController();
+  final ScrollController _membersScrollController = ScrollController();
+  Timer? _searchDebounce;
+  int _offset = 0;
+  int _total = 0;
+  int _requestSequence = 0;
+  static const int _pageSize = 30;
 
   @override
   void initState() {
     super.initState();
     _fetchMembers();
+    _membersScrollController.addListener(_loadMoreIfNeeded);
   }
 
-  List<dynamic> allMembers = [];
-  
-  Future<void> _fetchMembers({String? query}) async {
+  Future<void> _fetchMembers({String? query, bool reset = true}) async {
+    final requestId = ++_requestSequence;
+    if (!mounted) return;
     setState(() {
-      isLoading = true;
+      if (reset) {
+        isLoading = true;
+        _offset = 0;
+      } else {
+        isLoadingMore = true;
+      }
       error = null;
     });
 
     try {
       final authService = AuthService();
-      List<dynamic> fetchedMembers = [];
-      int currentPage = 1;
-      int totalPages = 1;
-      
-      do {
-        String endpoint = '/api/search/members?page=$currentPage';
-        final response = await authService.authenticatedRequest('GET', endpoint);
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final List<dynamic> pageMembers = data['members'] ?? [];
-          fetchedMembers.addAll(pageMembers);
-          
-          if (data.containsKey('pagination')) {
-            totalPages = data['pagination']['totalPages'] ?? 1;
-          } else if (pageMembers.isEmpty) {
-            break;
-          }
-          
-          currentPage++;
-        } else {
-          setState(() {
-            error = 'Failed to load members';
-            isLoading = false;
-          });
-          return;
-        }
-      } while (currentPage <= totalPages);
-      
+      final trimmedQuery = query?.trim() ?? '';
+      final parameters = <String, String>{
+        'limit': _pageSize.toString(),
+        'offset': _offset.toString(),
+        if (trimmedQuery.isNotEmpty) 'q': trimmedQuery,
+      };
+      final endpoint = Uri(
+        path: '/api/search/members',
+        queryParameters: parameters,
+      ).toString();
+      final response = await authService.authenticatedRequest('GET', endpoint);
+      if (response.statusCode != 200) {
+        if (!mounted || requestId != _requestSequence) return;
+        setState(() {
+          error = 'Failed to load members';
+          isLoading = false;
+          isLoadingMore = false;
+        });
+        return;
+      }
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final List<dynamic> fetchedMembers = data['members'] ?? const [];
       final blockedIds = await ModerationService().getBlockedUserIds();
-      allMembers = fetchedMembers
+      final visibleMembers = fetchedMembers
           .where((m) => !blockedIds.contains(m['id']?.toString()))
           .toList();
-      _filterMembers(query);
-      
+      if (!mounted || requestId != _requestSequence) return;
+      setState(() {
+        members = reset ? visibleMembers : [...members, ...visibleMembers];
+        _offset += fetchedMembers.length;
+        _total = int.tryParse(data['total']?.toString() ?? '') ?? 0;
+        isLoading = false;
+        isLoadingMore = false;
+      });
     } catch (e) {
-      print('Error fetching members: $e');
+      if (!mounted || requestId != _requestSequence) return;
       setState(() {
         error = 'Network error. Please try again.';
         isLoading = false;
+        isLoadingMore = false;
       });
     }
-  }
-  
-  void _filterMembers(String? query) {
-    if (query == null || query.isEmpty) {
-      setState(() {
-        members = allMembers;
-        isLoading = false;
-      });
-      return;
-    }
-    
-    final searchLower = query.toLowerCase();
-    final filtered = allMembers.where((member) {
-      final firstName = (member['firstName'] ?? '').toString().toLowerCase();
-      final lastName = (member['lastName'] ?? '').toString().toLowerCase();
-      final email = (member['email'] ?? '').toString().toLowerCase();
-      final year = (member['graduationYear'] ?? '').toString();
-      final role = (member['currentRole'] ?? '').toString().toLowerCase();
-      final company = (member['company'] ?? '').toString().toLowerCase();
-      
-      return firstName.contains(searchLower) ||
-             lastName.contains(searchLower) ||
-             email.contains(searchLower) ||
-             year.contains(searchLower) ||
-             role.contains(searchLower) ||
-             company.contains(searchLower);
-    }).toList();
-    
-    setState(() {
-      members = filtered;
-      isLoading = false;
-    });
   }
 
   void _performSearch() {
-    _filterMembers(searchController.text);
+    _searchDebounce?.cancel();
+    _fetchMembers(query: searchController.text);
+  }
+
+  void _scheduleSearch(String query) {
+    setState(() {});
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () => _fetchMembers(query: query),
+    );
+  }
+
+  void _loadMoreIfNeeded() {
+    if (_membersScrollController.position.pixels >=
+            _membersScrollController.position.maxScrollExtent - 240 &&
+        !isLoading &&
+        !isLoadingMore &&
+        _offset < _total) {
+      _fetchMembers(query: searchController.text, reset: false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _membersScrollController.dispose();
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -163,21 +172,20 @@ class _MembersScreenState extends State<MembersScreen> {
                       ? IconButton(
                           icon: Icon(Icons.clear, color: Colors.white54),
                           onPressed: () {
+                            _searchDebounce?.cancel();
                             searchController.clear();
-                            setState(() {
-                              isLoading = true;
-                            });
                             _fetchMembers();
                           },
                         )
                       : null,
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
                 onSubmitted: (_) => _performSearch(),
-                onChanged: (value) {
-                  setState(() {});
-                },
+                onChanged: _scheduleSearch,
               ),
             ),
           ),
@@ -195,12 +203,11 @@ class _MembersScreenState extends State<MembersScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.error_outline, color: Colors.red, size: 48),
+                            Icon(Icons.error_outline,
+                                color: Colors.red, size: 48),
                             SizedBox(height: 16),
-                            Text(
-                              error!,
-                              style: TextStyle(color: Colors.white70),
-                            ),
+                            Text(error!,
+                                style: TextStyle(color: Colors.white70)),
                             SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () => _fetchMembers(),
@@ -217,25 +224,39 @@ class _MembersScreenState extends State<MembersScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.people_outline, color: Colors.white54, size: 64),
+                                Icon(
+                                  Icons.people_outline,
+                                  color: Colors.white54,
+                                  size: 64,
+                                ),
                                 SizedBox(height: 16),
                                 Text(
                                   'No members found',
-                                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                                  style: TextStyle(
+                                      color: Colors.white70, fontSize: 16),
                                 ),
                               ],
                             ),
                           )
                         : GridView.builder(
+                            controller: _membersScrollController,
                             padding: EdgeInsets.all(16),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount:
+                                  MediaQuery.of(context).size.width > 600
+                                      ? 3
+                                      : 2,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                               childAspectRatio: 0.75,
                             ),
-                            itemCount: members.length,
+                            itemCount: members.length + (isLoadingMore ? 1 : 0),
                             itemBuilder: (context, index) {
+                              if (index == members.length) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
                               final member = members[index];
                               return _buildMemberCard(member);
                             },
@@ -253,26 +274,30 @@ class _MembersScreenState extends State<MembersScreen> {
       if (imagePath.startsWith('http')) return imagePath;
       return imagePath.startsWith('/') ? imagePath : '/$imagePath';
     }
-    
+
     List<Map<String, dynamic>>? convertUserStatus(dynamic statusList) {
       if (statusList == null) return null;
       if (statusList is! List) return null;
-      
+
       try {
-        return statusList.map((item) {
-          if (item is Map<String, dynamic>) {
-            return item;
-          } else if (item is Map) {
-            return Map<String, dynamic>.from(item);
-          }
-          return null;
-        }).where((item) => item != null).cast<Map<String, dynamic>>().toList();
+        return statusList
+            .map((item) {
+              if (item is Map<String, dynamic>) {
+                return item;
+              } else if (item is Map) {
+                return Map<String, dynamic>.from(item);
+              }
+              return null;
+            })
+            .where((item) => item != null)
+            .cast<Map<String, dynamic>>()
+            .toList();
       } catch (e) {
         print('Error converting userStatus: $e');
         return null;
       }
     }
-    
+
     Map<String, dynamic> mappedData = {
       'id': member['id'],
       'username': member['username'],
@@ -300,7 +325,8 @@ class _MembersScreenState extends State<MembersScreen> {
       'workPlace': member['company'] ?? member['workPlace'],
       'position': member['currentRole'] ?? member['position'],
       'jobTitle': member['currentRole'] ?? member['jobTitle'],
-      'yearGroup': member['graduationYear']?.toString() ?? member['yearGroup']?.toString(),
+      'yearGroup': member['graduationYear']?.toString() ??
+          member['yearGroup']?.toString(),
       'about': member['bio'] ?? member['about'],
       'userRole': member['userRole'],
       'country': member['country'],
@@ -324,23 +350,19 @@ class _MembersScreenState extends State<MembersScreen> {
       'userInterests': member['userInterests'],
       'userStatus': convertUserStatus(member['userStatus']),
     };
-    
+
     return Data.fromJson(mappedData);
   }
 
   Widget _buildMemberCard(dynamic member) {
     final firstName = member['firstName'] ?? '';
     final lastName = member['lastName'] ?? '';
-    final email = member['email'] ?? '';
     final profileImage = member['profileImage'];
     final graduationYear = member['graduationYear']?.toString() ?? '';
     final currentRole = member['currentRole'] ?? '';
-    final userId = member['id'];
 
-    final imageUrl = ImageUrlHelper.normalizeImageUrl(
-          profileImage?.toString(),
-        ) ??
-        '';
+    final imageUrl =
+        ImageUrlHelper.normalizeImageUrl(profileImage?.toString()) ?? '';
 
     return GestureDetector(
       onTap: () {
@@ -426,10 +448,7 @@ class _MembersScreenState extends State<MembersScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
                   currentRole,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -467,11 +486,5 @@ class _MembersScreenState extends State<MembersScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
   }
 }
