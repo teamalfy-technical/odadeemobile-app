@@ -36,15 +36,13 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>your usage description here</string>
+	<string>Ɔdadeɛ Global uses the camera to let you take a photo for your profile picture when creating your account or updating your profile.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>This app requires Face ID access to authenticate using biometric login.</string>
+	<string>Ɔdadeɛ Global uses Face ID to let you securely sign in to your account without entering your password each time.</string>
 	<key>NSLocalAuthenticationUsageDescription</key>
-	<string>This app requires biometric authentication (Touch ID/Face ID) for secure login.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>your usage description here</string>
+	<string>Ɔdadeɛ Global uses Touch ID or Face ID to securely authenticate you when signing in to your account.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library.</string>
+	<string>Ɔdadeɛ Global needs access to your photo library so you can choose an existing photo to use as your profile picture.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
